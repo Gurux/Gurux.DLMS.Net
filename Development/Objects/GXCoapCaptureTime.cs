@@ -34,6 +34,9 @@
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// CoAP Capture time.
+    /// </summary>
     public class GXCoapCaptureTime
     {
         /// <summary>
@@ -46,7 +49,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// The most recent change attribute Id (3, 4 or 5).
+        /// Time stamp.
         /// </summary>
         public GXDateTime TimeStamp
         {

@@ -36,6 +36,9 @@ using System;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Network parameters for the LTE network
+    /// </summary>
     public class GXLteNetworkParameters
     {
         /// <summary>

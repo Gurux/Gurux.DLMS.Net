@@ -45,7 +45,6 @@ using System.Numerics;
 using System.Security.Cryptography.X509Certificates;
 #endif //!WINDOWS_UWP
 using System.Text;
-using System.Xml.Linq;
 
 namespace Gurux.DLMS.ASN
 {

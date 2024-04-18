@@ -3212,7 +3212,6 @@ namespace Gurux.DLMS.Internal
             }
             return sb.ToString();
         }
-
         static string UNISystemTitleToString(byte[] st, bool addComments)
         {
             StringBuilder sb = new StringBuilder();

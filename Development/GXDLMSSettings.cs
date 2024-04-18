@@ -102,9 +102,14 @@ namespace Gurux.DLMS
         byte[] _sourceSystemTitle;
 
         /// <summary>
-        /// Optional ECDSA public key certificate that is send in part of AARE.
+        /// Optional ECDSA public key certificate that is send in part of AARQ.
         /// </summary>
         internal GXx509Certificate ClientPublicKeyCertificate;
+
+        /// <summary>
+        /// Optional ECDSA public key certificate that is send in part of AARE.
+        /// </summary>
+        internal GXx509Certificate ServerPublicKeyCertificate;
 
         internal bool IsCiphered(bool checkGeneralSigning)
         {
@@ -482,17 +487,7 @@ namespace Gurux.DLMS
                 }
                 challengeSize = value;
             }
-        }
-
-        /// <summary>
-        /// Public key certificate is send in part of AARQ and AARE.
-        /// </summary>
-        /// <returns></returns>
-        public bool PublicKeyInInitialize
-        {
-            get;
-            set;
-        }
+        }       
 
         /// <summary>
         /// Client to Server challenge.

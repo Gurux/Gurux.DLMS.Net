@@ -36,6 +36,9 @@ using System;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Bt counter.
+    /// </summary>
     public class GXCoapBtCounter
     {
         /// <summary>

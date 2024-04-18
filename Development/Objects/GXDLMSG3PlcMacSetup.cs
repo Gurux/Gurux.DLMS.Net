@@ -1191,7 +1191,7 @@ namespace Gurux.DLMS.Objects
 
         private void LoadNeighbourTable(GXXmlReader reader)
         {
-            List<GXDLMSNeighbourTable> list = new List<Objects.GXDLMSNeighbourTable>();
+            List<GXDLMSNeighbourTable> list = new List<GXDLMSNeighbourTable>();
             if (reader.IsStartElement("NeighbourTable", true))
             {
                 while (reader.IsStartElement("Item", true))

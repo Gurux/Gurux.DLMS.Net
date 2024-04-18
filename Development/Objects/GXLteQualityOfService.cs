@@ -36,6 +36,9 @@ using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Quality of service of the LTE network.
+    /// </summary>
     public class GXLteQualityOfService
     {
         /// <summary>

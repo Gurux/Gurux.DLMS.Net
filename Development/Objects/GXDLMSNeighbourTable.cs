@@ -37,6 +37,9 @@ using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// The neighbour table contains information about all the devices within the POS of the device
+    /// </summary>
     public class GXDLMSNeighbourTable
     {
         /// <summary>

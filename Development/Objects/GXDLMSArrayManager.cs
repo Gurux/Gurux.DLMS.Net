@@ -34,7 +34,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;

@@ -235,10 +235,65 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(1);
             }
-            //Value
+            // UdpReference,
             if (all || CanRead(2))
             {
                 attributes.Add(2);
+            }
+            // AckTimeout
+            if (all || CanRead(3))
+            {
+                attributes.Add(3);
+            }
+            // AckRandomFactor
+            if (all || CanRead(4))
+            {
+                attributes.Add(4);
+            }
+            // MaxRetransmit
+            if (all || CanRead(5))
+            {
+                attributes.Add(5);
+            }
+            // NStart
+            if (all || CanRead(6))
+            {
+                attributes.Add(6);
+            }
+            // DelayAckTimeout
+            if (all || CanRead(7))
+            {
+                attributes.Add(7);
+            }
+            // ExponentialBackOff
+            if (all || CanRead(8))
+            {
+                attributes.Add(8);
+            }
+            // ProbingRate
+            if (all || CanRead(9))
+            {
+                attributes.Add(9);
+            }
+            // CoAPUriPath
+            if (all || CanRead(10))
+            {
+                attributes.Add(10);
+            }
+            // TransportMode
+            if (all || CanRead(11))
+            {
+                attributes.Add(11);
+            }
+            // WrapperVersion
+            if (all || CanRead(12))
+            {
+                attributes.Add(12);
+            }
+            // TokenLength
+            if (all || CanRead(13))
+            {
+                attributes.Add(13);
             }
             return attributes.ToArray();
         }
@@ -418,7 +473,7 @@ namespace Gurux.DLMS.Objects
                     CoAPUriPath = ASCIIEncoding.ASCII.GetString((byte[])e.Value);
                     break;
                 case 11:
-                    TransportMode = (TransportMode)e.Value;
+                    TransportMode = (TransportMode)Convert.ToByte(e.Value);
                     break;
                 case 12:
                     WrapperVersion = e.Value;

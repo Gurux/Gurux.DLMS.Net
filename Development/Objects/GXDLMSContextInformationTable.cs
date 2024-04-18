@@ -36,6 +36,9 @@ using System;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Contains the context information associated to each CID extension field.
+    /// </summary>
     public class GXDLMSContextInformationTable
     {
         /// <summary>

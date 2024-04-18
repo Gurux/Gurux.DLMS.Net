@@ -147,7 +147,8 @@ namespace Gurux.DLMS.Ecdsa
             p.Q = new ECPoint() { X = PrivateKey.GetPublicKey().X, Y = PrivateKey.GetPublicKey().Y };
             p.Curve = PrivateKey.Scheme == Ecc.P256 ? ECCurve.NamedCurves.nistP256 : ECCurve.NamedCurves.nistP384;
             ECDsa ecdsa = ECDsa.Create(p);
-            return ecdsa.SignData(data, HashAlgorithmName.SHA256);
+            return ecdsa.SignData(data,
+                PrivateKey.Scheme == Ecc.P256 ? HashAlgorithmName.SHA256 : HashAlgorithmName.SHA384);
 #endif
         }
 
@@ -282,7 +283,8 @@ namespace Gurux.DLMS.Ecdsa
             p.Q = new ECPoint() { X = PublicKey.X, Y = PublicKey.Y };
             p.Curve = PublicKey.Scheme == Ecc.P256 ? ECCurve.NamedCurves.nistP256 : ECCurve.NamedCurves.nistP384;
             ECDsa ecdsa = ECDsa.Create(p);
-            return ecdsa.VerifyData(data, signature, HashAlgorithmName.SHA256);
+            return ecdsa.VerifyData(data, signature,
+                PublicKey.Scheme == Ecc.P256 ? HashAlgorithmName.SHA256 : HashAlgorithmName.SHA384);
 #endif
         }
 #endif //!WINDOWS_UWP

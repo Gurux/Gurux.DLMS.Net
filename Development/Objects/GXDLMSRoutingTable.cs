@@ -36,6 +36,9 @@ using System;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// G3-PLC 6LoWPAN routing table.
+    /// </summary>
     public class GXDLMSRoutingTable
     {
         /// <summary>

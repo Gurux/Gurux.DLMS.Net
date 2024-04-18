@@ -131,7 +131,7 @@ namespace Gurux.DLMS.Ecdsa
             byte[] key = GXCommon.FromBase64(der);
             GXAsn1Sequence seq = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(key);
             List<object> tmp = (List<object>)seq[0];
-            X9ObjectIdentifier id = X9ObjectIdentifierConverter.FromString(tmp[0].ToString());
+            X9ObjectIdentifier id = X9ObjectIdentifierConverter.FromString(tmp[1].ToString());
             switch (id)
             {
                 case X9ObjectIdentifier.Prime256v1:
@@ -171,18 +171,19 @@ namespace Gurux.DLMS.Ecdsa
         {
             pem = pem.Replace("\r\n", "\n");
             const string START = "-----BEGIN PUBLIC KEY-----\n";
-            const string END = "-----END PUBLIC KEY-----\n";
-            int start = pem.IndexOf(START);
-            if (start == -1)
+            const string END = "\n-----END PUBLIC KEY-----";
+            int index = pem.IndexOf(START);
+            if (index == -1)
             {
                 throw new ArgumentException("Invalid PEM file.");
             }
-            int end = pem.IndexOf(END);
-            if (end == -1)
+            pem = pem.Substring(index + START.Length);
+            index = pem.IndexOf(END);
+            if (index == -1)
             {
                 throw new ArgumentException("Invalid PEM file.");
             }
-            return FromDer(pem.Substring(start + START.Length, end - start - START.Length - 1));
+            return FromDer(pem.Substring(0, index));
         }
 
         /// <summary>
@@ -251,7 +252,7 @@ namespace Gurux.DLMS.Ecdsa
 
         public string ToPem()
         {
-            return "-----BEGIN EC PUBLIC KEY-----\n" + ToDer() + "-----END EC PUBLIC KEY-----";
+            return "-----BEGIN PUBLIC KEY-----\n" + ToDer() + "\n-----END PUBLIC KEY-----\n";
         }
 
         /// <summary>

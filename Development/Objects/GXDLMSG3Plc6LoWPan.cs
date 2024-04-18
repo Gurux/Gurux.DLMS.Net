@@ -167,7 +167,7 @@ namespace Gurux.DLMS.Objects
             set;
         }
         /// <summary>
-        /// Routing table
+        /// Routing table.
         /// </summary>
         ///  <remarks>
         /// PIB attribute 0x03.
@@ -938,237 +938,244 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                MaxHops = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 3)
-            {
-                WeakLqiValue = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 4)
-            {
-                SecurityLevel = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 5)
-            {
-                List<byte> list = new List<byte>();
-                if (e.Value != null)
-                {
-                    foreach (var it in (IEnumerable<object>)e.Value)
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    MaxHops = Convert.ToByte(e.Value);
+                    break;
+                case 3:
+                    WeakLqiValue = Convert.ToByte(e.Value);
+                    break;
+                case 4:
+                    SecurityLevel = Convert.ToByte(e.Value);
+                    break;
+                case 5:
                     {
-                        list.Add(Convert.ToByte(it));
+                        List<byte> list = new List<byte>();
+                        if (e.Value != null)
+                        {
+                            foreach (var it in (IEnumerable<object>)e.Value)
+                            {
+                                list.Add(Convert.ToByte(it));
+                            }
+                        }
+                        PrefixTable = list.ToArray();
+                        break;
                     }
-                }
-                PrefixTable = list.ToArray();
-            }
-            else if (e.Index == 6)
-            {
-                RoutingConfiguration.Clear();
-                if (e.Value != null)
-                {
-                    foreach (object tmp in (IEnumerable<object>)e.Value)
+
+                case 6:
                     {
-                        List<object> arr;
-                        if (tmp is List<object>)
+                        RoutingConfiguration.Clear();
+                        if (e.Value != null)
                         {
-                            arr = (List<object>)tmp;
+                            foreach (object tmp in (IEnumerable<object>)e.Value)
+                            {
+                                List<object> arr;
+                                if (tmp is List<object>)
+                                {
+                                    arr = (List<object>)tmp;
+                                }
+                                else
+                                {
+                                    arr = new List<object>((object[])tmp);
+                                }
+                                GXDLMSRoutingConfiguration it = new GXDLMSRoutingConfiguration();
+                                it.NetTraversalTime = Convert.ToByte(arr[0]);
+                                it.RoutingTableEntryTtl = Convert.ToUInt16(arr[1]);
+                                it.Kr = Convert.ToByte(arr[2]);
+                                it.Km = Convert.ToByte(arr[3]);
+                                it.Kc = Convert.ToByte(arr[4]);
+                                it.Kq = Convert.ToByte(arr[5]);
+                                it.Kh = Convert.ToByte(arr[6]);
+                                it.Krt = Convert.ToByte(arr[7]);
+                                it.RreqRetries = Convert.ToByte(arr[8]);
+                                it.RreqReqWait = Convert.ToByte(arr[9]);
+                                it.BlacklistTableEntryTtl = Convert.ToUInt16(arr[10]);
+                                it.UnicastRreqGenEnable = Convert.ToBoolean(arr[11]);
+                                it.RlcEnabled = Convert.ToBoolean(arr[12]);
+                                it.AddRevLinkCost = Convert.ToByte(arr[13]);
+                                RoutingConfiguration.Add(it);
+                            }
                         }
-                        else
-                        {
-                            arr = new List<object>((object[])tmp);
-                        }
-                        GXDLMSRoutingConfiguration it = new GXDLMSRoutingConfiguration();
-                        it.NetTraversalTime = Convert.ToByte(arr[0]);
-                        it.RoutingTableEntryTtl = Convert.ToUInt16(arr[1]);
-                        it.Kr = Convert.ToByte(arr[2]);
-                        it.Km = Convert.ToByte(arr[3]);
-                        it.Kc = Convert.ToByte(arr[4]);
-                        it.Kq = Convert.ToByte(arr[5]);
-                        it.Kh = Convert.ToByte(arr[6]);
-                        it.Krt = Convert.ToByte(arr[7]);
-                        it.RreqRetries = Convert.ToByte(arr[8]);
-                        it.RreqReqWait = Convert.ToByte(arr[9]);
-                        it.BlacklistTableEntryTtl = Convert.ToUInt16(arr[10]);
-                        it.UnicastRreqGenEnable = Convert.ToBoolean(arr[11]);
-                        it.RlcEnabled = Convert.ToBoolean(arr[12]);
-                        it.AddRevLinkCost = Convert.ToByte(arr[13]);
-                        RoutingConfiguration.Add(it);
+
+                        break;
                     }
-                }
-            }
-            else if (e.Index == 7)
-            {
-                BroadcastLogTableEntryTtl = Convert.ToUInt16(e.Value);
-            }
-            else if (e.Index == 8)
-            {
-                RoutingTable.Clear();
-                if (e.Value != null)
-                {
-                    foreach (object tmp in (IEnumerable<object>)e.Value)
+
+                case 7:
+                    BroadcastLogTableEntryTtl = Convert.ToUInt16(e.Value);
+                    break;
+                case 8:
                     {
-                        List<object> arr;
-                        if (tmp is List<object>)
+                        RoutingTable.Clear();
+                        if (e.Value != null)
                         {
-                            arr = (List<object>)tmp;
+                            foreach (object tmp in (IEnumerable<object>)e.Value)
+                            {
+                                List<object> arr;
+                                if (tmp is List<object>)
+                                {
+                                    arr = (List<object>)tmp;
+                                }
+                                else
+                                {
+                                    arr = new List<object>((object[])tmp);
+                                }
+                                GXDLMSRoutingTable it = new GXDLMSRoutingTable();
+                                it.DestinationAddress = Convert.ToUInt16(arr[0]);
+                                it.NextHopAddress = Convert.ToUInt16(arr[1]);
+                                it.RouteCost = Convert.ToUInt16(arr[2]);
+                                it.HopCount = Convert.ToByte(arr[3]);
+                                it.WeakLinkCount = Convert.ToByte(arr[4]);
+                                it.ValidTime = Convert.ToUInt16(arr[5]);
+                                RoutingTable.Add(it);
+                            }
                         }
-                        else
-                        {
-                            arr = new List<object>((object[])tmp);
-                        }
-                        GXDLMSRoutingTable it = new GXDLMSRoutingTable();
-                        it.DestinationAddress = Convert.ToUInt16(arr[0]);
-                        it.NextHopAddress = Convert.ToUInt16(arr[1]);
-                        it.RouteCost = Convert.ToUInt16(arr[2]);
-                        it.HopCount = Convert.ToByte(arr[3]);
-                        it.WeakLinkCount = Convert.ToByte(arr[4]);
-                        it.ValidTime = Convert.ToUInt16(arr[5]);
-                        RoutingTable.Add(it);
+
+                        break;
                     }
-                }
-            }
-            else if (e.Index == 9)
-            {
-                ContextInformationTable.Clear();
-                if (e.Value != null)
-                {
-                    foreach (object tmp in (IEnumerable<object>)e.Value)
+
+                case 9:
                     {
-                        List<object> arr;
-                        if (tmp is List<object>)
+                        ContextInformationTable.Clear();
+                        if (e.Value != null)
                         {
-                            arr = (List<object>)tmp;
+                            foreach (object tmp in (IEnumerable<object>)e.Value)
+                            {
+                                List<object> arr;
+                                if (tmp is List<object>)
+                                {
+                                    arr = (List<object>)tmp;
+                                }
+                                else
+                                {
+                                    arr = new List<object>((object[])tmp);
+                                }
+                                GXDLMSContextInformationTable it = new GXDLMSContextInformationTable();
+                                it.CID = Convert.ToString(arr[0]);
+                                it.Context = (byte[])arr[2];
+                                it.Compression = Convert.ToBoolean(arr[3]);
+                                it.ValidLifetime = Convert.ToUInt16(arr[4]);
+                                ContextInformationTable.Add(it);
+                            }
                         }
-                        else
-                        {
-                            arr = new List<object>((object[])tmp);
-                        }
-                        GXDLMSContextInformationTable it = new GXDLMSContextInformationTable();
-                        it.CID = Convert.ToString(arr[0]);
-                        it.Context = (byte[])arr[2];
-                        it.Compression = Convert.ToBoolean(arr[3]);
-                        it.ValidLifetime = Convert.ToUInt16(arr[4]);
-                        ContextInformationTable.Add(it);
+
+                        break;
                     }
-                }
-            }
-            else if (e.Index == 10)
-            {
-                List<GXKeyValuePair<UInt16, UInt16>> list = new List<GXKeyValuePair<UInt16, UInt16>>();
-                if (e.Value != null)
-                {
-                    foreach (object tmp in (IEnumerable<object>)e.Value)
+
+                case 10:
                     {
-                        List<object> arr;
-                        if (tmp is List<object>)
+                        List<GXKeyValuePair<ushort, ushort>> list = new List<GXKeyValuePair<ushort, ushort>>();
+                        if (e.Value != null)
                         {
-                            arr = (List<object>)tmp;
+                            foreach (object tmp in (IEnumerable<object>)e.Value)
+                            {
+                                List<object> arr;
+                                if (tmp is List<object>)
+                                {
+                                    arr = (List<object>)tmp;
+                                }
+                                else
+                                {
+                                    arr = new List<object>((object[])tmp);
+                                }
+                                list.Add(new GXKeyValuePair<ushort, ushort>(Convert.ToUInt16(arr[0]), Convert.ToUInt16(arr[1])));
+                            }
                         }
-                        else
-                        {
-                            arr = new List<object>((object[])tmp);
-                        }
-                        list.Add(new GXKeyValuePair<UInt16, UInt16>(Convert.ToUInt16(arr[0]), Convert.ToUInt16(arr[1])));
+                        BlacklistTable = list;
+                        break;
                     }
-                }
-                BlacklistTable = list;
-            }
-            else if (e.Index == 11)
-            {
-                BroadcastLogTable.Clear();
-                if (e.Value != null)
-                {
-                    foreach (object tmp in (IEnumerable<object>)e.Value)
+
+                case 11:
                     {
-                        List<object> arr;
-                        if (tmp is List<object>)
+                        BroadcastLogTable.Clear();
+                        if (e.Value != null)
                         {
-                            arr = (List<object>)tmp;
+                            foreach (object tmp in (IEnumerable<object>)e.Value)
+                            {
+                                List<object> arr;
+                                if (tmp is List<object>)
+                                {
+                                    arr = (List<object>)tmp;
+                                }
+                                else
+                                {
+                                    arr = new List<object>((object[])tmp);
+                                }
+                                GXDLMSBroadcastLogTable it = new GXDLMSBroadcastLogTable();
+                                it.SourceAddress = Convert.ToUInt16(arr[0]);
+                                it.SequenceNumber = Convert.ToByte(arr[1]);
+                                it.ValidTime = Convert.ToUInt16(arr[2]);
+                                BroadcastLogTable.Add(it);
+                            }
                         }
-                        else
+
+                        break;
+                    }
+
+                case 12:
+                    {
+                        List<ushort> list = new List<ushort>();
+                        if (e.Value != null)
                         {
-                            arr = new List<object>((object[])tmp);
+                            foreach (object it in (IEnumerable<object>)e.Value)
+                            {
+                                list.Add(Convert.ToUInt16(it));
+                            }
                         }
-                        GXDLMSBroadcastLogTable it = new GXDLMSBroadcastLogTable();
-                        it.SourceAddress = Convert.ToUInt16(arr[0]);
-                        it.SequenceNumber = Convert.ToByte(arr[1]);
-                        it.ValidTime = Convert.ToUInt16(arr[2]);
-                        BroadcastLogTable.Add(it);
+                        GroupTable = list.ToArray();
+                        break;
                     }
-                }
-            }
-            else if (e.Index == 12)
-            {
-                List<UInt16> list = new List<UInt16>();
-                if (e.Value != null)
-                {
-                    foreach (object it in (IEnumerable<object>)e.Value)
+
+                case 13:
+                    MaxJoinWaitTime = Convert.ToUInt16(e.Value);
+                    break;
+                case 14:
+                    PathDiscoveryTime = Convert.ToByte(e.Value);
+                    break;
+                case 15:
+                    ActiveKeyIndex = Convert.ToByte(e.Value);
+                    break;
+                case 16:
+                    MetricType = Convert.ToByte(e.Value);
+                    break;
+                case 17:
+                    CoordShortAddress = Convert.ToUInt16(e.Value);
+                    break;
+                case 18:
+                    DisableDefaultRouting = (bool)e.Value;
+                    break;
+                case 19:
+                    DeviceType = (DeviceType)Convert.ToInt32(e.Value);
+                    break;
+                case 20:
+                    DefaultCoordRouteEnabled = Convert.ToBoolean(e.Value);
+                    break;
+                case 21:
                     {
-                        list.Add(Convert.ToUInt16(it));
+                        List<ushort> list = new List<ushort>();
+                        if (e.Value != null)
+                        {
+                            foreach (object it in (IEnumerable<object>)e.Value)
+                            {
+                                list.Add(Convert.ToUInt16(it));
+                            }
+                        }
+                        DestinationAddress = list.ToArray();
+                        break;
                     }
-                }
-                GroupTable = list.ToArray();
-            }
-            else if (e.Index == 13)
-            {
-                MaxJoinWaitTime = Convert.ToUInt16(e.Value);
-            }
-            else if (e.Index == 14)
-            {
-                PathDiscoveryTime = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 15)
-            {
-                ActiveKeyIndex = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 16)
-            {
-                MetricType = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 17)
-            {
-                CoordShortAddress = Convert.ToUInt16(e.Value);
-            }
-            else if (e.Index == 18)
-            {
-                DisableDefaultRouting = (bool)e.Value;
-            }
-            else if (e.Index == 19)
-            {
-                DeviceType = (DeviceType)Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 20)
-            {
-                DefaultCoordRouteEnabled = Convert.ToBoolean(e.Value);
-            }
-            else if (e.Index == 21)
-            {
-                List<UInt16> list = new List<UInt16>();
-                if (e.Value != null)
-                {
-                    foreach (object it in (IEnumerable<object>)e.Value)
-                    {
-                        list.Add(Convert.ToUInt16(it));
-                    }
-                }
-                DestinationAddress = list.ToArray();
-            }
-            else if (e.Index == 22)
-            {
-                LowLQI = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 23)
-            {
-                HighLQI = Convert.ToByte(e.Value);
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+
+                case 22:
+                    LowLQI = Convert.ToByte(e.Value);
+                    break;
+                case 23:
+                    HighLQI = Convert.ToByte(e.Value);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 

@@ -919,7 +919,7 @@ namespace Gurux.DLMS.Internal
                     return ApplicationContextName.Unknown;
                 }
                 //All connections are accepted if the There might be only one association view in some test meters.
-                if (settings.UseLogicalNameReferencing && 
+                if (settings.UseLogicalNameReferencing &&
                     settings.Objects.GetObjects(ObjectType.AssociationLogicalName).Count == 1)
                 {
                     return ApplicationContextName.Unknown;
@@ -1193,58 +1193,61 @@ namespace Gurux.DLMS.Internal
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledAeQualifier:////SourceDiagnostic 0xA3
-                        len = buff.GetUInt8();
-                        // ACSE service user tag.
-                        tag = buff.GetUInt8();
-                        len = buff.GetUInt8();
-                        if (settings.IsServer)
                         {
-                            byte[] CalledAEQualifier = new byte[len];
-                            buff.Get(CalledAEQualifier);
-                            if (xml != null)
+                            len = buff.GetUInt8();
+                            // ACSE service user tag.
+                            tag = buff.GetUInt8();
+                            len = buff.GetUInt8();
+                            byte tag2 = buff.GetUInt8();
+                            if (tag2 == (byte)BerType.OctetString)
                             {
-                                xml.AppendLine(TranslatorTags.CalledAEQualifier, "Value", GXCommon.ToHex(CalledAEQualifier, false));
-                            }
-                        }
-                        else
-                        {
-                            // Result source diagnostic component.
-                            if (buff.GetUInt8() != (byte)BerType.Integer)
-                            {
-                                throw new Exception("Invalid tag.");
-                            }
-                            if (buff.GetUInt8() != 1)
-                            {
-                                throw new Exception("Invalid tag.");
-                            }
-                            if (tag == 0xA1)
-                            {
-                                ret = (SourceDiagnostic)buff.GetUInt8();
+                                byte[] CalledAEQualifier = new byte[len];
+                                buff.Get(CalledAEQualifier);
                                 if (xml != null)
                                 {
-                                    if ((SourceDiagnostic)ret != SourceDiagnostic.None)
-                                    {
-                                        xml.AppendComment(ret.ToString());
-                                    }
-                                    xml.AppendLine(TranslatorGeneralTags.ACSEServiceUser, "Value", xml.IntegerToHex((int)ret, 2));
+                                    xml.AppendLine(TranslatorTags.CalledAEQualifier, "Value", GXCommon.ToHex(CalledAEQualifier, false));
                                 }
                             }
                             else
                             {
-                                //ACSEServiceProvicer
-                                ret = (AcseServiceProvider)buff.GetUInt8();
+                                // Result source diagnostic component.
+                                if (tag2 != (byte)BerType.Integer)
+                                {
+                                    throw new Exception("Invalid tag.");
+                                }
+                                if (buff.GetUInt8() != 1)
+                                {
+                                    throw new Exception("Invalid tag.");
+                                }
+                                if (tag == 0xA1)
+                                {
+                                    ret = (SourceDiagnostic)buff.GetUInt8();
+                                    if (xml != null)
+                                    {
+                                        if ((SourceDiagnostic)ret != SourceDiagnostic.None)
+                                        {
+                                            xml.AppendComment(ret.ToString());
+                                        }
+                                        xml.AppendLine(TranslatorGeneralTags.ACSEServiceUser, "Value", xml.IntegerToHex((int)ret, 2));
+                                    }
+                                }
+                                else
+                                {
+                                    //ACSEServiceProvicer
+                                    ret = (AcseServiceProvider)buff.GetUInt8();
+                                    if (xml != null)
+                                    {
+                                        if ((AcseServiceProvider)ret != AcseServiceProvider.None)
+                                        {
+                                            xml.AppendComment(ret.ToString());
+                                        }
+                                        xml.AppendLine(TranslatorGeneralTags.ACSEServiceProvider, "Value", xml.IntegerToHex((int)ret, 2));
+                                    }
+                                }
                                 if (xml != null)
                                 {
-                                    if ((AcseServiceProvider)ret != AcseServiceProvider.None)
-                                    {
-                                        xml.AppendComment(ret.ToString());
-                                    }
-                                    xml.AppendLine(TranslatorGeneralTags.ACSEServiceProvider, "Value", xml.IntegerToHex((int)ret, 2));
+                                    xml.AppendEndTag(TranslatorGeneralTags.ResultSourceDiagnostic);
                                 }
-                            }
-                            if (xml != null)
-                            {
-                                xml.AppendEndTag(TranslatorGeneralTags.ResultSourceDiagnostic);
                             }
                         }
                         break;
@@ -1337,37 +1340,55 @@ namespace Gurux.DLMS.Internal
                         break;
                     //Client CalledAeInvocationId.
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledAeInvocationId://0xA5
-                        if (settings.IsServer)
                         {
-                            if (buff.GetUInt8() != 3)
-                            {
-                                throw new Exception("Invalid tag.");
-                            }
-                            if (buff.GetUInt8() != 2)
-                            {
-                                throw new Exception("Invalid length.");
-                            }
-                            if (buff.GetUInt8() != 1)
-                            {
-                                throw new Exception("Invalid tag length.");
-                            }
-                            //Get value.
-                            len = buff.GetUInt8();
-                            if (xml != null)
-                            {
-                                //CalledAEInvocationId
-                                xml.AppendLine(TranslatorTags.CalledAEInvocationId, "Value", xml.IntegerToHex(len, 2));
-                            }
-                        }
-                        else
-                        {
-                            len = buff.GetUInt8();
+                            len = GXCommon.GetObjectCount(buff);
                             tag = buff.GetUInt8();
-                            len = buff.GetUInt8();
-                            settings.UserId = buff.GetUInt8();
-                            if (xml != null)
+                            len = GXCommon.GetObjectCount(buff);
+                            if (tag == (byte)BerType.OctetString)
                             {
-                                xml.AppendLine(TranslatorGeneralTags.CalledAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                                byte[] tmp2 = new byte[len];
+                                buff.Get(tmp2);
+                                if (xml != null)
+                                {
+                                    xml.AppendLine(TranslatorGeneralTags.CallingAeQualifier, "Value",
+                                        GXCommon.ToHex(tmp2, false));
+                                }
+                                try
+                                {
+                                    //If public key certificate is coming part of AARE.
+                                    GXx509Certificate cert = new GXx509Certificate(tmp2);
+                                    settings.ServerPublicKeyCertificate = cert;
+                                    if ((cert.KeyUsage & ASN.Enums.KeyUsage.KeyCertSign) != 0)
+                                    {
+                                        settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey,
+                                            settings.Cipher.KeyAgreementKeyPair.Value);
+                                    }
+                                    if ((cert.KeyUsage & ASN.Enums.KeyUsage.DigitalSignature) != 0)
+                                    {
+                                        settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey,
+                                            settings.Cipher.SigningKeyPair.Value);
+                                    }
+                                    if (xml != null && xml.Comments)
+                                    {
+                                        xml.AppendComment(cert.ToString());
+                                    }
+                                }
+                                catch (Exception)
+                                {
+                                    if (xml == null)
+                                    {
+                                        throw;
+                                    }
+                                    xml.AppendLine("Invalid certificate.");
+                                }
+                            }
+                            else
+                            {
+                                settings.UserId = buff.GetUInt8();
+                                if (xml != null)
+                                {
+                                    xml.AppendLine(TranslatorGeneralTags.CalledAeInvocationId, "Value", xml.IntegerToHex(settings.UserId, 2));
+                                }
                             }
                         }
                         break;
@@ -1380,10 +1401,39 @@ namespace Gurux.DLMS.Internal
                         {
                             byte[] tmp2 = new byte[len];
                             buff.Get(tmp2);
-                            //If public key certificate is coming part of AARQ.
-                            GXx509Certificate cert = new GXx509Certificate(tmp2);
-                            settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey, 
-                                settings.Cipher.KeyAgreementKeyPair.Value);
+                            if (xml != null)
+                            {
+                                xml.AppendLine(TranslatorGeneralTags.CallingAeQualifier, "Value",
+                                    GXCommon.ToHex(tmp2, false));
+                            }
+                            try
+                            {
+                                //If public key certificate is coming part of AARQ.
+                                GXx509Certificate cert = new GXx509Certificate(tmp2);
+                                settings.ClientPublicKeyCertificate = cert;
+                                if ((cert.KeyUsage & ASN.Enums.KeyUsage.KeyCertSign) != 0)
+                                {
+                                    settings.Cipher.KeyAgreementKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey,
+                                        settings.Cipher.KeyAgreementKeyPair.Value);
+                                }
+                                if ((cert.KeyUsage & ASN.Enums.KeyUsage.DigitalSignature) != 0)
+                                {
+                                    settings.Cipher.SigningKeyPair = new KeyValuePair<GXPublicKey, GXPrivateKey>(cert.PublicKey,
+                                        settings.Cipher.SigningKeyPair.Value);
+                                }
+                                if (xml != null && xml.Comments)
+                                {
+                                    xml.AppendComment(cert.ToString());
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                if (xml == null)
+                                {
+                                    throw;
+                                }
+                                xml.AppendLine("Invalid certificate.");
+                            }
                         }
                         else
                         {
@@ -1650,7 +1700,7 @@ namespace Gurux.DLMS.Internal
                 {
                     cmd = (byte)Command.GloInitiateResponse;
                 }
-                AesGcmParameter p = new AesGcmParameter(cmd, settings, 
+                AesGcmParameter p = new AesGcmParameter(cmd, settings,
                     cipher.Security,
                     cipher.SecuritySuite,
                      cipher.InvocationCounter,
@@ -1718,13 +1768,14 @@ namespace Gurux.DLMS.Internal
                 data.Set(cipher.SystemTitle);
             }
             //Add CallingAeQualifier.
-            if (settings.Authentication == Authentication.HighECDSA && settings.PublicKeyInInitialize)
+            if (settings.Authentication == Authentication.HighECDSA && settings.ServerPublicKeyCertificate != null)
             {
+                var raw = settings.ServerPublicKeyCertificate.RawData;
                 data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier);
-                data.SetUInt8((byte)(2 + cipher.SigningKeyPair.Key.RawValue.Length));
+                GXCommon.SetObjectCount(4 + raw.Length, data);
                 data.SetUInt8((byte)BerType.OctetString);
-                data.SetUInt8((byte)cipher.SigningKeyPair.Key.RawValue.Length);
-                data.Set(cipher.SigningKeyPair.Key.RawValue);
+                GXCommon.SetObjectCount(raw.Length, data);
+                data.Set(raw);
             }
             else if (settings.UserId != -1)
             {

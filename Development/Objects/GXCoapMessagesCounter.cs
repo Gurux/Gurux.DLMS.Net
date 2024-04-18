@@ -36,6 +36,9 @@ using System;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// CoAP messages counter.
+    /// </summary>
     public class GXCoapMessagesCounter
     {
         /// <summary>

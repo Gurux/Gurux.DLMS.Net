@@ -295,5 +295,21 @@ namespace Gurux.DLMS.Secure
                 Settings.ClientPublicKeyCertificate = value;
             }
         }
+
+        /// <summary>
+        /// Optional ECDSA public key certificate that is send in part of AARE.
+        /// </summary>
+        /// <returns></returns>
+        public GXx509Certificate ServerPublicKeyCertificate
+        {
+            get
+            {
+                return Settings.ServerPublicKeyCertificate;
+            }
+            set
+            {
+                Settings.ServerPublicKeyCertificate = value;
+            }
+        }
     }
 }

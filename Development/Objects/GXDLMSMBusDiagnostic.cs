@@ -167,7 +167,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// 
+        /// Broadcast frame counters.
         /// </summary>
         [XmlIgnore()]
         public List<GXBroadcastFrameCounter> BroadcastFrames

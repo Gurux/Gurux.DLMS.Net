@@ -65,7 +65,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="target">Target ohject.</param>
+        /// <param name="target">Target object.</param>
         /// <param name="attributeIndex">Attribute index.</param>
         public GXDLMSTargetObject(GXDLMSObject target, int attributeIndex)
         {

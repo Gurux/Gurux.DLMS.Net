@@ -36,6 +36,9 @@ using System;
 
 namespace Gurux.DLMS.Objects
 {
+    /// <summary>
+    /// Broadcast log table
+    /// </summary>
     public class GXDLMSBroadcastLogTable
     {
         /// <summary>

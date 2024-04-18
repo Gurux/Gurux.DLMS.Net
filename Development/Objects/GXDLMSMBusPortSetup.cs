@@ -158,7 +158,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Max PSU size.
+        /// Max PDU size.
         /// </summary>
         [XmlIgnore()]
         public UInt16 MaxPduSize
@@ -230,7 +230,7 @@ namespace Gurux.DLMS.Objects
             {
                 attributes.Add(7);
             }
-            //Version
+            //MBusVersion
             if (all || !base.IsRead(8))
             {
                 attributes.Add(8);
@@ -258,7 +258,7 @@ namespace Gurux.DLMS.Objects
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(),  "Profile selection", "Port communication status",
                 "Data header type", "Primary address", "Identification number",
-            "Manufacturer Id", "Version", "Device type", "Max PDU size", "Listening window"};
+            "Manufacturer Id", "MBus version", "Device type", "Max PDU size", "Listening window"};
         }
 
         /// <inheritdoc />
@@ -333,7 +333,7 @@ namespace Gurux.DLMS.Objects
                 case 7:
                     return ManufacturerId;
                 case 8:
-                    return Version;
+                    return MBusVersion;
                 case 9:
                     return DeviceType;
                 case 10:
@@ -390,7 +390,7 @@ namespace Gurux.DLMS.Objects
                     ManufacturerId = Convert.ToUInt16(e.Value);
                     break;
                 case 8:
-                    Version = Convert.ToByte(e.Value);
+                    MBusVersion = Convert.ToByte(e.Value);
                     break;
                 case 9:
                     DeviceType = (MBusDeviceType)Convert.ToByte(e.Value);
@@ -433,7 +433,7 @@ namespace Gurux.DLMS.Objects
             PrimaryAddress = (byte)reader.ReadElementContentAsInt("PrimaryAddress");
             IdentificationNumber = (UInt32)reader.ReadElementContentAsInt("IdentificationNumber");
             ManufacturerId = (UInt16)reader.ReadElementContentAsInt("ManufacturerId");
-            Version = (byte)reader.ReadElementContentAsInt("Version");
+            MBusVersion = (byte)reader.ReadElementContentAsInt("Version");
             DeviceType = (MBusDeviceType)reader.ReadElementContentAsInt("DeviceType");
             MaxPduSize = (UInt16)reader.ReadElementContentAsInt("MaxPduSize");
             ListeningWindow.Clear();
@@ -458,7 +458,7 @@ namespace Gurux.DLMS.Objects
             writer.WriteElementString("IdentificationNumber", IdentificationNumber, 6);
 
             writer.WriteElementString("ManufacturerId", ManufacturerId, 7);
-            writer.WriteElementString("Version", Version, 8);
+            writer.WriteElementString("Version", MBusVersion, 8);
             writer.WriteElementString("DeviceType", (int)DeviceType, 9);
             writer.WriteElementString("MaxPduSize", MaxPduSize, 10);
             writer.WriteStartElement("ListeningWindow", 11);

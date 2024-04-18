@@ -678,23 +678,6 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Public key certificate is send in part of initialize messages (AARQ and AARE).
-        /// </summary>
-        /// <returns></returns>
-        [DefaultValue(false)]
-        public bool PublicKeyInInitialize
-        {
-            get
-            {
-                return Settings.PublicKeyInInitialize;
-            }
-            set
-            {
-                Settings.PublicKeyInInitialize = value;
-            }
-        }
-
-        /// <summary>
         /// Set starting block index in HDLC framing.
         /// Default is One based, but some meters use Zero based value.
         /// Usually this is not used.
@@ -1064,6 +1047,7 @@ namespace Gurux.DLMS
             InitializeChallenge = Settings.CtoSChallenge;
             Settings.NegotiatedConformance = (Conformance)0;
             Settings.ResetBlockIndex();
+            Settings.ServerPublicKeyCertificate = null;
             Settings.Connected &= ~ConnectionState.Dlms;
             GXByteBuffer buff = new GXByteBuffer(20);
             GXDLMS.CheckInit(Settings);
