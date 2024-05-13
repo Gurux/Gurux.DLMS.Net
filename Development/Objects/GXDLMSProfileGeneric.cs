@@ -39,6 +39,7 @@ using System.Xml.Serialization;
 using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
+using System.Linq;
 
 namespace Gurux.DLMS.Objects
 {
@@ -287,7 +288,7 @@ namespace Gurux.DLMS.Objects
             {
                 object[] values = new object[CaptureObjects.Count];
                 int pos = 0;
-                ValueEventArgs[] args = new ValueEventArgs[] { new ValueEventArgs(server, this, 2, 0, null)};
+                ValueEventArgs[] args = new ValueEventArgs[] { new ValueEventArgs(server, this, 2, 0, null) };
                 server.PreGet(args);
                 if (!isInvoke)
                 {
@@ -1371,8 +1372,24 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
+            //Upload capture objects after load.
+            if (CaptureObjects != null && CaptureObjects.Any())
+            {
+                List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
+                foreach (var it in CaptureObjects)
+                {
+                    var obj = it.Key;
+                    GXDLMSObject target = reader.Objects.FindByLN(obj.ObjectType, obj.LogicalName);
+                    if (target != null && target != obj)
+                    {
+                        obj = target;
+                    }
+                    columns.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, it.Value));
+                }
+                CaptureObjects.Clear();
+                CaptureObjects.AddRange(columns);
+            }
         }
-
         #endregion
     }
 }

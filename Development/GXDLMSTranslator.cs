@@ -1774,7 +1774,7 @@ namespace Gurux.DLMS
                         xml.AppendLine("<PDU>");
                     }
                     string pdu = null;
-                    if (!multipleFrames && 
+                    if (!multipleFrames &&
                         data.MoreData == RequestTypes.None &&
                         data.Data.Data != null)
                     {
@@ -1782,7 +1782,7 @@ namespace Gurux.DLMS
                         {
                             pdu = PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg);
                         }
-                        catch(Exception)
+                        catch (Exception)
                         {
                             //If block is shown on the middle or at the end of data.
                             if (data.Data.Size != 0)
@@ -1840,7 +1840,7 @@ namespace Gurux.DLMS
                     return;
                 }
                 //If Wireless M-Bus.
-                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.WirelessMBus) && 
+                else if ((msg.InterfaceType == InterfaceType.HDLC || msg.InterfaceType == InterfaceType.WirelessMBus) &&
                     GXDLMS.IsWirelessMBusData(msg.Message))
                 {
                     msg.InterfaceType = settings.InterfaceType = InterfaceType.WirelessMBus;
@@ -2394,7 +2394,6 @@ namespace Gurux.DLMS
                                     }
                                     p.Xml = xml;
                                     GXByteBuffer data2 = new GXByteBuffer(GXSecure.DecryptAesGcm(p, value));
-                                    len2 = xml.GetXmlLength();
                                     xml.AppendComment("Invocation Counter: " + p.InvocationCounter.ToString());
                                     xml.StartComment("Decrypt data: " + data2.ToString());
                                     PduToXml(xml, data2, omitDeclaration, omitNameSpace, false, msg);
@@ -2402,6 +2401,7 @@ namespace Gurux.DLMS
                                 }
                                 catch (Exception)
                                 {
+                                    xml.EndComment();
                                     xml.SetXmlLength(len2);
                                     value.Position = originalPosition;
                                     --value.Position;
@@ -2423,12 +2423,12 @@ namespace Gurux.DLMS
                                     }
                                     catch (Exception)
                                     {
+                                        xml.EndComment();
                                         // It's OK if this fails. Ciphering settings are not correct.
                                         if (msg != null)
                                         {
                                             msg.Command = (Command)cmd;
                                         }
-                                        xml.SetXmlLength(len2);
                                     }
                                 }
                                 value.Position = originalPosition;

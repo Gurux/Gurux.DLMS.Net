@@ -142,9 +142,16 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Activated, ServerAddress, Port, Authentication, Keys, ClientKey };
+            return new object[] {
+                LogicalName, 
+                Activated, 
+                ServerAddress, 
+                Port, 
+                Authentication, 
+                Keys, 
+                ClientKey
+            };
         }
-
 
         /// <summary>
         /// Synchronizes the time of the DLMS server with the NTP server.

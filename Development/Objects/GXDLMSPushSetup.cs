@@ -839,7 +839,7 @@ namespace Gurux.DLMS.Objects
                 if (e.Value is byte[] bv)
                 {
                     string ln = GXCommon.ToLogicalName(bv);
-                    PortReference = settings.Objects.FindByLN(ObjectType.None, ln);                    
+                    PortReference = settings.Objects.FindByLN(ObjectType.None, ln);
                 }
             }
             else if (Version > 0 && e.Index == 9)
@@ -855,7 +855,7 @@ namespace Gurux.DLMS.Objects
                     {
                         GXPushProtectionParameters p = new GXPushProtectionParameters();
                         p.ProtectionType = (ProtectionType)Convert.ToInt32(it[0]);
-                        GXStructure options = (GXStructure) it[1];
+                        GXStructure options = (GXStructure)it[1];
                         p.TransactionId = (byte[])options[0];
                         p.OriginatorSystemTitle = (byte[])options[1];
                         p.RecipientSystemTitle = (byte[])options[2];
@@ -1098,6 +1098,23 @@ namespace Gurux.DLMS.Objects
                 if (target != null && target != PortReference)
                 {
                     PortReference = target;
+                }
+                //Upload object list after load.
+                if (PushObjectList != null && PushObjectList.Count != 0)
+                {
+                    List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> objects = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
+                    foreach (var it in PushObjectList)
+                    {
+                        var obj = it.Key;
+                        target = reader.Objects.FindByLN(obj.ObjectType, obj.LogicalName);
+                        if (target != null && target != obj)
+                        {
+                            obj = target;
+                        }
+                        objects.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, it.Value));
+                    }
+                    PushObjectList.Clear();
+                    PushObjectList.AddRange(objects);
                 }
             }
         }

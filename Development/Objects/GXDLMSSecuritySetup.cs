@@ -330,7 +330,10 @@ namespace Gurux.DLMS.Objects
         /// <param name="kek">Master key, also known as Key Encrypting Key.</param>
         /// <param name="list">List of Global key types and keys.</param>
         /// <returns>Generated action.</returns>
-        public byte[][] GlobalKeyTransfer(GXDLMSClient client, byte[] kek, List<KeyValuePair<GlobalKeyType, byte[]>> list)
+        public byte[][] GlobalKeyTransfer(
+            GXDLMSClient client, 
+            byte[] kek, 
+            List<KeyValuePair<GlobalKeyType, byte[]>> list)
         {
             if (list == null || list.Count == 0)
             {

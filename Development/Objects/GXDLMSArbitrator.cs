@@ -128,7 +128,14 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, Actions, PermissionsTable, WeightingsTable, MostRecentRequestsTable, LastOutcome };
+            return new object[] {
+                LogicalName, 
+                Actions, 
+                PermissionsTable, 
+                WeightingsTable, 
+                MostRecentRequestsTable, 
+                LastOutcome
+            };
         }
 
         #region IGXDLMSBase Members
@@ -144,7 +151,7 @@ namespace Gurux.DLMS.Objects
             if (e.Index == 1)
             {
                 //RequestAction
-                object[] args = (object[]) e.Parameters;
+                object[] args = (object[])e.Parameters;
                 LastOutcome = (byte)args[0];
             }
             else if (e.Index == 2)

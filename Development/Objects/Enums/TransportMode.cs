@@ -35,7 +35,7 @@
 namespace Gurux.DLMS.Objects.Enums
 {
     /// <summary>
-    /// CoAP transport modes
+    /// CoAP transport modes.
     /// </summary>
     public enum TransportMode : byte
     {

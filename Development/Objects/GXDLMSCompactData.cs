@@ -34,6 +34,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
@@ -491,6 +492,23 @@ namespace Gurux.DLMS.Objects
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
+            //Upload capture objects after load.
+            if (CaptureObjects != null && CaptureObjects.Any())
+            {
+                List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> columns = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
+                foreach (var it in CaptureObjects)
+                {
+                    var obj = it.Key;
+                    GXDLMSObject target = reader.Objects.FindByLN(obj.ObjectType, obj.LogicalName);
+                    if (target != null && target != obj)
+                    {
+                        obj = target;
+                    }
+                    columns.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, it.Value));
+                }
+                CaptureObjects.Clear();
+                CaptureObjects.AddRange(columns);
+            }
         }
         #endregion
 
