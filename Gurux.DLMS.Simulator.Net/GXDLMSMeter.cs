@@ -58,7 +58,7 @@ namespace Gurux.DLMS.Simulator.Net
         /// <summary>
         /// Application is closing
         /// </summary>
-        AutoResetEvent closing = new AutoResetEvent(false);
+        ManualResetEvent closing = new ManualResetEvent(false);
         /// <summary>
         /// Server that is used to parse Gateway messages.
         /// </summary>
@@ -468,6 +468,13 @@ namespace Gurux.DLMS.Simulator.Net
                 Wrapper = (GXDLMSTcpUdpSetup)objs[0];
             }
 
+            //Update Logical Device Name so each meter has own unique name.
+            GXDLMSData data = (GXDLMSData)Items.FindByLN(ObjectType.Data, "0.0.42.0.0.255");
+            if (data != null)
+            {
+                data.Value = ASCIIEncoding.ASCII.GetBytes("GRX" + serialNumber);
+            }
+
             //Create thread for every profile generic so values are captured if capture period is given.
             new Thread(() =>
             {
@@ -476,7 +483,7 @@ namespace Gurux.DLMS.Simulator.Net
                 {
                     wt = Run(closing);
                     //Wait until next event needs to execute.
-                    Console.WriteLine("Waiting " + TimeSpan.FromSeconds(wt).ToString() + " before next execution.");
+                    // Console.WriteLine("Waiting " + TimeSpan.FromSeconds(wt).ToString() + " before next execution.");
                     wt *= 1000;
                     wt -= DateTime.Now.Millisecond;
                 }
@@ -486,10 +493,11 @@ namespace Gurux.DLMS.Simulator.Net
             //Own listener isn't created if there are multiple meters in the same port.
             if (!exclusive)
             {
-                Media.OnReceived += new Gurux.Common.ReceivedEventHandler(OnReceived);
-                Media.OnClientConnected += new Gurux.Common.ClientConnectedEventHandler(OnClientConnected);
-                Media.OnClientDisconnected += new Gurux.Common.ClientDisconnectedEventHandler(OnClientDisconnected);
-                Media.OnError += new Gurux.Common.ErrorEventHandler(OnError);
+                Media.OnReceived += new ReceivedEventHandler(OnReceived);
+                Media.OnClientConnected += new ClientConnectedEventHandler(OnClientConnected);
+                Media.OnClientDisconnected += new ClientDisconnectedEventHandler(OnClientDisconnected);
+                Media.OnError += new Common.ErrorEventHandler(OnError);
+                Media.OnMediaStateChange += Media_OnMediaStateChange;
             }
             if (!Media.IsOpen)
             {
@@ -499,6 +507,17 @@ namespace Gurux.DLMS.Simulator.Net
             //Server must initialize after all objects are added.
             Initialize();
             return true;
+        }
+
+        private void Media_OnMediaStateChange(object sender, MediaStateEventArgs e)
+        {
+            if (e.State == MediaState.Closed && !closing.WaitOne(1))
+            {
+                if (sender is GXNet net)
+                {
+                    Console.WriteLine(DateTime.Now.ToShortTimeString() + " " + net.Port + " Closed.");
+                }
+            }
         }
 
         public override void Close()
@@ -513,18 +532,7 @@ namespace Gurux.DLMS.Simulator.Net
 
         public static void OnError(object sender, Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(ex.Message);
-        }
-
-        /// <summary>
-        /// Each server has own history file.
-        /// </summary>
-        /// <param name="target"></param>
-        /// <returns></returns>
-        private string GetProfileGenericName(GXDLMSObject target)
-        {
-            string name = (Media as GXNet).Port + "_" + target.LogicalName + ".csv";
-            return name;
+            Debug.WriteLine(ex.Message);
         }
 
         /// <summary>
@@ -641,7 +649,7 @@ namespace Gurux.DLMS.Simulator.Net
                 {
                     //Send push msg.
                     SendPush(push);
-                    it.Handled = true; 
+                    it.Handled = true;
                     continue;
                 }
                 if ((it.Target is GXDLMSAutoConnect ac) && it.Index == 1)
@@ -650,7 +658,7 @@ namespace Gurux.DLMS.Simulator.Net
                     it.Handled = true;
                     continue;
                 }
-                
+
 
                 if (it.Target is GXDLMSImageTransfer)
                 {

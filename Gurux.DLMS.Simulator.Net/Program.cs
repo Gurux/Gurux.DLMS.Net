@@ -36,10 +36,7 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 using Gurux.Net;
 using Gurux.Serial;
-using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading;
 
 namespace Gurux.DLMS.Simulator.Net
 {
@@ -181,21 +178,28 @@ namespace Gurux.DLMS.Simulator.Net
                 {
                     Console.WriteLine(str + "simulator start in {0} ports {1}-{2}.", net.Protocol, net.Port, net.Port + settings.serverCount - 1);
                 }
+                int index = 0;
+                if (settings.useSerialNumberAsMeterAddress)
+                {
+                    index = settings.client.Settings.ServerAddress - 1;
+                }
+
                 for (int pos = 0; pos != settings.serverCount; ++pos)
                 {
+                    ++index;
                     GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType,
                                                         settings.client.UseUtc2NormalTime, settings.client.ManufacturerId);
                     servers.Add(server);
                     if (settings.exclusive)
                     {
-                        server.Initialize(net, settings.trace, settings.inputFile, (UInt32)pos + 1, settings.exclusive);
-                        GXDLMSMeter.meters.Add(pos + 1, server);
+                        server.Initialize(net, settings.trace, settings.inputFile, (UInt32) index, settings.exclusive);
+                        GXDLMSMeter.meters.Add(index, server);
                     }
                     else
                     {
                         try
                         {
-                            server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace, settings.inputFile, (UInt32)pos + 1, settings.exclusive);
+                            server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace, settings.inputFile, (UInt32)index + 1, settings.exclusive);
                         }
                         catch (System.Net.Sockets.SocketException ex)
                         {

@@ -63,6 +63,10 @@ namespace Gurux.DLMS.Simulator.Net
         public bool exclusive = false;
         //Gateway settings.
         public object gatewaySettings = null;
+
+        //Serian number is used as a meter address.
+        public bool useSerialNumberAsMeterAddress;
+
         static public int GetParameters(string[] args, Settings settings)
         {
             string[] tmp;
@@ -305,6 +309,7 @@ namespace Gurux.DLMS.Simulator.Net
                         {
                             settings.client.ServerAddress = int.Parse(it.Value);
                         }
+                        settings.useSerialNumberAsMeterAddress = true;
                         break;
                     case 'l':
                         settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value), settings.client.ServerAddress);
@@ -403,6 +408,7 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine(" -X All meters are using the same port.");
             Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
             Console.WriteLine(" -S Serial port.");
+            Console.WriteLine(" -s Serial number is used as a meter address. e.g. -s 10000");
             Console.WriteLine(" -x input XML file.");
             Console.WriteLine(" -r [sn, sn]\t Short name or Logican Name (default) referencing is used.");
             Console.WriteLine("Example:");
