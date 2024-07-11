@@ -952,7 +952,9 @@ namespace Gurux.DLMS.Secure
                     p.Broacast ? p.BlockCipherKey : p.BlockCipherKey, 
                     p.SystemTitle,
                     invocationCounter);
-                decrypted = gmac.Decrypt(data.Remaining(), (byte)((byte)p.Security | (byte)p.SecuritySuite), p.Xml);
+                byte [] tmp2 = new byte[len - 5];
+                data.Get(tmp2);
+                decrypted = gmac.Decrypt(tmp2, (byte)((byte)p.Security | (byte)p.SecuritySuite), p.Xml);
                 System.Diagnostics.Debug.WriteLine("Decrypted: " + GXCommon.ToHex(decrypted, true));
             }
             else

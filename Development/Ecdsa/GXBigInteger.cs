@@ -41,7 +41,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <summary>
         /// List of values. Least Significated is in the first item.
         /// </summary>
-        private UInt32[] Data = new UInt32[70];
+        private UInt32[] Data = new UInt32[90];
 
         /// <summary>
         /// Items count in the data buffer.

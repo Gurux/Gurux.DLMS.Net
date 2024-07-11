@@ -11,7 +11,7 @@
     <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <TargetFrameworks>net60-windows;net60;net48;net472;net46;net462;netcoreapp3.1;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net60-windows;net60;net48;net472;net46;net462;netcoreapp3.1;netstandard2.1;netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
     <PackageTags>DLMS AMR, AMI IOT</PackageTags>

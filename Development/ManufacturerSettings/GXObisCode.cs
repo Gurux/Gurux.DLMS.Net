@@ -173,7 +173,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         /// Object version.
         /// </summary>
         [DefaultValue(0)]
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_1 && !NETCOREAPP3_0 && !NETCOREAPP3_1 && !NET6_0
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETSTANDARD2_1 && !NETCOREAPP3_0 && !NETCOREAPP3_1 && !NET6_0
         [Editor(typeof(GXVersionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
 #endif
         public int Version
