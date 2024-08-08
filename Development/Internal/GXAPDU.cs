@@ -164,12 +164,13 @@ namespace Gurux.DLMS.Internal
                 if (settings.ClientPublicKeyCertificate != null)
                 {
                     //Add calling-AE-qualifier.
+                    int len = settings.ClientPublicKeyCertificate.Encoded.Length;
                     data.SetUInt8(((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAeQualifier));
                     //LEN
-                    GXCommon.SetObjectCount(2 + settings.ClientPublicKeyCertificate.Encoded.Length, data);
+                    GXCommon.SetObjectCount(1 + GXCommon.GetObjectCountSizeInBytes(len) + len, data);
                     data.SetUInt8((byte)BerType.OctetString);
                     //LEN
-                    GXCommon.SetObjectCount(2 + settings.ClientPublicKeyCertificate.Encoded.Length, data);
+                    GXCommon.SetObjectCount(len, data);
                     data.Set(settings.ClientPublicKeyCertificate.Encoded);
                 }
             }

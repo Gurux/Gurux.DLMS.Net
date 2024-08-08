@@ -225,7 +225,7 @@ namespace Gurux.DLMS.ASN
             get;
             set;
         }
-        
+
         /// <summary>
         /// Issuer. Example: "CN=Test O=Gurux, L=Tampere, C=FI".
         /// </summary>
@@ -672,7 +672,7 @@ namespace Gurux.DLMS.ASN
             {
                 throw new Exception("Extended key usage not present. It's mandotory for TLS.");
             }
-            if (ExtendedKeyUsage != ExtendedKeyUsage.None && 
+            if (ExtendedKeyUsage != ExtendedKeyUsage.None &&
                 KeyUsage != (KeyUsage.DigitalSignature | KeyUsage.KeyAgreement))
             {
                 throw new Exception("Extended key usage present. It's used only for TLS.");
@@ -1019,7 +1019,7 @@ namespace Gurux.DLMS.ASN
             return SerialNumber.GetHashCode();
         }
 
-        #if !WINDOWS_UWP
+#if !WINDOWS_UWP
 
         /// <summary>
         /// Test is x509 file certified by the certifier.
@@ -1128,5 +1128,16 @@ namespace Gurux.DLMS.ASN
             return certificates.ToArray();
         }
 
+        /// <summary>
+        /// Returns system title from the certificate.
+        /// </summary>
+        public byte[] GetSystemTitle()
+        {
+            if (Subject == null)
+            {
+                return null;
+            }
+            return GXCommon.HexToBytes(GXAsn1Converter.HexSystemTitleFromSubject(Subject));
+        }
     }
 }

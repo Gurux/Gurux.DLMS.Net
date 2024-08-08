@@ -3595,6 +3595,10 @@ namespace Gurux.DLMS
                         if (coapType == CoAPType.Acknowledgement)
                         {
                             data.PacketLength = buff.Position + frameSize;
+                            if (buff.Size < data.PacketLength)
+                            {
+                                throw new OutOfMemoryException("CoAP message is not complete.");
+                            }
                             data.IsComplete = true;
                         }
                         else if (buff.Available < frameSize)
@@ -4434,6 +4438,10 @@ namespace Gurux.DLMS
             if (reply.Xml != null)
             {
                 reply.Xml.AppendStartTag(Command.ReadResponse, "Qty", reply.Xml.IntegerToHex(cnt, 2));
+            }
+            if (reply.CommandType != (byte)SingleReadResponse.DataBlockResult)
+            {
+                first = true;
             }
             bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
             for (pos = 0; pos != cnt; ++pos)
