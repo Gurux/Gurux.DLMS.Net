@@ -444,7 +444,7 @@ namespace Gurux.DLMS.Simulator.Net
             Console.WriteLine(" -W \t General Block Transfer window size.");
             Console.WriteLine(" -w \t HDLC Window size. Default is 1");
             Console.WriteLine(" -f \t HDLC Frame size. Default is 128");
-            Console.WriteLine(" -L \t Manufacturer ID (Flag ID) is used to use manufacturer depending functionality. -L LGZ");
+            Console.WriteLine(" -L \t Manufacturer ID (Flag ID) is used to use manufacturer depending functionality. -L GRX");
             Console.WriteLine("Example:");
             Console.WriteLine("Read DLMS device using TCP/IP connection.");
             Console.WriteLine("Gurux.Dlms.Simulator.Net -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No] -o meter-template.xml");
