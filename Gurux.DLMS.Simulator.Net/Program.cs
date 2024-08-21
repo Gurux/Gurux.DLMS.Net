@@ -36,6 +36,7 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 using Gurux.Net;
 using Gurux.Serial;
+using System.IO;
 using System.Text;
 
 namespace Gurux.DLMS.Simulator.Net
@@ -116,7 +117,7 @@ namespace Gurux.DLMS.Simulator.Net
                 {
                     Console.WriteLine("Short Name DLMS Server in serial port {0} using {1}.", settings.media, settings.client.InterfaceType);
                 }
-                server.Initialize(settings.media, settings.trace, settings.inputFile, 1, false);
+                server.Initialize(settings.media, settings.trace, settings.inputFile, 1, false, null);
                 UpdateSettings(settings, server);
                 Console.WriteLine("----------------------------------------------------------");
                 ConsoleKey k;
@@ -183,23 +184,33 @@ namespace Gurux.DLMS.Simulator.Net
                 {
                     index = settings.client.Settings.ServerAddress - 1;
                 }
-
+                GXDLMSObjectCollection sharedObjects = null;
                 for (int pos = 0; pos != settings.serverCount; ++pos)
                 {
                     ++index;
                     GXDLMSMeter server = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType,
                                                         settings.client.UseUtc2NormalTime, settings.client.ManufacturerId);
                     servers.Add(server);
+                    if (settings.SharedObjects && settings.inputFile != null)
+                    {
+                        sharedObjects = new GXDLMSObjectCollection();
+                        server.LoadObjects(settings.inputFile, sharedObjects);
+                        settings.inputFile = null;
+                    }
                     if (settings.exclusive)
                     {
-                        server.Initialize(net, settings.trace, settings.inputFile, (UInt32) index, settings.exclusive);
+                        server.Initialize(net, settings.trace, 
+                            settings.inputFile, (UInt32) index, 
+                            settings.exclusive, sharedObjects);
                         GXDLMSMeter.meters.Add(index, server);
                     }
                     else
                     {
                         try
                         {
-                            server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace, settings.inputFile, (UInt32)index + 1, settings.exclusive);
+                            server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace, 
+                                settings.inputFile, (UInt32)index + 1, 
+                                settings.exclusive, sharedObjects);
                         }
                         catch (System.Net.Sockets.SocketException ex)
                         {
@@ -254,6 +265,12 @@ namespace Gurux.DLMS.Simulator.Net
                                 {
                                     str += " Broadcast block cipher key: " + GXDLMSTranslator.ToHex(ss.Gbek);
                                 }
+                                str += Environment.NewLine;
+                            }
+                            if (settings.SharedObjects)
+                            {
+                                str = "++++++++++++++++++++++++++++" + Environment.NewLine;
+                                str += "All meters are sharing the COSEM objects.";
                                 str += Environment.NewLine;
                             }
                             Console.WriteLine(str);

@@ -112,7 +112,12 @@ namespace Gurux.DLMS.Simulator.Net
             UseUtc2NormalTime = useUtc2NormalTime;
             FlaID = flagId;
         }
-        public void Initialize(IGXMedia media, TraceLevel trace, string path, UInt32 sn, bool exclusive)
+        public void Initialize(IGXMedia media, 
+            TraceLevel trace, 
+            string path, 
+            UInt32 sn, 
+            bool exclusive,
+            GXDLMSObjectCollection sharedObjects)
         {
             serialNumber = sn;
             objectsFile = path;
@@ -121,6 +126,10 @@ namespace Gurux.DLMS.Simulator.Net
             Exclusive = exclusive;
             // Each association has own conformance.
             Conformance = Conformance.None;
+            if (sharedObjects != null)
+            {
+                Items.AddRange(sharedObjects);
+            }
             Init(exclusive);
         }
 
@@ -162,7 +171,7 @@ namespace Gurux.DLMS.Simulator.Net
         /// Load saved COSEM objects from XML.
         /// </summary>
         /// <param name="path">File path.</param>
-        bool LoadObjects(string path, GXDLMSObjectCollection items)
+        public bool LoadObjects(string path, GXDLMSObjectCollection items)
         {
             lock (settingsLock)
             {
@@ -437,9 +446,12 @@ namespace Gurux.DLMS.Simulator.Net
         bool Init(bool exclusive)
         {
             //Load added objects.
-            if (!LoadObjects(objectsFile, Items))
+            if (objectsFile != null)
             {
-                throw new Exception(string.Format("Invalid device template file {0}", objectsFile));
+                if (!LoadObjects(objectsFile, Items))
+                {
+                    throw new Exception(string.Format("Invalid device template file {0}", objectsFile));
+                }
             }
             GXDLMSObjectCollection objs;
             //Find default local port setup when optical head is used.
