@@ -37,6 +37,7 @@ using Gurux.DLMS.Plc;
 using Gurux.DLMS.Plc.Enums;
 using System;
 using System.Collections.Generic;
+using Gurux.DLMS.Enums;
 
 namespace Gurux.DLMS
 {

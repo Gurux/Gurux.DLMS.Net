@@ -454,11 +454,12 @@ namespace Gurux.DLMS.Secure
                 systemTitle,
                 BlockCipherKey,
                 AuthenticationKey);
+            p.Type = CountType.Tag;
             GXByteBuffer bb = new GXByteBuffer();
-            GXSecure.EncryptAesGcm(p, challenge);
+            byte[] data = GXSecure.EncryptAesGcm(p, challenge);
             bb.SetUInt8(0x10);
             bb.SetUInt32(InvocationCounter);
-            bb.Set(p.CountTag);
+            bb.Set(data);
             return bb.Array();
         }
 

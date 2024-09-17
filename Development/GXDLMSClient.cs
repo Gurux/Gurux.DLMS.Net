@@ -1836,7 +1836,7 @@ namespace Gurux.DLMS
             GXDLMSObjectCollection items = new GXDLMSObjectCollection(this);
             GXDataInfo info = new GXDataInfo();
             int lnVersion = 2;
-            //Find LN Version because some meters don't add LN Association the fist object.
+            //Find LN Version because some meters don't add LN Association the first object.
             int pos = buff.Position;
             while (buff.Position != buff.Size && cnt != objectCnt)
             {

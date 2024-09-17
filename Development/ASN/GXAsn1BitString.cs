@@ -87,9 +87,10 @@ namespace Gurux.DLMS.ASN
             }
         }
 
-        /// <summary>Constructor
+        /// <summary>
+        /// Constructor.
         /// </summary>
-        /// <param name="bitString">Bit string. </param>
+        /// <param name="bitString">Bit string.</param>
         public GXAsn1BitString(string bitString)
         {
             PadBits = 8 - (bitString.Length % 8);
@@ -169,7 +170,7 @@ namespace Gurux.DLMS.ASN
         {
             if (Value == null)
             {
-                return "";
+                return null;
             }
             StringBuilder sb = new StringBuilder(8 * Value.Length);
             foreach (byte it in Value)

@@ -954,7 +954,12 @@ namespace Gurux.DLMS.Secure
                     invocationCounter);
                 byte [] tmp2 = new byte[len - 5];
                 data.Get(tmp2);
-                decrypted = gmac.Decrypt(tmp2, (byte)((byte)p.Security | (byte)p.SecuritySuite), p.Xml);
+                byte tag2 = (byte)((byte)p.Security | (byte)p.SecuritySuite);
+                if (p.Broacast)
+                {
+                    tag2 |= 0x40;
+                }
+                decrypted = gmac.Decrypt(tmp2, tag2, p.Xml);
                 System.Diagnostics.Debug.WriteLine("Decrypted: " + GXCommon.ToHex(decrypted, true));
             }
             else

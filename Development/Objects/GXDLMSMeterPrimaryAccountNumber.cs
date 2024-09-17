@@ -32,48 +32,35 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-namespace Gurux.DLMS.Enums
+using System;
+
+namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// Authentication enumerates the authentication levels.
-    /// </summary>
-    public enum Authentication
+    public class GXDLMSMeterPrimaryAccountNumber
     {
         /// <summary>
-        /// No authentication is used.
-        /// India DLMS standard IS 15959 uses name "Public client".
+        /// The isuer identification number.
         /// </summary>
-        None,
+        public UInt32 IssuerId
+        {
+            get;
+            set;
+        }
         /// <summary>
-        /// Low authentication is used.
-        /// India DLMS standard IS 15959 uses name "Meter reading".
+        /// Decoder reference number.
         /// </summary>
-        Low,
+        public UInt64 DecoderReferenceNumber
+        {
+            get;
+            set;
+        }
         /// <summary>
-        /// High authentication is used.  
-        /// Because DLMS/COSEM specification does not 
-        /// specify details of the HLS mechanism Indian standard is implemented.
+        /// Pan check digit.
         /// </summary>
-        High,
-        /// <summary>
-        /// High authentication is used. Password is hashed with MD5.
-        /// </summary>
-        HighMD5,
-        /// <summary>
-        /// High authentication is used. Password is hashed with SHA1.
-        /// </summary>
-        HighSHA1,
-        /// <summary>
-        /// High authentication is used. Password is hashed with GMAC.
-        /// </summary>
-        HighGMAC,
-        /// <summary>
-        /// High authentication is used. Password is hashed with SHA-256.
-        /// </summary>
-        HighSHA256,
-        /// <summary>
-        /// High authentication is used. Password is hashed with ECDSA.
-        /// </summary>
-        HighECDSA
+        public byte PanCheckDigit
+        {
+            get;
+            set;
+        }
     }
 }

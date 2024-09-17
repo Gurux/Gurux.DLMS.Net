@@ -258,6 +258,7 @@ namespace Gurux.DLMS.Secure
                     tmp = GetTag(tag, data, null);
                     break;
                 case (byte)Security.AuthenticationEncryption:
+                case 0x70://Broadcast.
                     byte[] encrypted = new byte[data.Length];
                     _encrypt.TransformBlock(data, 0, data.Length, encrypted, 0);
                     byte[] tmp2 = GetTag(tag, data, encrypted);

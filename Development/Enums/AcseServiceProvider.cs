@@ -35,45 +35,21 @@
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// Authentication enumerates the authentication levels.
+    /// ACSE service provider.
     /// </summary>
-    public enum Authentication
+    public enum AcseServiceProvider
     {
         /// <summary>
-        /// No authentication is used.
-        /// India DLMS standard IS 15959 uses name "Public client".
+        /// There is no error.
         /// </summary>
         None,
         /// <summary>
-        /// Low authentication is used.
-        /// India DLMS standard IS 15959 uses name "Meter reading".
+        /// Reason is not given.
         /// </summary>
-        Low,
+        NoReasonGiven = 1,
         /// <summary>
-        /// High authentication is used.  
-        /// Because DLMS/COSEM specification does not 
-        /// specify details of the HLS mechanism Indian standard is implemented.
+        /// Invalid ACSE version.
         /// </summary>
-        High,
-        /// <summary>
-        /// High authentication is used. Password is hashed with MD5.
-        /// </summary>
-        HighMD5,
-        /// <summary>
-        /// High authentication is used. Password is hashed with SHA1.
-        /// </summary>
-        HighSHA1,
-        /// <summary>
-        /// High authentication is used. Password is hashed with GMAC.
-        /// </summary>
-        HighGMAC,
-        /// <summary>
-        /// High authentication is used. Password is hashed with SHA-256.
-        /// </summary>
-        HighSHA256,
-        /// <summary>
-        /// High authentication is used. Password is hashed with ECDSA.
-        /// </summary>
-        HighECDSA
-    }
+        NoCommonAcseVersion = 2
+    }   
 }

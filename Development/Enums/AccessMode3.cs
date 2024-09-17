@@ -38,7 +38,7 @@ using System.Xml.Serialization;
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
-    /// The AccessMode enumerates the access modes for Logical Name Association version 3.
+    /// The AccessMode3 enumerates the access modes for Logical Name Association version 3.
     /// </summary>
     [Flags]
     public enum AccessMode3
@@ -50,6 +50,7 @@ namespace Gurux.DLMS.Enums
         NoAccess = 0,
         /// <summary>
         /// The client is allowed only reading from the server.
+        /// This is used in version 1. 
         /// </summary>
         [XmlEnum("1")]
         Read = 1,

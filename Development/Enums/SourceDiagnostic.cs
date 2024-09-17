@@ -33,26 +33,7 @@
 //---------------------------------------------------------------------------
 
 namespace Gurux.DLMS.Enums
-{
-    /// <summary>
-    /// ACSE service provider.
-    /// </summary>
-    public enum AcseServiceProvider
-    {
-        /// <summary>
-        /// There is no error.
-        /// </summary>
-        None,
-        /// <summary>
-        /// Reason is not given.
-        /// </summary>
-        NoReasonGiven = 1,
-        /// <summary>
-        /// Invalid ACSE version.
-        /// </summary>
-        NoCommonAcseVersion = 2
-    }
-
+{   
     /// <summary>
     /// SourceDiagnostic enumerates the error codes for reasons that can cause the server to reject the client.
     /// </summary>

@@ -371,7 +371,10 @@ namespace Gurux.DLMS.Secure
             AuthenticationKey = authenticationKey;
             Type = CountType.Packet;
             SecuritySuite = securitySuite;
-            Broacast = settings.Broacast;
+            if (settings != null)
+            {
+                Broacast = settings.Broacast;
+            }
         }
 
         /// <summary>

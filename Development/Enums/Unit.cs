@@ -350,7 +350,7 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("63")]
         MassDensity = 63,
         /// <summary>
-        /// Pa s dynamic viscosity pascal second (Characteristic of gas stream).
+        /// The dynamic viscosity pascal second (Characteristic of gas stream).
         /// </summary>
         [XmlEnum("64")]
         PascalSecond = 64,

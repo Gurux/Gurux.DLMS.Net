@@ -101,7 +101,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Capture objects.
         /// </summary>
-        [XmlArray("CaptureObjects")]
+        [XmlIgnore()]
         public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> CaptureObjects
         {
             get;

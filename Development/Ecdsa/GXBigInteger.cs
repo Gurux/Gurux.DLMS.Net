@@ -36,12 +36,16 @@ using System;
 
 namespace Gurux.DLMS.Ecdsa
 {
+    /// <summary>
+    /// Big integer is used to save big integer values for ECDSA.
+    /// https://en.wikipedia.org/wiki/Arbitrary-precision_arithmetic
+    /// </summary>
     public class GXBigInteger
     {
         /// <summary>
         /// List of values. Least Significated is in the first item.
         /// </summary>
-        private UInt32[] Data = new UInt32[90];
+        private UInt32[] Data = new UInt32[48];
 
         /// <summary>
         /// Items count in the data buffer.
@@ -105,13 +109,51 @@ namespace Gurux.DLMS.Ecdsa
         {
         }
 
-        private void Add(UInt32 value)
+        /// <summary>
+        /// Used bits.
+        /// </summary>
+        public UInt16 UsedBits
+        {
+            get
+            {
+                UInt16 count = (UInt16)(32 * Count);
+                if (Count != 0)
+                {
+                    UInt32 tmp = Data[Count - 1];
+                    UInt32 mask = 0x80000000;
+                    while ((tmp & mask) == 0)
+                    {
+                        mask >>= 1;
+                        --count;
+                    }
+                }
+                return count;
+            }
+        }
+
+        /// <summary>
+        /// This method checks if the bit is set.
+        /// </summary>
+        /// <param name="index">Bit index.</param>
+        /// <returns></returns>
+        public bool IsBitSet(UInt16 index)
+        {
+            UInt16 pos = (UInt16)(index / 32);
+            if (index > 32)
+            {
+                index -= (UInt16)(32 * index);
+            }
+            UInt32 tmp = Data[pos];
+            return (tmp & (1 << index)) != 0;
+        }
+
+        private void Append(UInt32 value)
         {
             Data[Count] = value;
             ++Count;
         }
 
-        private void AddRange(UInt32[] value)
+        private void Append(UInt32[] value)
         {
             Array.Copy(value, 0, Data, Count, value.Length);
             Count += (UInt16)value.Length;
@@ -126,15 +168,15 @@ namespace Gurux.DLMS.Ecdsa
         {
             for (int pos = value.Size - 4; pos > -1; pos = pos - 4)
             {
-                Add(value.GetUInt32(pos));
+                Append(value.GetUInt32(pos));
             }
             switch (value.Size % 4)
             {
                 case 1:
-                    Add(value.GetUInt8());
+                    Append(value.GetUInt8());
                     break;
                 case 2:
-                    Add(value.GetUInt16());
+                    Append(value.GetUInt16());
                     break;
                 case 3:
                     // Data.Add(value.GetUInt24());
@@ -158,19 +200,19 @@ namespace Gurux.DLMS.Ecdsa
 
         public GXBigInteger(UInt64 value) : this()
         {
-            Add((UInt32)value);
+            Append((UInt32)value);
             value >>= 32;
-            Add((UInt32)value);
+            Append((UInt32)value);
         }
 
         public GXBigInteger(UInt32 value) : this()
         {
-            Add(value);
+            Append(value);
         }
 
         public GXBigInteger(int value) : this()
         {
-            Add((UInt32)value);
+            Append((UInt32)value);
         }
 
         /// <summary>
@@ -179,7 +221,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <param name="values">Data in MSB format.</param>
         public GXBigInteger(UInt32[] values)
         {
-            AddRange(values);
+            Append(values);
             Array.Reverse(Data, 0, values.Length);
         }
 
@@ -205,7 +247,7 @@ namespace Gurux.DLMS.Ecdsa
 
         public GXBigInteger(GXBigInteger value)
         {
-            AddRange(value.Data);
+            Append(value.Data);
             Count = value.Count;
             IsNegative = value.IsNegative;
         }
@@ -300,7 +342,7 @@ namespace Gurux.DLMS.Ecdsa
             {
                 while (Count < value.Count)
                 {
-                    Add(0);
+                    Append(0);
                 }
                 UInt64 overflow = 0;
                 for (int pos = 0; pos != Count; ++pos)
@@ -316,7 +358,7 @@ namespace Gurux.DLMS.Ecdsa
                 }
                 if (overflow != 0)
                 {
-                    Add((UInt32)overflow);
+                    Append((UInt32)overflow);
                 }
             }
         }
@@ -337,7 +379,7 @@ namespace Gurux.DLMS.Ecdsa
                     GXBigInteger tmp = new GXBigInteger(value);
                     tmp.Sub(this);
                     Clear();
-                    AddRange(tmp.Data);
+                    Append(tmp.Data);
                     Count = tmp.Count;
                     IsNegative = true;
                 }
@@ -365,14 +407,14 @@ namespace Gurux.DLMS.Ecdsa
                     {
                         IsNegative = true;
                         Clear();
-                        AddRange(value.Data);
+                        Append(value.Data);
                         Count = value.Count;
                     }
                     else
                     {
                         while (Count < value.Count)
                         {
-                            Add(0);
+                            Append(0);
                         }
                         byte borrow = 0;
                         UInt64 tmp;
@@ -428,6 +470,51 @@ namespace Gurux.DLMS.Ecdsa
             else
             {
                 throw new ArgumentOutOfRangeException("Big integer value is too high.");
+            }
+        }
+
+        public void Multiply(int value)
+        {
+            if (value == 0 || IsZero)
+            {
+                Count = 0;
+            }
+            else
+            {
+                UInt32[] ret = new UInt32[1 + 1 + Count];
+                UInt32 overflow = 0;
+                int index = 0;
+                overflow = 0;
+                for (int j = 0; j != Count; ++j)
+                {
+                    UInt64 result = (UInt64)value;
+                    result *= Data[j];
+                    result += overflow;
+                    overflow = (UInt32)(result >> 32);
+                    index = j;
+                    AddValue(ret, (UInt32)result, index);
+                }
+                if (overflow > 0)
+                {
+                    AddValue(ret, overflow, 1 + index);
+                }
+                index = ret.Length - 1;
+                while (index != 0 && ret[index] == 0)
+                {
+                    --index;
+                }
+                ++index;
+                Array.Copy(ret, Data, index);
+                Count = (UInt16)index;
+            }
+            if (value < 0 && !IsNegative)
+            {
+                IsNegative = true;
+            }
+            else if (IsNegative)
+            {
+                //If both values are negative.
+                IsNegative = false;
             }
         }
 
@@ -565,6 +652,15 @@ namespace Gurux.DLMS.Ecdsa
 
         public void Lshift(int amount)
         {
+            //Move dwords.
+            UInt16 dwshift = (UInt16)(amount / (8 * sizeof(UInt32)));
+            if (dwshift != 0)
+            {
+                Array.Copy(Data, 0, Data, dwshift, Count);
+                Array.Clear(Data, 0, dwshift);
+                Count += dwshift;
+                amount -= dwshift * 8 * sizeof(UInt32);
+            }
             if (amount != 0)
             {
                 UInt32 overflow = 0;
@@ -578,28 +674,37 @@ namespace Gurux.DLMS.Ecdsa
                 }
                 if (overflow != 0)
                 {
-                    Add(overflow);
+                    Append(overflow);
                 }
             }
         }
 
         public void Rshift(int amount)
         {
-            UInt64 overflow = 0;
-            UInt32 mask = 0xFFFFFFFF;
-            mask = mask >> (32 - amount);
-            int cnt = Count - 1;
-            for (int pos = cnt; pos != -1; --pos)
+            while (amount > 8 * sizeof(UInt32))
             {
-                UInt64 tmp = Data[pos];
-                Data[pos] = (UInt32)((tmp >> amount) | overflow);
-                overflow = (tmp & mask) << (32 - amount);
+                Rshift(8 * sizeof(UInt32));
+                //--m_Count;
+                amount -= 8 * sizeof(UInt32);
             }
-            //Remove last item if it's empty.
-            while (Count != 1 && Data[cnt] == 0)
+            if (amount != 0)
             {
-                --Count;
-                --cnt;
+                UInt64 overflow = 0;
+                UInt32 mask = 0xFFFFFFFF;
+                mask = mask >> (32 - amount);
+                int cnt = Count - 1;
+                for (int pos = cnt; pos != -1; --pos)
+                {
+                    UInt64 tmp = Data[pos];
+                    Data[pos] = (UInt32)((tmp >> amount) | overflow);
+                    overflow = (tmp & mask) << (32 - amount);
+                }
+                //Remove last item if it's empty.
+                while (Count != 1 && Data[cnt] == 0)
+                {
+                    --Count;
+                    --cnt;
+                }
             }
         }
 
@@ -643,8 +748,17 @@ namespace Gurux.DLMS.Ecdsa
                 // while denom < this.
                 while (denom.Compare(this) == -1)
                 {
-                    current.Lshift(1);
-                    denom.Lshift(1);
+                    int bits = UsedBits - denom.UsedBits;
+                    if (bits != 0)
+                    {
+                        current.Lshift(bits);
+                        denom.Lshift(bits);
+                    }
+                    else
+                    {
+                        current.Lshift(1);
+                        denom.Lshift(1);
+                    }
                 }
                 //If overflow.
                 if (denom.Compare(this) == 1)
@@ -670,8 +784,9 @@ namespace Gurux.DLMS.Ecdsa
                             Add(current);
                             break;
                         }
-                        current.Rshift(1);
-                        denom.Rshift(1);
+                        UInt16 bits = current.UsedBits;
+                        current.Rshift(bits);
+                        denom.Rshift(bits);
                     }
                     current.Data = Data;
                 }
@@ -696,8 +811,9 @@ namespace Gurux.DLMS.Ecdsa
             // while denom < this.
             while (denom.Compare(this) == -1)
             {
-                current.Lshift(1);
-                denom.Lshift(1);
+                int bits = UsedBits - denom.UsedBits;
+                current.Lshift(bits);
+                denom.Lshift(bits);
             }
             //If overflow.
             if (denom.Compare(this) == 1)

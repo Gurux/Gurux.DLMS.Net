@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using Gurux.DLMS.Ecdsa.Enums;
+using Gurux.DLMS.Internal;
 using System;
 using System.Collections.Generic;
 #if !WINDOWS_UWP
@@ -105,38 +106,34 @@ namespace Gurux.DLMS.Ecdsa
             GXBigInteger msg;
             if (PrivateKey.Scheme == Ecc.P256)
             {
-                using (SHA256 sha = new SHA256CryptoServiceProvider())
+                using (SHA256 sha = SHA256.Create())
                 {
                     msg = new GXBigInteger(sha.ComputeHash(data));
                 }
             }
             else
             {
-                using (SHA384 sha = new SHA384CryptoServiceProvider())
+                using (SHA384 sha = SHA384.Create())
                 {
                     msg = new GXBigInteger(sha.ComputeHash(data));
                 }
             }
+            // R = k * G, r = R[x]
+            GXBigInteger k = GetRandomNumber(curve.N);
+
             GXBigInteger pk = new GXBigInteger(PrivateKey.RawValue);
-            GXEccPoint p;
-            GXBigInteger n;
-            GXBigInteger r;
-            GXBigInteger s;
-            do
-            {
-                n = GetRandomNumber(curve.N);
-                p = new GXEccPoint(curve.G.x, curve.G.y, new GXBigInteger(1));
-                Multiply(p, n, curve.N, curve.A, curve.P);
-                r = p.x;
-                r.Mod(curve.N);
-                n.Inv(curve.N);
-                //s
-                s = new GXBigInteger(r);
-                s.Multiply(pk);
-                s.Add(msg);
-                s.Multiply(n);
-                s.Mod(curve.N);
-            } while (r.IsZero || s.IsZero);
+            GXEccPoint R = new GXEccPoint(new GXBigInteger(), new GXBigInteger(), new GXBigInteger());
+            GXShamirs.PointMulti(curve, R, curve.G, k);
+            GXBigInteger r = new GXBigInteger(R.x);
+            r.Mod(curve.N);
+            //s = (k ^ -1 * (e + d * r)) mod n
+            GXBigInteger s = new GXBigInteger(pk);
+            s.Multiply(r);
+            s.Add(msg);
+            GXBigInteger kinv = new GXBigInteger(k);
+            kinv.Inv(curve.N);
+            s.Multiply(kinv);
+            s.Mod(curve.N);
             GXByteBuffer signature = new GXByteBuffer();
             signature.Set(r.ToArray(false));
             signature.Set(s.ToArray(false));
@@ -169,17 +166,18 @@ namespace Gurux.DLMS.Ecdsa
             {
                 throw new ArgumentNullException("Private key scheme is different than public key.");
             }
+            GXBigInteger pk = new GXBigInteger(PrivateKey.RawValue);
+
             GXByteBuffer bb = new GXByteBuffer();
             bb.Set(publicKey.RawValue);
             int size = SchemeSize(PrivateKey.Scheme);
             GXBigInteger x = new GXBigInteger(bb.SubArray(1, size));
             GXBigInteger y = new GXBigInteger(bb.SubArray(1 + size, size));
-            GXBigInteger pk = new GXBigInteger(PrivateKey.RawValue);
+            GXEccPoint p = new GXEccPoint(x, y, null);
             GXCurve curve = new GXCurve(PrivateKey.Scheme);
-            GXEccPoint p = new GXEccPoint(x, y, new GXBigInteger(1));
-            p = JacobianMultiply(p, pk, curve.N, curve.A, curve.P);
-            FromJacobian(p, curve.P);
-            return p.x.ToArray();
+            GXEccPoint ret = new GXEccPoint(null, null, null);
+            GXShamirs.PointMulti(curve, ret, p, pk);
+            return ret.x.ToArray();
         }
 
         /// <summary>
@@ -210,6 +208,7 @@ namespace Gurux.DLMS.Ecdsa
         }
 
 #if !WINDOWS_UWP
+
         /// <summary>
         /// Verify that signature matches the data.
         /// </summary>
@@ -230,42 +229,34 @@ namespace Gurux.DLMS.Ecdsa
             }
             if (PublicKey.Scheme == Ecc.P256)
             {
-                using (SHA256 sha = new SHA256CryptoServiceProvider())
+                using (SHA256 sha = SHA256.Create())
                 {
                     msg = new GXBigInteger(sha.ComputeHash(data));
                 }
             }
             else
             {
-                using (SHA384 sha = new SHA384CryptoServiceProvider())
+                using (SHA384 sha = SHA384.Create())
                 {
                     msg = new GXBigInteger(sha.ComputeHash(data));
                 }
             }
-            GXByteBuffer pk = new GXByteBuffer(PublicKey.RawValue);
             GXByteBuffer bb = new GXByteBuffer(signature);
             int size = SchemeSize(PublicKey.Scheme);
             GXBigInteger sigR = new GXBigInteger(bb.SubArray(0, size));
             GXBigInteger sigS = new GXBigInteger(bb.SubArray(size, size));
-            GXBigInteger inv = sigS;
-            inv.Inv(curve.N);
-            // Calculate u1 and u2.
-            GXEccPoint u1 = new GXEccPoint(curve.G.x, curve.G.y, new GXBigInteger(1));
-            GXEccPoint u2 = new GXEccPoint(new GXBigInteger(pk.SubArray(1, size)),
-                new GXBigInteger(pk.SubArray(1 + size, size)), new GXBigInteger(1));
-            GXBigInteger n = msg;
-            n.Multiply(inv);
-            n.Mod(curve.N);
-            Multiply(u1, n, curve.N, curve.A, curve.P);
-            n = new GXBigInteger(sigR);
-            n.Multiply(inv);
-            n.Mod(curve.N);
-            Multiply(u2, n, curve.N, curve.A, curve.P);
-            u1.z = new GXBigInteger(1);
-            u2.z = new GXBigInteger(1);
-            JacobianAdd(u1, u2, curve.A, curve.P);
-            FromJacobian(u1, curve.P);
-            return sigR.Compare(u1.x) == 0;
+            GXBigInteger w = sigS;
+            w.Inv(curve.N);
+            GXBigInteger u1 = msg;
+            u1.Multiply(w);
+            u1.Mod(curve.N);
+            GXBigInteger u2 = new GXBigInteger(sigR);
+            u2.Multiply(w);
+            u2.Mod(curve.N);
+            GXEccPoint tmp = new GXEccPoint(null, null, null);
+            GXShamirs.Trick(curve, PublicKey, tmp, u1, u2);
+            tmp.x.Mod(curve.N);
+            return tmp.x.Compare(sigR) == 0;
 #else
             if (PublicKey == null)
             {
@@ -289,209 +280,7 @@ namespace Gurux.DLMS.Ecdsa
         }
 #endif //!WINDOWS_UWP
 
-        private static void Multiply(GXEccPoint p, GXBigInteger n, GXBigInteger N, GXBigInteger A, GXBigInteger P)
-        {
-            GXEccPoint p2 = JacobianMultiply(p, n, N, A, P);
-            p.x = p2.x;
-            p.y = p2.y;
-            p.z = p2.z;
-            FromJacobian(p, P);
-        }
-
-        /// <summary>
-        /// Y^2 = X^3 + A*X + B (mod p)
-        /// </summary>
-        /// <param name="p"></param>
-        /// <param name="q"></param>
-        /// <param name="A"></param>
-        /// <param name="P">Prime number</param>
-        private static void JacobianAdd(GXEccPoint p, GXEccPoint q, GXBigInteger A, GXBigInteger P)
-        {
-            if (!(p.y.IsZero || q.y.IsZero))
-            {
-                GXBigInteger U1 = new GXBigInteger(p.x);
-                U1.Multiply(q.z);
-                U1.Multiply(q.z);
-                U1.Mod(P);
-                GXBigInteger U2 = new GXBigInteger(p.z);
-                U2.Multiply(p.z);
-                U2.Multiply(q.x);
-                U2.Mod(P);
-                GXBigInteger S1 = new GXBigInteger(p.y);
-                S1.Multiply(q.z);
-                S1.Multiply(q.z);
-                S1.Multiply(q.z);
-                S1.Mod(P);
-                GXBigInteger S2 = new GXBigInteger(q.y);
-                S2.Multiply(p.z);
-                S2.Multiply(p.z);
-                S2.Multiply(p.z);
-                S2.Mod(P);
-                if (U1.Compare(U2) == 0)
-                {
-                    if (S1.Compare(S2) != 0)
-                    {
-                        p.x = p.y = new GXBigInteger(0);
-                        p.z = new GXBigInteger(1);
-                    }
-                    else
-                    {
-                        p.x = A;
-                        p.y = P;
-                    }
-                }
-                //H
-                GXBigInteger H = U2;
-                H.Sub(U1);
-                //R
-                GXBigInteger R = S2;
-                R.Sub(S1);
-                GXBigInteger H2 = new GXBigInteger(H);
-                H2.Multiply(H);
-                H2.Mod(P);
-                GXBigInteger H3 = new GXBigInteger(H);
-                H3.Multiply(H2);
-                H3.Mod(P);
-                GXBigInteger U1H2 = new GXBigInteger(U1);
-                U1H2.Multiply(H2);
-                U1H2.Mod(P);
-                GXBigInteger tmp = new GXBigInteger(2);
-                tmp.Multiply(U1H2);
-                //nx
-                GXBigInteger nx = new GXBigInteger(R);
-                nx.Multiply(R);
-                nx.Sub(H3);
-                nx.Sub(tmp);
-                nx.Mod(P);
-                //ny
-                GXBigInteger ny = R;
-                tmp = new GXBigInteger(U1H2);
-                tmp.Sub(nx);
-                ny.Multiply(tmp);
-                tmp = new GXBigInteger(S1);
-                tmp.Multiply(H3);
-                ny.Sub(tmp);
-                ny.Mod(P);
-                //nz
-                GXBigInteger nz = H;
-                nz.Multiply(p.z);
-                nz.Multiply(q.z);
-                nz.Mod(P);
-                p.x = nx;
-                p.y = ny;
-                p.z = nz;
-            }
-        }
-
-        /// <summary>
-        /// Get ECC point from Jacobian coordinates.
-        /// </summary>
-        /// <param name="p"></param>
-        /// <param name="P"></param>
-        internal static void FromJacobian(GXEccPoint p, GXBigInteger P)
-        {
-            p.z.Inv(P);
-            p.x.Multiply(p.z);
-            p.x.Multiply(p.z);
-            p.x.Mod(P);
-
-            p.y.Multiply(p.z);
-            p.y.Multiply(p.z);
-            p.y.Multiply(p.z);
-            p.y.Mod(P);
-            p.z.Clear();
-        }
-
-        /// <summary>
-        /// Multily elliptic curve point and scalar.
-        /// </summary>
-        /// <remarks>
-        /// Y^2 = X^3 + A*X + B (mod p)
-        /// </remarks>
-        /// <param name="eccSize"></param>
-        /// <param name="p">Point to multiply</param>
-        /// <param name="n">Scalar to multiply</param>
-        /// <param name="N">Elliptic curve order.</param>
-        /// <param name="A"></param>
-        /// <param name="P">Prime number</param>
-        internal static GXEccPoint JacobianMultiply(GXEccPoint p, GXBigInteger n, GXBigInteger N, GXBigInteger A, GXBigInteger P)
-        {
-            GXBigInteger tmp;
-            if (p.y.IsZero || n.IsZero)
-            {
-                return new GXEccPoint(0, 0, 1);
-            }
-            if (n.IsOne)
-            {
-                return p;
-            }
-            if (n.Compare(0) == -1 || n.Compare(N) != -1)
-            {
-                tmp = new GXBigInteger(n);
-                tmp.Mod(N);
-                return JacobianMultiply(p, tmp, N, A, P);
-            }
-            if (n.IsEven)
-            {
-                tmp = new GXBigInteger(n);
-                tmp.Rshift(1);
-                return JacobianDouble(JacobianMultiply(p, tmp, N, A, P), A, P);
-            }
-            tmp = new GXBigInteger(n);
-            tmp.Rshift(1);
-            GXEccPoint p2 = JacobianDouble(JacobianMultiply(p, tmp, N, A, P), A, P);
-            JacobianAdd(p2, p, A, P);
-            return p2;
-        }
-
-        /// <summary>
-        /// Convert ECC point to Jacobian.
-        /// </summary>
-        /// <param name="p">ECC point.</param>
-        /// <param name="A"></param>
-        /// <param name="P">Prime number.</param>
-        /// <returns></returns>
-        private static GXEccPoint JacobianDouble(GXEccPoint p, GXBigInteger A, GXBigInteger P)
-        {
-            GXBigInteger ysq = new GXBigInteger(p.y);
-            ysq.Pow(2);
-            ysq.Mod(P);
-            GXBigInteger S = new GXBigInteger(p.x);
-            S.Multiply(new GXBigInteger(4));
-            S.Multiply(ysq);
-            S.Mod(P);
-            GXBigInteger M = new GXBigInteger(p.x);
-            M.Pow(2);
-            M.Multiply(new GXBigInteger(3));
-            GXBigInteger tmp = new GXBigInteger(p.z);
-            tmp.Pow(4);
-            tmp.Multiply(A);
-            M.Add(tmp);
-            M.Mod(P);
-            //nx
-            GXBigInteger nx = new GXBigInteger(M);
-            nx.Pow(2);
-            tmp = new GXBigInteger(S);
-            tmp.Multiply(new GXBigInteger(2));
-            nx.Sub(tmp);
-            nx.Mod(P);
-            //ny
-            GXBigInteger ny = new GXBigInteger(S);
-            ny.Sub(nx);
-            ny.Multiply(M);
-            tmp = new GXBigInteger(ysq);
-            tmp.Pow(2);
-            tmp.Multiply(new GXBigInteger(8));
-            ny.Sub(tmp);
-            ny.Mod(P);
-            //nz
-            GXBigInteger nz = new GXBigInteger(p.y);
-            nz.Multiply(p.z);
-            nz.Multiply(new GXBigInteger(2));
-            nz.Mod(P);
-            return new GXEccPoint(nx, ny, nz);
-        }
-
+      
         /// <summary>
         /// Generate random number.
         /// </summary>

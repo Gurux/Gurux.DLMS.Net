@@ -233,25 +233,23 @@ namespace Gurux.DLMS.Ecdsa
         /// <summary>
         /// Get public key from private key.
         /// </summary>
-        /// <param name="scheme">Used scheme.</param>
-        /// <param name="privateKey">Private key bytes.</param>
         /// <returns>Public key.</returns>
         public GXPublicKey GetPublicKey()
         {
             if (publicKey == null)
             {
+                //Public key = private key multiple by curve.G.
                 GXBigInteger pk = new GXBigInteger(RawValue);
                 GXCurve curve = new GXCurve(Scheme);
-                GXEccPoint p = new GXEccPoint(curve.G.x, curve.G.y, new GXBigInteger(1));
-                p = GXEcdsa.JacobianMultiply(p, pk, curve.N, curve.A, curve.P);
-                GXEcdsa.FromJacobian(p, curve.P);
+                GXEccPoint ret = new GXEccPoint(null, null, null);
+                GXShamirs.PointMulti(curve, ret, curve.G, pk);
+                int size = Scheme == Ecc.P256 ? 32 : 48;
                 GXByteBuffer key = new GXByteBuffer(65);
                 //Public key is un-compressed format.
                 key.SetUInt8(4);
-                byte[] tmp = p.x.ToArray();
-                int size = Scheme == Ecc.P256 ? 32 : 48;
+                byte[] tmp = ret.x.ToArray(false);
                 key.Set(tmp, tmp.Length % size, size);
-                tmp = p.y.ToArray(false);
+                tmp = ret.y.ToArray(false);
                 key.Set(tmp, tmp.Length % size, size);
                 publicKey = GXPublicKey.FromRawBytes(key.Array());
             }

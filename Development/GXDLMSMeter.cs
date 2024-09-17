@@ -239,6 +239,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        /// Broadcast key.
+        /// </summary>
+        [DefaultValue(null)]
+        public virtual string BroadcastKey
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Invocation counter.
         /// </summary>
         [DefaultValue(0)]
@@ -526,6 +536,16 @@ namespace Gurux.DLMS
         /// </summary>
         [DefaultValue(0)]
         public byte NetworkId
+        {
+            get;
+            set;
+        }
+        
+        /// <summary>
+        /// Is broadcast or unicast connection used.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool Broadcast
         {
             get;
             set;

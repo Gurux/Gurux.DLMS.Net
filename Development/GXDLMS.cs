@@ -191,6 +191,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.LteMonitoring, typeof(GXDLMSLteMonitoring));
                 availableObjectTypes.Add(ObjectType.CoAPSetup, typeof(GXDLMSCoAPSetup));
                 availableObjectTypes.Add(ObjectType.CoAPDiagnostic, typeof(GXDLMSCoAPDiagnostic));
+                availableObjectTypes.Add(ObjectType.IEC6205541Attributes, typeof(GXDLMSIEC6205541Attributes));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
@@ -778,6 +779,11 @@ namespace Gurux.DLMS
         {
             if (settings.Broacast)
             {
+                if (settings.Cipher.BroadcastBlockCipherKey == null ||
+                    settings.Cipher.BroadcastBlockCipherKey.Length == 0)
+                {
+                    throw new Exception("Invalid Broadcast block cipher key.");
+                }
                 return settings.Cipher.BroadcastBlockCipherKey;
             }
             if (settings.EphemeralBlockCipherKey != null)
@@ -4416,7 +4422,9 @@ namespace Gurux.DLMS
             }
             SingleReadResponse type;
             List<Object> values = null;
-            if (cnt != 1)
+            if (cnt != 1 ||
+                //Only one value is read with readList and it can fit to one block.
+                reply.CommandType == (byte)SingleReadResponse.Data)
             {
                 //Parse data after all data is received when readlist is used.
                 if (reply.IsMoreData)
@@ -4476,7 +4484,7 @@ namespace Gurux.DLMS
                                 reply.Xml.AppendEndTag(TranslatorTags.Choice);
                             }
                         }
-                        else if (cnt == 1)
+                        else if (cnt == 1 && !first)
                         {
                             GetDataFromBlock(reply.Data, 0);
                         }

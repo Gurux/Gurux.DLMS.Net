@@ -427,6 +427,9 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("115")]
         TokenGateway = 115,
 
+        [XmlEnum("116")]
+        IEC6205541Attributes = 116,
+
         /// <summary>
         /// Allow managing attributes of type array of other interface objects.
         /// </summary>
@@ -435,7 +438,7 @@ namespace Gurux.DLMS.Enums
 
         ///<summary>
         ///SapAssigment stores information of assignment of the logical devices to
-        ///their SAP  = Service Access Points.
+        ///their Service Access Points.
         ///</summary>
         [XmlEnum("17")]
         SapAssignment = 17,

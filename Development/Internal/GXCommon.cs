@@ -1246,7 +1246,7 @@ namespace Gurux.DLMS.Internal
                     int cnt = buff.GetUInt16();
                     List<object> tmp = new List<object>();
                     GXArray tmp2 = new GXArray();
-                    GetDataTypes(buff, tmp, 1);
+                    GetDataTypes(buff, tmp, cnt);
                     for (int i = 0; i != cnt; ++i)
                     {
                         tmp2.Add(tmp[0]);

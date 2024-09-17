@@ -32,12 +32,15 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System;
+
 namespace Gurux.DLMS.Enums
 {
     /// <summary>
     /// RequestTypes enumerates the replies of the server to a client's request,
     /// indicating the request type.
     /// </summary>
+    [Flags]
     public enum RequestTypes : int
     {
         /// <summary>

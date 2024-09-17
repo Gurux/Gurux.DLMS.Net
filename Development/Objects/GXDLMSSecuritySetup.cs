@@ -66,7 +66,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Signing key of the server.
+        /// Key agreement key of the server.
         /// </summary>
         internal KeyValuePair<GXPublicKey, GXPrivateKey>? KeyAgreementKey
         {
@@ -539,8 +539,7 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(2);
             //serialNumber
-            byte[] sn = serialNumber.ToByteArray();
-            Array.Reverse(sn);
+            byte[] sn = GXAsn1Converter.ToByteArray(new GXAsn1Integer(serialNumber));
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, sn);
             //issuer
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, issuer);
@@ -597,8 +596,7 @@ namespace Gurux.DLMS.Objects
             bb.SetUInt8(DataType.Structure);
             bb.SetUInt8(2);
             //serialNumber
-            byte[] sn = serialNumber.ToByteArray();
-            Array.Reverse(sn);
+            byte[] sn = GXAsn1Converter.ToByteArray(new GXAsn1Integer(serialNumber));
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, sn);
             //issuer
             GXCommon.SetData(client.Settings, bb, DataType.OctetString, issuer);

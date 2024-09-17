@@ -216,13 +216,14 @@ namespace Gurux.DLMS.Objects.Italy
                 byte b = (byte)(interval.UseInterval ? 1 : 0);
                 b |= (byte)((byte)interval.IntervalTariff << 1);
                 b |= (byte)(interval.StartHour << 3);
+                data.SetUInt8((byte)DataType.UInt8);
                 data.SetUInt8(b);
             }
         }
 
         private static void GetSeason(GXBandDescriptor season, GXByteBuffer data)
         {
-            data.SetUInt8((byte)DataType.Array);
+            data.SetUInt8((byte)DataType.Structure);
             data.SetUInt8(5);
             GXCommon.SetData(null, data, DataType.UInt8, season.DayOfMonth);
             GXCommon.SetData(null, data, DataType.UInt8, season.Month);

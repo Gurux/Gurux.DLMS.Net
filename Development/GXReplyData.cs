@@ -76,6 +76,15 @@ namespace Gurux.DLMS
             Clear();
         }
 
+        /// <summary>
+        /// Is data send as a broadcast or unicast.
+        /// </summary>
+        public bool Broadcast
+        {
+            get;
+            set;
+        }
+
         public DataType DataType
         {
             get;
