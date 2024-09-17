@@ -571,6 +571,24 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
+        ///Frame delay in ms.
+        /// </summary>
+        public int FrameDelay
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        ///Object delay in ms.
+        /// </summary>
+        public int ObjectDelay
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Used Service class.
         /// </summary>
         [DefaultValue(ServiceClass.Confirmed)]
