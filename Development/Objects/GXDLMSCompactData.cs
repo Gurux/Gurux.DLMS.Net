@@ -210,7 +210,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
-            return new string[] {"Reset", "Capture" };
+            return new string[] { "Reset", "Capture" };
         }
 
         int IGXDLMSBase.GetMaxSupportedVersion()
@@ -377,6 +377,15 @@ namespace Gurux.DLMS.Objects
                             attributeIndex = 2;
                         }
                         int dataIndex = Convert.ToUInt16(it[3]);
+                        GXDLMSCompactDataRestriction restriction = null;
+                        if (Version != 0 && it.Count > 4)
+                        {
+                            GXStructure s = (GXStructure)it[4];
+                            restriction = new GXDLMSCompactDataRestriction();
+                            restriction.Type = (CompactDataRestrictionType)Convert.ToInt32(s[0]);
+                            restriction.From = s[1];
+                            restriction.To = s[2];
+                        }
                         GXDLMSObject obj = null;
                         if (settings != null && settings.Objects != null)
                         {
@@ -391,7 +400,7 @@ namespace Gurux.DLMS.Objects
                             }
                             c.UpdateOBISCodeInformation(obj);
                         }
-                        list.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, new GXDLMSCaptureObject(attributeIndex, dataIndex)));
+                        list.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, new GXDLMSCaptureObject(attributeIndex, dataIndex, restriction)));
                     }
                 }
             }
