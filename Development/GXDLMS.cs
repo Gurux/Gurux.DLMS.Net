@@ -4422,25 +4422,11 @@ namespace Gurux.DLMS
             }
             SingleReadResponse type;
             List<Object> values = null;
-            if (cnt != 1 ||
-                //Only one value is read with readList and it can fit to one block.
-                reply.CommandType == (byte)SingleReadResponse.Data)
+            if (cnt != 1)
             {
                 //Parse data after all data is received when readlist is used.
                 if (reply.IsMoreData)
                 {
-                    if (first)
-                    {
-                        type = (SingleReadResponse)reply.Data.GetUInt8();
-                        if (type == (byte)SingleReadResponse.Data)
-                        {
-                            reply.CommandType = (byte)type;
-                        }
-                        else
-                        {
-                            --reply.Data.Position;
-                        }
-                    }
                     GetDataFromBlock(reply.Data, 0);
                     return false;
                 }
@@ -4458,10 +4444,6 @@ namespace Gurux.DLMS
             if (reply.Xml != null)
             {
                 reply.Xml.AppendStartTag(Command.ReadResponse, "Qty", reply.Xml.IntegerToHex(cnt, 2));
-            }
-            if (reply.CommandType != (byte)SingleReadResponse.DataBlockResult)
-            {
-                first = true;
             }
             bool standardXml = reply.Xml != null && reply.Xml.OutputType == TranslatorOutputType.StandardXml;
             for (pos = 0; pos != cnt; ++pos)
@@ -4496,7 +4478,7 @@ namespace Gurux.DLMS
                                 reply.Xml.AppendEndTag(TranslatorTags.Choice);
                             }
                         }
-                        else if (cnt == 1 && !first)
+                        else if (cnt == 1)
                         {
                             GetDataFromBlock(reply.Data, 0);
                         }
@@ -4505,11 +4487,8 @@ namespace Gurux.DLMS
                             reply.ReadPosition = reply.Data.Position;
                             GetValueFromData(settings, reply);
                             reply.Data.Position = reply.ReadPosition;
-                            if (cnt != 1)
-                            {
-                                values.Add(reply.Value);
-                                reply.Value = null;
-                            }
+                            values.Add(reply.Value);
+                            reply.Value = null;
                         }
                         break;
                     case SingleReadResponse.DataAccessError:
@@ -4564,7 +4543,7 @@ namespace Gurux.DLMS
                 reply.Xml.AppendEndTag(Command.ReadResponse);
                 return true;
             }
-            if (values != null && cnt > 1)
+            if (values != null)
             {
                 reply.Value = values.ToArray();
             }

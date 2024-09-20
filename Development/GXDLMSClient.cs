@@ -887,7 +887,7 @@ namespace Gurux.DLMS
             {
                 Settings.Broacast = value;
             }
-        }       
+        }
 
         /// <summary>
         /// Connection state to the meter.
@@ -2542,6 +2542,10 @@ namespace Gurux.DLMS
             }
             else
             {
+                if (list.Count == 1)
+                {
+                    return Read(list[0].Key, list[0].Value);
+                }
                 GXDLMSSNParameters p = new GXDLMSSNParameters(Settings, Command.ReadRequest, list.Count, 0xFF, data, null);
                 foreach (KeyValuePair<GXDLMSObject, int> it in list)
                 {
