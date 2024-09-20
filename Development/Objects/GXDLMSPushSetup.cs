@@ -101,6 +101,7 @@ namespace Gurux.DLMS.Objects
         /// Upon a call of the push (data) method the selected attributes are sent to the destination
         /// defined in send_destination_and_method.
         /// </summary>
+        [XmlIgnore()]
         public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> PushObjectList
         {
             get;

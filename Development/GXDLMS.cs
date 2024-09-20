@@ -4429,6 +4429,18 @@ namespace Gurux.DLMS
                 //Parse data after all data is received when readlist is used.
                 if (reply.IsMoreData)
                 {
+                    if (first)
+                    {
+                        type = (SingleReadResponse)reply.Data.GetUInt8();
+                        if (type == (byte)SingleReadResponse.Data)
+                        {
+                            reply.CommandType = (byte)type;
+                        }
+                        else
+                        {
+                            --reply.Data.Position;
+                        }
+                    }
                     GetDataFromBlock(reply.Data, 0);
                     return false;
                 }
@@ -4493,8 +4505,11 @@ namespace Gurux.DLMS
                             reply.ReadPosition = reply.Data.Position;
                             GetValueFromData(settings, reply);
                             reply.Data.Position = reply.ReadPosition;
-                            values.Add(reply.Value);
-                            reply.Value = null;
+                            if (cnt != 1)
+                            {
+                                values.Add(reply.Value);
+                                reply.Value = null;
+                            }
                         }
                         break;
                     case SingleReadResponse.DataAccessError:
@@ -4549,7 +4564,7 @@ namespace Gurux.DLMS
                 reply.Xml.AppendEndTag(Command.ReadResponse);
                 return true;
             }
-            if (values != null)
+            if (values != null && cnt > 1)
             {
                 reply.Value = values.ToArray();
             }
