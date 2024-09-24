@@ -1988,7 +1988,13 @@ namespace Gurux.DLMS
             {
                 ValueEventArgs e = new ValueEventArgs(Settings, it.Key, it.Value, 0, null);
                 e.Value = values[pos];
+                DataType type;
+                if (e.Value is byte[] && (type = it.Key.GetUIDataType(it.Value)) != DataType.None)
+                {
+                    e.Value = GXDLMSClient.ChangeType((byte[])e.Value, type, UseUtc2NormalTime);
+                }
                 (it.Key as IGXDLMSBase).SetValue(Settings, e);
+                it.Key.ClearDirty(e.Index);
                 ++pos;
             }
         }

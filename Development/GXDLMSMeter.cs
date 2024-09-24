@@ -880,7 +880,7 @@ namespace Gurux.DLMS
         /// </summary>
         public GXDLMSMeter() : base()
         {
-            Objects = new GXDLMSObjectCollection(this);
+            Objects = new GXDLMSObjectCollection();
             PduWaitTime = 100;
             GbtWindowSize = 1;
         }
@@ -924,15 +924,7 @@ namespace Gurux.DLMS
             }
             set
             {
-                if (objects != null)
-                {
-                    objects.Parent = null;
-                }
                 objects = value;
-                if (objects != null)
-                {
-                    objects.Parent = this;
-                }
             }
         }
 
