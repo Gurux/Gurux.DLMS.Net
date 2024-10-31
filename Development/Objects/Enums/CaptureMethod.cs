@@ -32,40 +32,17 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-namespace Gurux.DLMS.ASN.Enums
+namespace Gurux.DLMS.Objects.Enums
 {
-
-    /// <summary>
-    /// x509 Certificate.
-    /// </summary>
-    public enum X509CertificateType
+    public enum CaptureMethod : byte
     {
-        None,
-        OldAuthorityKeyIdentifier,
-        OldPrimaryKeyAttributes,
-        CertificatePolicies,
-        OrimaryKeyUsageRestriction,
-        SubjectDirectoryAttributes,
-        SubjectKeyIdentifier,
-        KeyUsage,
-        PrivateKeyUsagePeriod,
-        SubjectAlternativeName,
-        IssuerAlternativeName,
-        BasicConstraints,
-        CrlNumber,
-        ReasonCode,
-        HoldInstructionCode,
-        InvalidityDate,
-        DeltaCrlIndicator,
-        IssuingDistributionPoint,
-        CertificateIssuer,
-        NameConstraints,
-        CrlDistributionPoints,
-        CertificatePolicies2,
-        PolicyMappings,
-        AuthorityKeyIdentifier,
-        PolicyConstraints,
-        ExtendedKeyUsage,
-        FreshestCrl
+        /// <summary>
+        /// Data is captured with Capture-method.
+        /// </summary>
+        Invoke,
+        /// <summary>
+        /// Data is captured upon reading.
+        /// </summary>
+        Implicit
     }
 }

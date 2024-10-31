@@ -34,7 +34,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ComponentModel;
 using Gurux.DLMS.ManufacturerSettings;
 using System.Xml.Serialization;
@@ -88,36 +87,7 @@ namespace Gurux.DLMS.Objects
                 (access == AccessMode.AuthenticatedReadWrite) ||
                 (GetAccess3(index) & AccessMode3.Read) != 0;
         }
-
-        class GXStatusInfo
-        {
-            /// <summary>
-            /// Last read time.
-            /// </summary>
-            public DateTime Read
-            {
-                get;
-                set;
-            }
-
-            /// <summary>
-            /// Changed value.
-            /// </summary>
-            public object Value
-            {
-                get;
-                set;
-            }
-
-            /// <summary>
-            /// Last exception.
-            /// </summary>
-            public Exception Error
-            {
-                get;
-                set;
-            }
-        }
+       
         SortedDictionary<int, GXStatusInfo> Status = new SortedDictionary<int, GXStatusInfo>();
 
         public event ObjectChangeEventHandler OnChange;
@@ -334,7 +304,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// object attribute collection.
+        /// Object attribute collection.
         /// </summary>
 #if !WINDOWS_UWP
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]

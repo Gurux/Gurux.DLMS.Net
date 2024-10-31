@@ -628,8 +628,8 @@ namespace Gurux.DLMS.Internal
                 arr = new GXStructure();
             }
             // Position where last row was found. Cache uses this info.
-            int pos = info.Index;
-            for (; pos != info.Count; ++pos)
+            int pos;
+            for (pos = info.Index; pos != info.Count; ++pos)
             {
                 GXDataInfo info2 = new GXDataInfo();
                 info2.xml = info.xml;

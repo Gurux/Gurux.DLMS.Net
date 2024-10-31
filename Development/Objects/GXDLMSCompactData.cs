@@ -38,21 +38,10 @@ using System.Linq;
 using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
-    public enum CaptureMethod : byte
-    {
-        /// <summary>
-        /// Data is captured with Capture-method.
-        /// </summary>
-        Invoke,
-        /// <summary>
-        /// Data is captured upon reading.
-        /// </summary>
-        Implicit
-    }
-
     /// <summary>
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCompactData
@@ -377,12 +366,12 @@ namespace Gurux.DLMS.Objects
                             attributeIndex = 2;
                         }
                         int dataIndex = Convert.ToUInt16(it[3]);
-                        GXDLMSCompactDataRestriction restriction = null;
+                        GXDLMSRestriction restriction = null;
                         if (Version != 0 && it.Count > 4)
                         {
                             GXStructure s = (GXStructure)it[4];
-                            restriction = new GXDLMSCompactDataRestriction();
-                            restriction.Type = (CompactDataRestrictionType)Convert.ToInt32(s[0]);
+                            restriction = new GXDLMSRestriction();
+                            restriction.Type = (RestrictionType)Convert.ToInt32(s[0]);
                             restriction.From = s[1];
                             restriction.To = s[2];
                         }

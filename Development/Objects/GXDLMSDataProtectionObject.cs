@@ -33,59 +33,83 @@
 //---------------------------------------------------------------------------
 
 using System;
-using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects.Enums;
 
-namespace Gurux.DLMS.ManufacturerSettings
+namespace Gurux.DLMS.Objects
 {
-#if !WINDOWS_UWP
-    [Serializable]
-#endif
-    public class GXDLMSAttribute : GXDLMSAttributeSettings
+    public class GXDLMSDataProtectionObject
     {
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GXDLMSAttribute(int index)
-            : this(index, DataType.None, 0)
+        public GXDLMSObject Target
         {
-
+            get;
+            set;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Attribute Index of the protection object.
         /// </summary>
-        public GXDLMSAttribute() :
-                this(0, DataType.None, DataType.None, 0)
+        public sbyte AttributeIndex
         {
-
+            get;
+            set;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Data index of the protection object. 
         /// </summary>
-        public GXDLMSAttribute(int index, DataType uiType) :
-                this(index, DataType.None, uiType, 0)
+        public UInt16 DataIndex
         {
+            get;
+            set;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Restriction type. 
         /// </summary>
-        public GXDLMSAttribute(int index, DataType type, DataType uiType) :
-                this(index, type, uiType, 0)
+        public RestrictionType RestrictionType
         {
+            get;
+            set;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Restriction start date.
         /// </summary>
-        public GXDLMSAttribute(int index, DataType type, DataType uiType, int order) :
-                base()
+        /// <seealso cref="RestrictionType"/>
+        public GXDateTime RestrictionStartDate
         {
-            Index = index;
-            Type = type;
-            UIType = uiType;
-            Order = order;
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Restriction end date.
+        /// </summary>
+        /// <seealso cref="RestrictionType"/>
+        public GXDateTime RestrictionEndDate
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Restriction start entry.
+        /// </summary>
+        /// <seealso cref="RestrictionType"/>
+        public UInt32 RestrictionStartEntry
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Restriction end entry.
+        /// </summary>
+        /// <seealso cref="RestrictionType"/>
+        public UInt32 RestrictionEndEntry
+        {
+            get;
+            set;
         }
     }
 }

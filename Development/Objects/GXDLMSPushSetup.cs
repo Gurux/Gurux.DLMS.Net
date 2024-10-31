@@ -564,11 +564,63 @@ namespace Gurux.DLMS.Objects
             foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
             {
                 buff.SetUInt8(DataType.Structure);
-                buff.SetUInt8(4);
-                GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
-                GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
-                GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
-                GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
+                if (Version < 1)
+                {
+                    buff.SetUInt8(4);
+                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
+                    GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
+                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
+                }
+                else
+                {
+                    buff.SetUInt8((byte)(Version == 1 ? 5 : 6));
+                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
+                    GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
+                    GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
+                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
+                    GXCommon.SetData(settings, buff, DataType.Enum, it.Value.Restriction.Type);
+                    switch (it.Value.Restriction.Type)
+                    {
+                        case RestrictionType.None:
+                            GXCommon.SetData(settings, buff, DataType.None, null);
+                            break;
+                        case RestrictionType.Date:
+                            buff.SetUInt8(DataType.Structure);
+                            buff.SetUInt8(2);
+                            GXCommon.SetData(settings, buff, DataType.OctetString, it.Value.Restriction.From);
+                            GXCommon.SetData(settings, buff, DataType.OctetString, it.Value.Restriction.To);
+                            break;
+                        case RestrictionType.Entry:
+                            buff.SetUInt8(DataType.Structure);
+                            buff.SetUInt8(2);
+                            GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.Restriction.From);
+                            GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.Restriction.To);
+                            break;
+                    }
+                    if (Version > 1)
+                    {
+                        if (it.Value.Columns != null)
+                        {
+                            buff.SetUInt8(DataType.Array);
+                            GXCommon.SetObjectCount(it.Value.Columns.Count, buff);
+                            foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it2 in it.Value.Columns)
+                            {
+                                buff.SetUInt8(DataType.Structure);
+                                buff.SetUInt8(4);
+                                GXCommon.SetData(settings, buff, DataType.UInt16, it2.Key.ObjectType);
+                                GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it2.Key.LogicalName));
+                                GXCommon.SetData(settings, buff, DataType.Int8, it2.Value.AttributeIndex);
+                                GXCommon.SetData(settings, buff, DataType.UInt16, it2.Value.DataIndex);
+                            }
+                        }
+                        else
+                        {
+                            buff.SetUInt8(DataType.Array);
+                            buff.SetUInt8(0);
+                        }
+                    }
+                }
             }
             return buff.Array();
         }
@@ -751,7 +803,7 @@ namespace Gurux.DLMS.Objects
                             it = new List<object>((object[])t);
                         }
                         ObjectType type = (ObjectType)Convert.ToUInt16(it[0]);
-                        String ln = GXCommon.ToLogicalName(it[1]);
+                        string ln = GXCommon.ToLogicalName(it[1]);
                         GXDLMSObject obj = settings.Objects.FindByLN(type, ln);
                         if (obj == null)
                         {
@@ -760,6 +812,35 @@ namespace Gurux.DLMS.Objects
                         }
                         GXDLMSCaptureObject co = new GXDLMSCaptureObject(Convert.ToInt32(it[2]), Convert.ToInt32(it[3]));
                         PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
+                        if (Version > 1)
+                        {
+                            GXStructure restriction = (GXStructure)it[4];
+                            co.Restriction.Type = (RestrictionType)Convert.ToInt32(restriction[0]);
+                            switch (co.Restriction.Type)
+                            {
+                                case RestrictionType.None:
+                                    break;
+                                case RestrictionType.Date:
+                                case RestrictionType.Entry:
+                                    co.Restriction.From = restriction[1];
+                                    co.Restriction.To = restriction[2];
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException("Invalid restriction type.");
+                            }
+                            foreach (GXStructure c in (GXArray)it[5])
+                            {
+                                type = (ObjectType)Convert.ToUInt16(c[0]);
+                                ln = GXCommon.ToLogicalName(c[1]);
+                                obj = settings.Objects.FindByLN(type, ln);
+                                if (obj == null)
+                                {
+                                    obj = GXDLMSClient.CreateObject(type);
+                                    obj.LogicalName = ln;
+                                }
+                                co.Columns.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
+                            }
+                        }
                     }
                 }
             }
@@ -1119,7 +1200,6 @@ namespace Gurux.DLMS.Objects
                 }
             }
         }
-
         #endregion
     }
 }

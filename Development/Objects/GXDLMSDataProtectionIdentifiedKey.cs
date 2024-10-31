@@ -32,40 +32,22 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-namespace Gurux.DLMS.ASN.Enums
-{
+using Gurux.DLMS.Objects.Enums;
 
+namespace Gurux.DLMS.Objects
+{
     /// <summary>
-    /// x509 Certificate.
+    /// Data protection identified key.
     /// </summary>
-    public enum X509CertificateType
+    public class GXDLMSDataProtectionIdentifiedKey
     {
-        None,
-        OldAuthorityKeyIdentifier,
-        OldPrimaryKeyAttributes,
-        CertificatePolicies,
-        OrimaryKeyUsageRestriction,
-        SubjectDirectoryAttributes,
-        SubjectKeyIdentifier,
-        KeyUsage,
-        PrivateKeyUsagePeriod,
-        SubjectAlternativeName,
-        IssuerAlternativeName,
-        BasicConstraints,
-        CrlNumber,
-        ReasonCode,
-        HoldInstructionCode,
-        InvalidityDate,
-        DeltaCrlIndicator,
-        IssuingDistributionPoint,
-        CertificateIssuer,
-        NameConstraints,
-        CrlDistributionPoints,
-        CertificatePolicies2,
-        PolicyMappings,
-        AuthorityKeyIdentifier,
-        PolicyConstraints,
-        ExtendedKeyUsage,
-        FreshestCrl
+        /// <summary>
+        /// Data protectionKey type.
+        /// </summary>
+        public DataProtectionIdentifiedKeyType KeyType
+        {
+            get;
+            set;
+        }
     }
 }

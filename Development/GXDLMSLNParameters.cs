@@ -33,6 +33,7 @@
 //---------------------------------------------------------------------------
 
 using Gurux.DLMS.Enums;
+using Gurux.DLMS.Internal;
 using System;
 
 namespace Gurux.DLMS
@@ -144,7 +145,7 @@ namespace Gurux.DLMS
             lastBlock = forSettings.Count == forSettings.Index;
             GbtWindowSize = 1;
             settings.Command = forCommand;
-            if (forCommand == Command.GetRequest && forCommandType != (byte)Internal.GetCommandType.NextDataBlock)
+            if (forCommand == Command.GetRequest && forCommandType != (byte)GetCommandType.NextDataBlock)
             {
                 settings.CommandType = forCommandType;
             }

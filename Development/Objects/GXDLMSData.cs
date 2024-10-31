@@ -47,6 +47,16 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSData : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
+        /// Value of COSEM Data object.
+        /// </summary>
+        [XmlIgnore()]
+        public object Value
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public GXDLMSData()
@@ -71,16 +81,6 @@ namespace Gurux.DLMS.Objects
         public GXDLMSData(string ln, ushort sn)
         : base(ObjectType.Data, ln, sn)
         {
-        }
-
-        /// <summary>
-        /// Value of COSEM Data object.
-        /// </summary>
-        [XmlIgnore()]
-        public object Value
-        {
-            get;
-            set;
         }
 
         /// <inheritdoc>
@@ -116,7 +116,7 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value" };
+            return new string[] { GXCommon.GetLogicalNameString(), "Value" };
         }
 
         /// <inheritdoc />
@@ -146,9 +146,11 @@ namespace Gurux.DLMS.Objects
             switch (index)
             {
                 case 1:
+                    //Logical name.
                     return DataType.OctetString;
                 case 2:
                     {
+                        //Value.
                         DataType dt = base.GetDataType(index);
                         if (dt == DataType.None && Value != null)
                         {

@@ -32,46 +32,41 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
+using Gurux.DLMS.Objects.Enums;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
 
-namespace Gurux.Shared
+namespace Gurux.DLMS.Objects
 {
-	class GXCommon
-	{	
+    /// <summary>
+    /// Compact data and push object restriction values.
+    /// </summary>
+    public class GXDLMSRestriction
+    {
         /// <summary>
-        /// Searches for the specified pattern and returns the index of the first occurrence
-        /// within the range of elements in the byte buffer that starts at the specified
-        /// index and contains the specified number of elements.
+        /// Restriction type.
         /// </summary>
-        /// <param name="input">Input byte buffer</param>
-        /// <param name="pattern"></param>
-        /// <param name="index">Index where search is started.</param>
-        /// <param name="count">Maximum search buffer size.</param>
-        /// <returns></returns>
-		public static int IndexOf(byte[] input, byte[] pattern, int index, int count)
-		{
-			//If not enough data available.
-            if (count < pattern.Length)
-			{
-				return -1;
-			}
-			byte firstByte = pattern[0];
-			int pos = -1;
-            if ((pos = Array.IndexOf(input, firstByte, index, count - index)) >= 0)
-			{
-				for (int i = 0; i < pattern.Length; i++)
-				{
-					if (pos + i >= input.Length || pattern[i] != input[pos + i])
-					{
-						return -1;
-					}
-				}
-			}
-			return pos;
-		}
-	}
+        public RestrictionType Type
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// From date or entry.
+        /// </summary>
+        public object From
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// To date or entry.
+        /// </summary>
+        public object To
+        {
+            get;
+            set;
+        }
+    }
 }

@@ -34,18 +34,21 @@
 
 namespace Gurux.DLMS.Objects.Enums
 {
+    /// <summary>
+    /// Enumerates compact data and push object restriction types.
+    /// </summary>
     public enum RestrictionType
     {
         /// <summary>
         /// None.
         /// </summary>
-        none,
+        None,
         /// <summary>
         /// Restriction by date.
         /// </summary>
         Date,
         /// <summary>
-        ///  restriction by entry.
+        /// Restriction by entry.
         /// </summary>
         Entry
     }

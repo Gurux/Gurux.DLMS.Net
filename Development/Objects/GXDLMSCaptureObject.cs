@@ -32,57 +32,10 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// Enumerates compact data restriction types.
-    /// </summary>
-    public enum CompactDataRestrictionType
-    {
-        /// <summary>
-        /// None.
-        /// </summary>
-        None,
-        /// <summary>
-        /// Restriction by date.
-        /// </summary>
-        Date,
-        /// <summary>
-        /// Restriction by entry.
-        /// </summary>
-        Entry
-    }
-
-    public class GXDLMSCompactDataRestriction
-    {
-        /// <summary>
-        /// Compact data restriction types.
-        /// </summary>
-        public CompactDataRestrictionType Type
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// From date or entry.
-        /// </summary>
-        public object From
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// To date or entry.
-        /// </summary>
-        public object To
-        {
-            get;
-            set;
-        }
-    }
-
     public class GXDLMSCaptureObject
     {
         /// <summary>
@@ -104,20 +57,30 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Restriction element for compact data.
+        /// Restriction element for compact or push data.
         /// </summary>
-        public GXDLMSCompactDataRestriction Restriction
+        public GXDLMSRestriction Restriction
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Push data columns.
+        /// </summary>
+        public List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> Columns
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Constructor
         /// </summary>
         public GXDLMSCaptureObject()
         {
+            Restriction = new GXDLMSRestriction();
+            Columns = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
         }
 
         /// <summary>
@@ -129,6 +92,8 @@ namespace Gurux.DLMS.Objects
         {
             AttributeIndex = attributeIndex;
             DataIndex = dataIndex;
+            Restriction = new GXDLMSRestriction();
+            Columns = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
         }
 
         /// <summary>
@@ -136,13 +101,13 @@ namespace Gurux.DLMS.Objects
         /// </summary>
         /// <param name="attributeIndex">Attribute index.</param>
         /// <param name="dataIndex">Data Index.</param>
-        public GXDLMSCaptureObject(int attributeIndex, int dataIndex, GXDLMSCompactDataRestriction restriction)
+        public GXDLMSCaptureObject(int attributeIndex, int dataIndex, GXDLMSRestriction restriction)
         {
             AttributeIndex = attributeIndex;
             DataIndex = dataIndex;
             Restriction = restriction;
+            Restriction = new GXDLMSRestriction();
+            Columns = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
         }
-
     }
-
 }

@@ -47,7 +47,7 @@ namespace Gurux.DLMS
     /// Default behavior of DateTime do not allow this.
     /// </summary>
 #if !WINDOWS_UWP
-[TypeConverter(typeof(GXDateTimeConverter))]
+    [TypeConverter(typeof(GXDateTimeConverter))]
 #endif//!WINDOWS_UWP
     public class GXDateTime : IConvertible
     {
@@ -106,7 +106,7 @@ namespace Gurux.DLMS
                 {
                     Value = new DateTimeOffset(value, TimeZoneInfo.Local.GetUtcOffset(value));
                 }
-                if ((timeZone == null && value.IsDaylightSavingTime()) 
+                if ((timeZone == null && value.IsDaylightSavingTime())
                     || (timeZone != null && timeZone.IsDaylightSavingTime(value)))
                 {
                     Status |= ClockStatus.DaylightSavingActive;
@@ -675,12 +675,12 @@ namespace Gurux.DLMS
 
         private void Remove(StringBuilder format, CultureInfo culture)
         {
-#if !WINDOWS_UWP
-            string timeSeparator = culture.DateTimeFormat.TimeSeparator;
-            string dateSeparator = culture.DateTimeFormat.DateSeparator;
-#else
+#if !NET5_0_OR_GREATER || WINDOWS_UWP
             string timeSeparator = ":";
             string dateSeparator = "/";
+#else
+            string timeSeparator = culture.DateTimeFormat.TimeSeparator;
+            string dateSeparator = culture.DateTimeFormat.DateSeparator;
 #endif //!WINDOWS_UWP
             if (this is GXDate)
             {
@@ -751,13 +751,14 @@ namespace Gurux.DLMS
             StringBuilder format = new StringBuilder();
             if (Skip != DateTimeSkips.None)
             {
-#if !WINDOWS_UWP && !__MOBILE__
+#if !NET5_0_OR_GREATER || WINDOWS_UWP
+                string timeSeparator = ":";
+                string dateSeparator = "/";
+#else
                 string timeSeparator = culture.DateTimeFormat.TimeSeparator;
                 string dateSeparator = culture.DateTimeFormat.DateSeparator;
-#else
-            string timeSeparator = ":";
-            string dateSeparator = "/";
-#endif //!WINDOWS_UWP && !__MOBILE__
+#endif //!NET5_0_OR_GREATER || WINDOWS_UWP
+
                 format.Append(GetDateTimeFormat(culture));
                 Remove(format, culture);
                 if (!useLocalTime)
@@ -1101,7 +1102,7 @@ namespace Gurux.DLMS
             {
                 diff = 60 * 60000 + diff;
             }
-            //Compare days.
+            //Compare days.          
             if ((to.Skip & DateTimeSkips.Day) == 0)
             {
                 if (start.Day < to.Value.Day)
@@ -1112,7 +1113,18 @@ namespace Gurux.DLMS
                 {
                     if ((to.Skip & DateTimeSkips.Month) == 0)
                     {
-                        diff += (to.Value.Day - start.Day) * 24 * 60 * 60000L;
+                        if ((to.Extra & DateTimeExtraInfo.LastDay) != 0)
+                        {
+                            diff += (DateTime.DaysInMonth(to.Value.Year, to.Value.Month) - start.Day) * 24 * 60 * 60000L;
+                        }
+                        else if ((to.Extra & DateTimeExtraInfo.LastDay2) != 0)
+                        {
+                            diff += (DateTime.DaysInMonth(to.Value.Year, to.Value.Month) - 1 - start.Day) * 24 * 60 * 60000L;
+                        }
+                        else
+                        {
+                            diff += (to.Value.Day - start.Day) * 24 * 60 * 60000L;
+                        }
                     }
                     else
                     {
@@ -1183,14 +1195,14 @@ namespace Gurux.DLMS
         {
             if (date == DateTime.MinValue)
             {
-                return Convert.ToInt64(0);
+                return 0;
             }
             if (date == DateTime.MaxValue)
             {
                 return 0xFFFFFFFF;
             }
             DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return Convert.ToInt64((date.ToUniversalTime() - epoch).TotalSeconds);
+            return (long)(date.ToUniversalTime() - epoch).TotalSeconds;
         }
 
         /// <summary>
@@ -1219,7 +1231,7 @@ namespace Gurux.DLMS
                 return UInt64.MaxValue;
             }
             DateTime high = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return (UInt64) Convert.ToInt64((date.ToUniversalTime() - high).TotalMilliseconds);
+            return (UInt64)(date.ToUniversalTime() - high).TotalMilliseconds;
         }
 
         /// <summary>
@@ -1248,7 +1260,7 @@ namespace Gurux.DLMS
             return buff.ToHex(addSpace, 2);
         }
 
-#region IConvertible Members
+        #region IConvertible Members
 
         TypeCode IConvertible.GetTypeCode()
         {
@@ -1335,7 +1347,7 @@ namespace Gurux.DLMS
             return (ulong)GXDateTime.ToUnixTime(this.Value.DateTime);
         }
 
-#endregion
+        #endregion
 
         /// <summary>
         /// Compare to date time.

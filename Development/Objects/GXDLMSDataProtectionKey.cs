@@ -32,60 +32,59 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using System;
-using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects.Enums;
 
-namespace Gurux.DLMS.ManufacturerSettings
+namespace Gurux.DLMS.Objects
 {
-#if !WINDOWS_UWP
-    [Serializable]
-#endif
-    public class GXDLMSAttribute : GXDLMSAttributeSettings
+    /// <summary>
+    /// Data protection Key.
+    /// </summary>
+    public class GXDLMSDataProtectionKey
     {
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GXDLMSAttribute(int index)
-            : this(index, DataType.None, 0)
+        public GXDLMSDataProtectionKey()
         {
-
+            IdentifiedKey = new GXDLMSDataProtectionIdentifiedKey();
+            WrappedKey = new GXDLMSDataProtectionWrappeddKey();
+            AgreedKey = new GXDLMSDataProtectionAgreedKey();
         }
 
         /// <summary>
-        /// Constructor.
+        /// Data protection key type.
         /// </summary>
-        public GXDLMSAttribute() :
-                this(0, DataType.None, DataType.None, 0)
+        public DataProtectionKeyType DataProtectionKeyType
         {
-
+            get;
+            set;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Identified key parameters.
         /// </summary>
-        public GXDLMSAttribute(int index, DataType uiType) :
-                this(index, DataType.None, uiType, 0)
+        public GXDLMSDataProtectionIdentifiedKey IdentifiedKey
         {
+            get;
+            set;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Wrapped key parameters.
         /// </summary>
-        public GXDLMSAttribute(int index, DataType type, DataType uiType) :
-                this(index, type, uiType, 0)
+        public GXDLMSDataProtectionWrappeddKey WrappedKey
         {
+            get;
+            set;
         }
 
         /// <summary>
-        /// Constructor.
+        /// Agreed key parameters.
         /// </summary>
-        public GXDLMSAttribute(int index, DataType type, DataType uiType, int order) :
-                base()
+        public GXDLMSDataProtectionAgreedKey AgreedKey
         {
-            Index = index;
-            Type = type;
-            UIType = uiType;
-            Order = order;
+            get;
+            set;
         }
-    }
+    }  
 }

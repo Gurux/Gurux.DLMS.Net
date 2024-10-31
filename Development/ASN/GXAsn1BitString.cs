@@ -78,7 +78,8 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Append zeroes to the buffer.
         /// </summary>
-        /// <param name="count">Amount of zeroes. </param>
+        /// <param name="sb">Buffer where zeros are added.</param>
+        /// <param name="count">Amount of zeroes.</param>
         private static void AppendZeros(StringBuilder sb, int count)
         {
             for (int pos = 0; pos != count; ++pos)
@@ -107,43 +108,47 @@ namespace Gurux.DLMS.ASN
             }
         }
 
-        /// <summary>Constructor
+        /// <summary>
+        /// Constructor
         /// </summary>
-        /// <param name="str">Bit string. </param>
-        /// <param name="padCount">Number of extra bits at the end of the string. </param>
-        public GXAsn1BitString(byte[] str, int padCount)
+        /// <param name="value">Bit string.</param>
+        /// <param name="padCount">Number of extra bits at the end of the string.</param>
+        public GXAsn1BitString(byte[] value, int padCount)
         {
-            if (str == null)
+            if (value == null)
             {
-                throw new System.ArgumentException("data");
+                throw new ArgumentException(nameof(value));
             }
             if (PadBits < 0 || PadBits > 7)
             {
                 throw new System.ArgumentException("PadCount must be in the range 0 to 7");
             }
-            Value = str;
+            Value = value;
             PadBits = padCount;
         }
 
-        /// <summary>Constructor
+        /// <summary>
+        /// Constructor
         /// </summary>
-        /// <param name="str">Bit string. </param>
-        ///
-        public GXAsn1BitString(byte[] str)
+        /// <param name="value">Bit string.</param>
+        public GXAsn1BitString(byte[] value)
         {
-            if (str == null)
+            if (value == null)
             {
-                throw new System.ArgumentException("data");
+                throw new ArgumentException(nameof(value));
             }
-            PadBits = str[0];
+            PadBits = value[0];
             if (PadBits < 0 || PadBits > 7)
             {
-                throw new System.ArgumentException("PadCount must be in the range 0 to 7");
+                throw new ArgumentException("PadCount must be in the range 0 to 7");
             }
-            Value = new byte[str.Length - 1];
-            Array.Copy(str, 1, Value, 0, str.Length - 1);
+            Value = new byte[value.Length - 1];
+            Array.Copy(value, 1, Value, 0, value.Length - 1);
         }
 
+        /// <summary>
+        /// Number of extra bits at the end of the string.
+        /// </summary>
         public int Length
         {
             get
@@ -156,13 +161,14 @@ namespace Gurux.DLMS.ASN
             }
         }
 
+        /// <inheritdoc/>
         public override sealed string ToString()
         {
             if (Value == null)
             {
                 return "";
             }
-            return Convert.ToString((8 * Value.Length) - PadBits) + 
+            return Convert.ToString((8 * Value.Length) - PadBits) +
                 " bit " + AsString();
         }
 
@@ -170,7 +176,7 @@ namespace Gurux.DLMS.ASN
         {
             if (Value == null)
             {
-                return null;
+                return "";
             }
             StringBuilder sb = new StringBuilder(8 * Value.Length);
             foreach (byte it in Value)
@@ -181,7 +187,11 @@ namespace Gurux.DLMS.ASN
             return sb.ToString();
         }
 
-        private UInt32 ToNumeric()
+        /// <summary>
+        /// Converts ASN1 bit-string to integer value.
+        /// </summary>
+        /// <returns>The bit-string as an integer value.</returns>
+        public int ToInteger()
         {
             UInt32 ret = 0;
             if (Value != null)
@@ -193,12 +203,7 @@ namespace Gurux.DLMS.ASN
                     bytePos += 8;
                 }
             }
-            return ret;
-        }
-
-        public int ToInteger()
-        {
-            return (int)ToNumeric();
+            return (int)ret;
         }
     }
 }
