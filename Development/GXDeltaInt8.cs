@@ -58,7 +58,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Enumeration value.
+        /// Delta value.
         /// </summary>
         public sbyte Value
         {

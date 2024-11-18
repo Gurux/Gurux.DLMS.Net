@@ -412,6 +412,7 @@ namespace Gurux.DLMS.Reader
                     GetScalersAndUnits();
                     GetProfileGenericColumns();
                 }
+                GetCompactData();
                 GetReadOut();
                 GetProfileGenerics();
                 if (outputFile != null)
@@ -1177,7 +1178,7 @@ namespace Gurux.DLMS.Reader
 
         public void GetProfileGenerics()
         {
-            //Find profile generics register objects and read them.
+            //Find profile generics objects and read them.
             foreach (GXDLMSObject it in Client.Objects.GetObjects(ObjectType.ProfileGeneric))
             {
                 //If trace is info.
@@ -1186,12 +1187,12 @@ namespace Gurux.DLMS.Reader
                     Console.WriteLine("-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
                 }
                 long entriesInUse = -1;
-                if ((it.GetAccess(7) & AccessMode.Read) != 0)
+                if (Client.CanRead(it, 7))
                 {
                     entriesInUse = Convert.ToInt64(Read(it, 7));
                 }
                 long entries = -1;
-                if ((it.GetAccess(8) & AccessMode.Read) != 0)
+                if (Client.CanRead(it, 8))
                 {
                     entries = Convert.ToInt64(Read(it, 8));
                 }
@@ -1282,6 +1283,69 @@ namespace Gurux.DLMS.Reader
         }
 
         /// <summary>
+        /// Show compact data.
+        /// </summary>
+        public void GetCompactData()
+        {
+            //Find compact data objects and read them.
+            foreach (GXDLMSCompactData it in Client.Objects.GetObjects(ObjectType.CompactData))
+            {
+                //If trace is info.
+                if (Trace > TraceLevel.Warning)
+                {
+                    Console.WriteLine("-------- Reading " + it.GetType().Name + " " + it.Name + " " + it.Description);
+                }
+                //Read Capture objects.
+                if (Client.CanRead(it, 3))
+                {
+                    Read(it, 3);
+                }
+                //Read template description.
+                if (Client.CanRead(it, 5))
+                {
+                    Read(it, 5);
+                }
+                //Read buffer.
+                if (Client.CanRead(it, 2))
+                {
+                    Read(it, 2);
+                }
+                Standard standard = Client.Standard;
+                List<DataType> types = new List<DataType>();
+                foreach (var c in it.CaptureObjects)
+                {
+                    types.Add(c.Key.GetUIDataType(c.Value.AttributeIndex));
+                }
+                List<object> rows = GXDLMSCompactData.GetData(it.TemplateDescription, it.Buffer, standard == Standard.Italy);
+                //Convert cols to readable format.
+                foreach (GXStructure row in rows)
+                {
+                    for (int col = 0; col != types.Count; ++col)
+                    {
+                        if (types[col] != DataType.None)
+                        {
+                            row[col] = GXDLMSClient.ChangeType(row[col] as byte[], types[col]);
+                        }
+                        else if (row[col] is GXArray)
+                        {
+                            row[col] = GXDLMSTranslator.ValueToXml(row[col]);
+                        }
+                        else if (row[col] is GXStructure)
+                        {
+                            row[col] = GXDLMSTranslator.ValueToXml(row[col]);
+                        }
+                        else if (row[col] is byte[] b)
+                        {
+                            row[col] = GXDLMSTranslator.ToHex(b);
+                        }
+                    }
+                    Console.WriteLine(row);
+                }
+            }
+        }
+
+
+        /// <summary>
         /// Read all objects from the meter.
         /// </summary>
         /// <remarks>
@@ -1315,8 +1379,15 @@ namespace Gurux.DLMS.Reader
                 {
                     try
                     {
-                        object val = Read(it, pos);
-                        ShowValue(val, pos);
+                        if (Client.CanRead(it, pos))
+                        {
+                            object val = Read(it, pos);
+                            ShowValue(val, pos);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Info! " + it.GetType().Name + " " + it.Name + "Index: " + pos + " is not readable.");
+                        }
                     }
                     catch (Exception ex)
                     {

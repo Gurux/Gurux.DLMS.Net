@@ -182,7 +182,7 @@ namespace Gurux.DLMS
                 }
                 return "x:" + tags[tag];
             }
-            catch (System.Collections.Generic.KeyNotFoundException)
+            catch (KeyNotFoundException)
             {
                 return "UNKNOWN(" + tag + ")";
             }

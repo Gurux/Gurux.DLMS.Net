@@ -240,7 +240,6 @@ namespace Gurux.DLMS.Objects
             {
                 return new GXArray();
             }
-            List<DataType> list = new List<DataType>();
             GXDataInfo info = new GXDataInfo();
             info.AppendAA = AppendAA;
             GXByteBuffer bb = new GXByteBuffer();

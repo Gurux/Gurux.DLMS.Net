@@ -852,7 +852,7 @@ namespace Gurux.DLMS.Objects
                     return DataType.Array;
                 //MacFrameCounter
                 case 6:
-                    return DataType.UInt16;
+                    return DataType.UInt32;
                 //MacToneMask
                 case 7:
                     return DataType.BitString;
