@@ -213,9 +213,9 @@ namespace Gurux.DLMS.Objects.Italy
             data.SetUInt8(5);
             foreach (GXDLMSInterval interval in intervals)
             {
-                byte b = (byte)(interval.UseInterval ? 1 : 0);
-                b |= (byte)((byte)interval.IntervalTariff << 1);
-                b |= (byte)(interval.StartHour << 3);
+                byte b = (byte)(interval.StartHour & 0x1F); 
+                b |= (byte)((byte)interval.IntervalTariff << 5);
+                b |= (byte)(interval.UseInterval ? 0x80 : 0);
                 data.SetUInt8((byte)DataType.UInt8);
                 data.SetUInt8(b);
             }
@@ -311,9 +311,9 @@ namespace Gurux.DLMS.Objects.Italy
             {
                 GXDLMSInterval interval = intervals[pos];
                 ++pos;
-                interval.StartHour = (byte)(it >> 3);
-                interval.IntervalTariff = (DefaultTariffBand)((it >> 1) & 0x3);
-                interval.UseInterval = (it & 1) != 0;
+                interval.StartHour = (byte)(it & 0x1F);
+                interval.IntervalTariff = (DefaultTariffBand)((it >> 5) & 0x3);
+                interval.UseInterval = (it & 0x80) != 0;
             }
         }
 

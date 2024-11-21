@@ -1084,7 +1084,7 @@ namespace Gurux.DLMS
             }
             else if (diff < 0)
             {
-                diff = 60 * 60000 + diff;
+                diff += 60 * 60000;
             }
             //Compare hours.
             if ((to.Skip & DateTimeSkips.Hour) == 0)
@@ -1100,7 +1100,7 @@ namespace Gurux.DLMS
             }
             else if (diff < 0)
             {
-                diff = 60 * 60000 + diff;
+                diff += 60 * 60000;
             }
             //Compare days.          
             if ((to.Skip & DateTimeSkips.Day) == 0)
@@ -1128,13 +1128,13 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        diff = ((DateTime.DaysInMonth(start.Year, start.Month) - start.Day + to.Value.Day) * 24 * 60 * 60000L) + diff;
+                        diff += ((DateTime.DaysInMonth(start.Year, start.Month) - start.Day + to.Value.Day) * 24 * 60 * 60000L);
                     }
                 }
             }
             else if (diff < 0)
             {
-                diff = 24 * 60 * 60000 + diff;
+                diff += 24 * 60 * 60000;
             }
             //Compare months.
             if ((to.Skip & DateTimeSkips.Month) == 0)
@@ -1154,9 +1154,53 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            else if (diff < 0)
+            else if (diff != 0)
             {
-                diff = DateTime.DaysInMonth(start.Year, start.Month) * 24 * 60 * 60000L + diff;
+                diff += DateTime.DaysInMonth(start.Year, start.Month) * 24 * 60 * 60000L;
+            }
+            //Compare years.
+            if ((to.Skip & DateTimeSkips.Year) == 0)
+            {
+                int s = to.Value.Year;
+                int e = start.Year;
+                if (s > e)
+                {
+                    for (int y = e; y != s; ++y)
+                    {
+                        for (int m = 1; m <= 12; ++m)
+                        {
+                            diff += DateTime.DaysInMonth(y, m) * 24 * 60 * 60000L;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int y = s; y != e; ++y)
+                    {
+                        for (int m = 1; m <= 12; ++m)
+                        {
+                            diff -= DateTime.DaysInMonth(y, m) * 24 * 60 * 60000L;
+                        }
+                    }
+                }
+            }
+            else if (diff != 0)
+            {
+                int y = start.Year;
+                if (diff < 0)
+                {
+                    for (int m = 1; m <= 12; ++m)
+                    {
+                        diff += DateTime.DaysInMonth(y, m) * 24 * 60 * 60000L;
+                    }
+                }
+                else
+                {
+                    for (int m = 1; m <= 12; ++m)
+                    {
+                        diff -= DateTime.DaysInMonth(y, m) * 24 * 60 * 60000L;
+                    }
+                }
             }
             return diff;
         }

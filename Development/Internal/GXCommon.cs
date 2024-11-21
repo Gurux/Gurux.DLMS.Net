@@ -1164,7 +1164,12 @@ namespace Gurux.DLMS.Internal
             return value;
         }
 
-        private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, List<object> dt, List<Object> list, int len, bool array)
+        private static void GetCompactArrayItem(GXDLMSSettings settings, 
+            GXByteBuffer buff, 
+            List<object> dt, 
+            List<Object> list, 
+            int len, 
+            bool array)
         {
             List<object> tmp;
             if (array)
@@ -1189,7 +1194,11 @@ namespace Gurux.DLMS.Internal
             list.Add(tmp);
         }
 
-        private static void GetCompactArrayItem(GXDLMSSettings settings, GXByteBuffer buff, DataType dt, List<Object> list, int len)
+        private static void GetCompactArrayItem(GXDLMSSettings settings, 
+            GXByteBuffer buff, 
+            DataType dt, 
+            List<object> list, 
+            int len)
         {
             GXDataInfo tmp = new GXDataInfo();
             tmp.Type = dt;
@@ -1328,7 +1337,10 @@ namespace Gurux.DLMS.Internal
         /// <param name="buff">Data info.</param>
         /// <param name="info"></param>
         /// <returns>Parsed value</returns>
-        internal static object GetCompactArray(GXDLMSSettings settings, GXByteBuffer buff, GXDataInfo info, bool onlyDataTypes)
+        internal static object GetCompactArray(
+            GXDLMSSettings settings, 
+            GXByteBuffer buff, GXDataInfo info, 
+            bool onlyDataTypes)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 2)
@@ -1427,9 +1439,9 @@ namespace Gurux.DLMS.Internal
                 if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
                 {
                     StringBuilder sb = new StringBuilder();
-                    foreach (List<object> row in list)
+                    foreach (List<object> tmp in list)
                     {
-                        foreach (object it in row)
+                        foreach (object it in tmp)
                         {
                             ToString(it, sb);
                         }
@@ -1467,15 +1479,15 @@ namespace Gurux.DLMS.Internal
                 GetCompactArrayItem(null, buff, dt, list, len);
                 if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
                 {
-                    foreach (Object it in list)
+                    foreach (object it2 in list)
                     {
-                        if (it is byte[])
+                        if (it2 is byte[])
                         {
-                            info.xml.Append(GXCommon.ToHex((byte[])it, true));
+                            info.xml.Append(GXCommon.ToHex((byte[])it2, true));
                         }
                         else
                         {
-                            info.xml.Append(Convert.ToString(it));
+                            info.xml.Append(Convert.ToString(it2));
                         }
                         info.xml.Append(";");
                     }
@@ -3006,7 +3018,7 @@ namespace Gurux.DLMS.Internal
             return new DateTimeOffset(dt, TimeSpan.FromMinutes(deviation));
         }
 
-        public static String GeneralizedTime(DateTimeOffset date)
+        public static string GeneralizedTime(DateTimeOffset date)
         {
             date = date.ToUniversalTime();
             StringBuilder sb = new StringBuilder();
