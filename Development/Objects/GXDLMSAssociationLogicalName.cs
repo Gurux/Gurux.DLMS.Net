@@ -1101,7 +1101,7 @@ else if (settings.Authentication == Authentication.HighECDSA)
                 GXByteBuffer data = new GXByteBuffer();
                 data.SetUInt8((byte)DataType.Structure);
                 data.SetUInt8(6);
-                GXCommon.SetData(settings, data, DataType.BitString, GXBitString.ToBitString((UInt32)XDLMSContextInfo.Conformance, 24));
+                GXCommon.SetData(settings, data, DataType.BitString, new GXBitString((UInt32)XDLMSContextInfo.Conformance, 24));
                 GXCommon.SetData(settings, data, DataType.UInt16, XDLMSContextInfo.MaxReceivePduSize);
                 GXCommon.SetData(settings, data, DataType.UInt16, XDLMSContextInfo.MaxSendPduSize);
                 GXCommon.SetData(settings, data, DataType.UInt8, XDLMSContextInfo.DlmsVersionNumber);
@@ -1341,7 +1341,7 @@ else if (settings.Authentication == Authentication.HighECDSA)
                     {
                         arr = new List<object>((object[])e.Value);
                     }
-                    XDLMSContextInfo.Conformance = (Conformance)Convert.ToUInt32(arr[0]);
+                    XDLMSContextInfo.Conformance = (Conformance)((GXBitString)arr[0]).ToInteger();
                     XDLMSContextInfo.MaxReceivePduSize = Convert.ToUInt16(arr[1]);
                     XDLMSContextInfo.MaxSendPduSize = Convert.ToUInt16(arr[2]);
                     XDLMSContextInfo.DlmsVersionNumber = Convert.ToByte(arr[3]);

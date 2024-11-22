@@ -187,23 +187,6 @@ namespace Gurux.DLMS.Internal
             }
         }
 
-        // Reserved for internal use.
-        private static int GetConformanceFromArray(GXByteBuffer data)
-        {
-            int ret = GXCommon.SwapBits(data.GetUInt8());
-            ret |= GXCommon.SwapBits(data.GetUInt8()) << 8;
-            ret |= GXCommon.SwapBits(data.GetUInt8()) << 16;
-            return ret;
-        }
-
-        // Reserved for internal use.
-        private static void SetConformanceToArray(int value, GXByteBuffer data)
-        {
-            data.SetUInt8(GXCommon.SwapBits((byte)(value & 0xFF)));
-            data.SetUInt8(GXCommon.SwapBits((byte)((value >> 8) & 0xFF)));
-            data.SetUInt8(GXCommon.SwapBits((byte)((value >> 16) & 0xFF)));
-        }
-
         /// <summary>
         /// Generate User information initiate request.
         /// </summary>
@@ -250,7 +233,7 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(0x04);
             // encoding the number of unused bits in the bit string
             data.SetUInt8(0x00);
-            SetConformanceToArray((int)settings.ProposedConformance, data);
+            data.Set(new GXBitString((UInt32)settings.ProposedConformance, 24).Value);
             data.SetUInt16(settings.MaxPduSize);
         }
 
@@ -514,9 +497,9 @@ namespace Gurux.DLMS.Internal
                 data.GetUInt8();
             }
             len = data.GetUInt8();
-            //The number of unused bits in the bit string.
-            tag = data.GetUInt8();
-            int v = GetConformanceFromArray(data);
+            byte[] conformance = new byte[4];
+            data.Get(conformance);
+            int v = new GXBitString(conformance).ToInteger();
             if (settings.IsServer)
             {
                 settings.NegotiatedConformance = (Conformance)v & settings.ProposedConformance;
@@ -1672,7 +1655,8 @@ namespace Gurux.DLMS.Internal
             data.SetUInt8(0x1F);
             data.SetUInt8(0x04);// length of the conformance block
             data.SetUInt8(0x00);// encoding the number of unused bits in the bit string
-            SetConformanceToArray((int)settings.NegotiatedConformance, data);
+            GXBitString bs = new GXBitString((UInt32)settings.NegotiatedConformance, 24);
+            data.Set(bs.Value);
             data.SetUInt16(settings.MaxPduSize);
             //VAA Name VAA name (0x0007 for LN referencing and 0xFA00 for SN)
             if (settings.UseLogicalNameReferencing)

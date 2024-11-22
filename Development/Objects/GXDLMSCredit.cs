@@ -451,7 +451,7 @@ namespace Gurux.DLMS.Objects
                 case 6:
                     return Limit;
                 case 7:
-                    return GXBitString.ToBitString((byte) CreditConfiguration, 5);
+                    return new GXBitString((byte) CreditConfiguration, 5);
                 case 8:
                     return Status;
                 case 9:

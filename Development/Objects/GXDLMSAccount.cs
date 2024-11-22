@@ -695,7 +695,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                 case 3:
                     return CurrentCreditInUse;
                 case 4:
-                    return GXBitString.ToBitString((UInt32) CurrentCreditStatus, 8);
+                    return new GXBitString((UInt32) CurrentCreditStatus, 8);
                 case 5:
                     return AvailableCredit;
                 case 6:
@@ -760,7 +760,8 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                             bb.SetUInt8(DataType.OctetString);
                             bb.SetUInt8(6);
                             bb.Set(GXCommon.LogicalNameToBytes(it.ChargeReference));
-                            GXCommon.SetData(null, bb, DataType.BitString, GXBitString.ToBitString((UInt32) it.CollectionConfiguration, 3));
+                            GXCommon.SetData(null, bb, DataType.BitString, 
+                                new GXBitString((UInt32) it.CollectionConfiguration, 3));
                         }
                     }
                     return bb.Array();

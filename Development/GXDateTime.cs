@@ -1154,7 +1154,7 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            else if (diff != 0)
+            else if (diff < 0)
             {
                 diff += DateTime.DaysInMonth(start.Year, start.Month) * 24 * 60 * 60000L;
             }
@@ -1184,21 +1184,14 @@ namespace Gurux.DLMS
                     }
                 }
             }
-            else if (diff != 0)
+            else if (diff < 0)
             {
                 int y = start.Year;
-                if (diff < 0)
+                if (y != to.Value.Year)
                 {
                     for (int m = 1; m <= 12; ++m)
                     {
                         diff += DateTime.DaysInMonth(y, m) * 24 * 60 * 60000L;
-                    }
-                }
-                else
-                {
-                    for (int m = 1; m <= 12; ++m)
-                    {
-                        diff -= DateTime.DaysInMonth(y, m) * 24 * 60 * 60000L;
                     }
                 }
             }

@@ -31,138 +31,204 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
+
+using Gurux.DLMS.Internal;
 using System;
 using System.Text;
-using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS
 {
     /// <summary>
     /// BitString class is used with Bit strings.
     /// </summary>
-    public class GXBitString : System.IConvertible
+    public class GXBitString : IConvertible
     {
-        /// <summary>
-        /// Bit string value.
-        /// </summary>
-        public string Value
+        /// <summary>Number of extra bits at the end of the string. </summary>
+        private int padBits;
+
+        /// <summary>Number of extra bits at the end of the string. </summary>
+        public int PadBits
+        {
+            get
+            {
+                return padBits;
+            }
+            private set
+            {
+                if (value < 0)
+                {
+                    throw new ArgumentException(nameof(PadBits));
+                }
+                padBits = value;
+            }
+        }
+
+        /// <summary>Bit string. </summary>
+        public byte[] Value
         {
             get;
-            set;
+            private set;
         }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
+        /// <summary>Constructor. </summary>
         public GXBitString()
         {
+
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="value">Bitstring value.</param>
-        public GXBitString(string value)
+        /// <param name="bitString">Bit string.</param>
+        public GXBitString(string bitString)
         {
+            PadBits = 8 - (bitString.Length % 8);
+            if (PadBits == 8)
+            {
+                PadBits = 0;
+            }
+            StringBuilder sb = new StringBuilder(bitString);
+            AppendZeros(sb, PadBits);
+            Value = new byte[sb.Length / 8];
+            for (int pos = 0; pos != Value.Length; ++pos)
+            {
+                Value[pos] = (byte)Convert.ToInt32(sb.ToString().Substring(8 * pos, 8 * (pos + 1) - (8 * pos)), 2);
+            }
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="value">Bit string.</param>
+        /// <param name="padCount">Number of extra bits at the end of the string.</param>
+        public GXBitString(byte[] value, int padCount)
+        {
+            if (value == null)
+            {
+                throw new ArgumentException(nameof(value));
+            }
+            if (PadBits < 0 || PadBits > 7)
+            {
+                throw new ArgumentException("PadCount must be in the range 0 to 7");
+            }
             Value = value;
+            PadBits = padCount;
         }
 
-        private static void ToBitString(StringBuilder sb, byte value, int count)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="value">Bit string.</param>
+        public GXBitString(byte[] value)
         {
-            if (count > 8)
+            if (value == null)
             {
-                count = 8;
+                throw new ArgumentException(nameof(value));
             }
-            for(int pos = 0; pos != count; ++pos)
+            PadBits = value[0];
+            if (PadBits < 0 || PadBits > 7)
             {
-                if ((value & (1 << pos)) != 0)
-                {
-                    sb.Append("1");
-                }
-                else
-                {
-                    sb.Append("0");
-                }
+                throw new ArgumentException("PadCount must be in the range 0 to 7");
+            }
+            Value = new byte[value.Length - 1];
+            Array.Copy(value, 1, Value, 0, value.Length - 1);
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="value">Interer value.</param>
+        /// <param name="padCount">Number of extra bits (zero) at the begin of the string.</param>
+        public GXBitString(UInt32 value, byte padCount)
+        {
+            PadBits = padCount % 8;
+            Value = new byte[padCount / 8 + PadBits];
+            for (byte pos = 0; pos != Value.Length; ++pos)
+            {
+                Value[pos] = GXCommon.SwapBits((byte)value);
+                value >>= 8;
             }
         }
 
         /// <summary>
-        /// Convert integer value to BitString.
+        /// Append zeroes to the buffer.
         /// </summary>
-        /// <remarks>
-        /// In DLMS bit string bit number 0 is MSB.
-        /// </remarks>
-        /// <param name="value">Value to convert.</param>
-        /// <param name="count">Amount of bits.</param>
-        /// <returns>Bitstring.</returns>
-        public static string ToBitString(UInt32 value, int count)
+        /// <param name="sb">Buffer where zeros are added.</param>
+        /// <param name="count">Amount of zeroes.</param>
+        private static void AppendZeros(StringBuilder sb, int count)
         {
-            StringBuilder sb = new StringBuilder();
-            ToBitString(sb, (byte)(value & 0xFF), count);
-            if (count > 8)
+            for (int pos = 0; pos != count; ++pos)
             {
-                ToBitString(sb, (byte)((value >> 8) & 0xFF), count - 8);
-                if (count > 16)
-                {
-                    ToBitString(sb, (byte)((value >> 16) & 0xFF), count - 16);
-                    if (count > 24)
-                    {
-                        ToBitString(sb, (byte)((value >> 24) & 0xFF), count - 24);
-                    }
-                }
+                sb.Append('0');
             }
-            if (sb.Length > count)
+        }
+
+        /// <summary>
+        /// Number of extra bits at the end of the string.
+        /// </summary>
+        public int Length
+        {
+            get
             {
-                sb.Remove(count, sb.Length - count);
+                if (Value == null)
+                {
+                    return 0;
+                }
+                return (8 * Value.Length) - PadBits;
+            }
+        }
+
+        /// <inheritdoc/>
+        public override sealed string ToString()
+        {
+            if (Value == null)
+            {
+                return "";
+            }
+            return ToString(false);
+        }
+
+        /// <summary>
+        /// Convert bit string to string.
+        /// </summary>
+        /// <param name="showBits">Is the number of the bits shown.</param>
+        /// <returns>Bit string as an string.</returns>
+        public string ToString(bool showBits)
+        {
+            if (Value == null)
+            {
+                return "";
+            }
+            StringBuilder sb = new StringBuilder(8 * Value.Length);
+            foreach (byte it in Value)
+            {
+                GXCommon.ToBitString(sb, it, 8);
+            }
+            sb.Length = sb.Length - PadBits;
+            if (showBits)
+            {
+                sb.Insert(0, (8 * Value.Length) - PadBits + " bit ");
             }
             return sb.ToString();
         }
 
         /// <summary>
-        /// Convert byte array to bit string.
+        /// Converts ASN1 bit-string to integer value.
         /// </summary>
-        /// <param name="value">byte array.</param>
-        /// <param name="index">Start index.</param>
-        /// <param name="count">Count.</param>
-        public static string ToBitString(byte[] value, int index, int count)
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (byte it in value)
-            {
-                if (count < 1)
-                {
-                    break;
-                }
-                GXCommon.ToBitString(sb, it, count);
-                count -= 8;
-            }
-            if (index != 0)
-            {
-                sb.Remove(0, index);
-            }
-            return sb.ToString();
-        }
-
-        public override string ToString()
-        {
-            return Value;
-        }
-
-        private UInt32 ToNumeric()
+        /// <returns>The bit-string as an integer value.</returns>
+        public int ToInteger()
         {
             UInt32 ret = 0;
-            int pos;
             if (Value != null)
             {
-                for (pos = 0; pos != Value.Length; ++pos)
+                UInt16 bytePos = 0;
+                foreach (byte it in Value)
                 {
-                    if (Value[pos] == '1')
-                    {
-                        ret |= (UInt32)(1 << pos);
-                    }
+                    ret |= (UInt32)(GXCommon.SwapBits(it) << bytePos);
+                    bytePos += 8;
                 }
             }
-            return ret;
+            return (int)ret;
         }
 
         TypeCode IConvertible.GetTypeCode()
@@ -187,37 +253,37 @@ namespace Gurux.DLMS
 
         byte IConvertible.ToByte(IFormatProvider provider)
         {
-            return (byte)ToNumeric();
+            return (byte)ToInteger();
         }
 
         short IConvertible.ToInt16(IFormatProvider provider)
         {
-            return (Int16)ToNumeric();
+            return (Int16)ToInteger();
         }
 
         ushort IConvertible.ToUInt16(IFormatProvider provider)
         {
-            return (UInt16)ToNumeric();
+            return (UInt16)ToInteger();
         }
 
         int IConvertible.ToInt32(IFormatProvider provider)
         {
-            return (Int32)ToNumeric();
+            return (Int32)ToInteger();
         }
 
         uint IConvertible.ToUInt32(IFormatProvider provider)
         {
-            return (UInt32)ToNumeric();
+            return (UInt32)ToInteger();
         }
 
         long IConvertible.ToInt64(IFormatProvider provider)
         {
-            return (Int64)ToNumeric();
+            return (Int64)ToInteger();
         }
 
         ulong IConvertible.ToUInt64(IFormatProvider provider)
         {
-            return (UInt64)ToNumeric();
+            return (UInt64)ToInteger();
         }
 
         float IConvertible.ToSingle(IFormatProvider provider)
@@ -242,9 +308,8 @@ namespace Gurux.DLMS
 
         string IConvertible.ToString(IFormatProvider provider)
         {
-            return Value;
+            return ToString();
         }
-
         object IConvertible.ToType(Type conversionType, IFormatProvider provider)
         {
             throw new NotImplementedException();

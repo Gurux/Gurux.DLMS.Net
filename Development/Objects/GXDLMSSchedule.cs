@@ -329,7 +329,7 @@ namespace Gurux.DLMS.Objects
             data.SetUInt8((byte)DataType.UInt16);
             data.SetUInt16(it.ValidityWindow);
             //Add exec week days.
-            GXCommon.SetData(settings, data, DataType.BitString, GXBitString.ToBitString((byte)it.ExecWeekdays, 7));
+            GXCommon.SetData(settings, data, DataType.BitString, new GXBitString((byte)it.ExecWeekdays, 7));
             //Add exec spec days.
             GXCommon.SetData(settings, data, DataType.BitString, it.ExecSpecDays);
             //Add begin date.

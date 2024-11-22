@@ -656,7 +656,7 @@ namespace Gurux.DLMS.Objects
                 case 8:
                     return Period;
                 case 9:
-                    return GXBitString.ToBitString((UInt32)ChargeConfiguration, 2);
+                    return new GXBitString((UInt32)ChargeConfiguration, 2);
                 case 10:
                     return LastCollectionTime;
                 case 11:

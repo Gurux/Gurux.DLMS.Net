@@ -203,7 +203,7 @@ namespace Gurux.DLMS.ASN
                 d2.Add(PrivateKey.RawValue);
                 GXAsn1Context d3 = new GXAsn1Context();
                 d3.Index = 1;
-                d3.Add(new GXAsn1BitString(PublicKey.RawValue, 0));
+                d3.Add(new GXBitString(PublicKey.RawValue, 0));
                 d2.Add(d3);
                 d.Add(GXAsn1Converter.ToByteArray(d2));
                 _rawData = GXAsn1Converter.ToByteArray(d);
@@ -379,7 +379,7 @@ namespace Gurux.DLMS.ASN
             List<object> tmp2 = (List<object>) ((GXAsn1Sequence)seq[2]);
             if (tmp2.Count > 2)
             {
-                PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)((List<object>)(tmp2)[2])[0]).Value);
+                PublicKey = GXPublicKey.FromRawBytes(((GXBitString)((List<object>)(tmp2)[2])[0]).Value);
                 GXEcdsa.Validate(PublicKey);
             }
             else

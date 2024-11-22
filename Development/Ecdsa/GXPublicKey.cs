@@ -157,7 +157,7 @@ namespace Gurux.DLMS.Ecdsa
             else
             {
                 //Open SSL PEM.
-                value.RawValue = ((GXAsn1BitString)seq[1]).Value;
+                value.RawValue = ((GXBitString)seq[1]).Value;
             }
             return value;
         }
@@ -246,7 +246,7 @@ namespace Gurux.DLMS.Ecdsa
                 throw new Exception("Invalid ECC scheme.");
             }
             d.Add(d1);
-            d.Add(new GXAsn1BitString(RawValue, 0));
+            d.Add(new GXBitString(RawValue, 0));
             return GXAsn1Converter.ToByteArray(d);
         }
 

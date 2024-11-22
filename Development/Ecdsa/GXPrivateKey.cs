@@ -145,14 +145,14 @@ namespace Gurux.DLMS.Ecdsa
             {
                 value.publicKey = GXPublicKey.FromRawBytes((byte[])seq[3]);
             }
-            else if (seq[3] is GXAsn1BitString)
+            else if (seq[3] is GXBitString)
             {
-                value.publicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)seq[3]).Value);
+                value.publicKey = GXPublicKey.FromRawBytes(((GXBitString)seq[3]).Value);
             }
             else
             {
                 //Open SSL PEM.
-                value.publicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)((List<object>)seq[3])[0]).Value);
+                value.publicKey = GXPublicKey.FromRawBytes(((GXBitString)((List<object>)seq[3])[0]).Value);
             }
             return value;
         }
@@ -220,7 +220,7 @@ namespace Gurux.DLMS.Ecdsa
             }
             d.Add(d1);
             GXAsn1Context d2 = new GXAsn1Context() { Index = 1 };
-            d2.Add(new GXAsn1BitString(GetPublicKey().RawValue, 0));
+            d2.Add(new GXBitString(GetPublicKey().RawValue, 0));
             d.Add(d2);
             return GXCommon.ToBase64(GXAsn1Converter.ToByteArray(d));
         }

@@ -286,7 +286,7 @@ namespace Gurux.DLMS.ASN
                 }
                 throw new Exception("Invalid PKCS #10 certificate algorithm. " + algorithm);
             }
-            PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)subjectPKInfo[1]).Value);
+            PublicKey = GXPublicKey.FromRawBytes(((GXBitString)subjectPKInfo[1]).Value);
             GXEcdsa.Validate(PublicKey);
             /////////////////////////////
             // signatureAlgorithm
@@ -310,7 +310,7 @@ namespace Gurux.DLMS.ASN
             tmp2.Position = 1;
             GXCommon.GetObjectCount(tmp2);
             //Get signature.
-            Signature = ((GXAsn1BitString)seq[2]).Value;
+            Signature = ((GXBitString)seq[2]).Value;
             GXEcdsa e = new GXEcdsa(PublicKey);
             GXAsn1Sequence tmp3 = (GXAsn1Sequence)GXAsn1Converter.FromByteArray(Signature);
             GXByteBuffer bb = new GXByteBuffer();
@@ -374,7 +374,7 @@ namespace Gurux.DLMS.ASN
             {
                 alg = new GXAsn1ObjectIdentifier("1.3.132.0.34");
             }
-            object subjectPKInfo = new GXAsn1BitString(PublicKey.RawValue, 0);
+            object subjectPKInfo = new GXBitString(PublicKey.RawValue, 0);
             object[] tmp = new object[]{new GXAsn1ObjectIdentifier("1.2.840.10045.2.1"),
                 alg };
             GXAsn1Context attributes = new GXAsn1Context();
@@ -409,7 +409,7 @@ namespace Gurux.DLMS.ASN
                 // Certification request info.
                 // subject Public key info.
                 GXAsn1ObjectIdentifier sa = new GXAsn1ObjectIdentifier(HashAlgorithmConverter.GetString(SignatureAlgorithm));
-                object[] list = new object[] { GetData(), new object[] { sa }, new GXAsn1BitString(Signature, 0) };
+                object[] list = new object[] { GetData(), new object[] { sa }, new GXBitString(Signature, 0) };
                 return GXAsn1Converter.ToByteArray(list);
             }
         }

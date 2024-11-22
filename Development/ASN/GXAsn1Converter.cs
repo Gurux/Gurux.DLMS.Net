@@ -336,14 +336,14 @@ namespace Gurux.DLMS.ASN
                     objects.Add(null);
                     break;
                 case (byte)BerType.BitString:
-                    GXAsn1BitString tmp3 = new GXAsn1BitString(bb.SubArray(bb.Position, len));
+                    GXBitString tmp3 = new GXBitString(bb.SubArray(bb.Position, len));
                     objects.Add(tmp3);
                     bb.Position = bb.Position + len;
                     if (s != null)
                     {
                         // Append comment.
                         s.AppendComment(connectPos, Convert.ToString(tmp3.Length) + " bit.");
-                        s.Append(tmp3.AsString());
+                        s.Append(tmp3.ToString());
                     }
                     break;
                 case (byte)BerType.UtcTime:
@@ -650,9 +650,9 @@ namespace Gurux.DLMS.ASN
                 GXCommon.SetObjectCount(str.Length, bb);
                 bb.Add(str);
             }
-            else if (target is GXAsn1BitString)
+            else if (target is GXBitString)
             {
-                GXAsn1BitString bs = (GXAsn1BitString)target;
+                GXBitString bs = (GXBitString)target;
                 bb.SetUInt8(BerType.BitString);
                 GXCommon.SetObjectCount(1 + bs.Value.Length, bb);
                 bb.SetUInt8((byte)bs.PadBits);
@@ -878,7 +878,7 @@ namespace Gurux.DLMS.ASN
                     list.Add(null);
                     break;
                 case (byte)BerType.BitString:
-                    list.Add(new GXAsn1BitString(node.ChildNodes[0].Value));
+                    list.Add(new GXBitString(node.ChildNodes[0].Value));
                     break;
                 case (byte)BerType.UtcTime:
                     DateTime d = DateTime.ParseExact(node.ChildNodes[0].Value, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);

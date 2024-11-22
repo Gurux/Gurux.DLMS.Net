@@ -308,7 +308,7 @@ namespace Gurux.DLMS.Secure
         public static byte[] GetEphemeralPublicKeyData(int keyId,
                 GXPublicKey ephemeralKey)
         {
-            GXAsn1BitString tmp = (GXAsn1BitString)((GXAsn1Sequence)GXAsn1Converter.FromByteArray(ephemeralKey.ToEncoded()))[1];
+            GXBitString tmp = (GXBitString)((GXAsn1Sequence)GXAsn1Converter.FromByteArray(ephemeralKey.ToEncoded()))[1];
             // Ephemeral public key client
             GXByteBuffer epk = new GXByteBuffer(tmp.Value);
             // First byte is 4 and that is not used. We can override it.

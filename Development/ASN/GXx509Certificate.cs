@@ -500,7 +500,7 @@ namespace Gurux.DLMS.ASN
             string CN = X509NameConverter.GetString(X509Name.CN);
             // Subject public key Info
             GXAsn1Sequence subjectPKInfo = (GXAsn1Sequence)reqInfo[6];
-            PublicKey = GXPublicKey.FromRawBytes(((GXAsn1BitString)subjectPKInfo[1]).Value);
+            PublicKey = GXPublicKey.FromRawBytes(((GXBitString)subjectPKInfo[1]).Value);
             GXEcdsa.Validate(PublicKey);
             // Get Standard Extensions.
             if (reqInfo.Count > 7)
@@ -575,7 +575,7 @@ namespace Gurux.DLMS.ASN
                             }
                             break;
                         case X509CertificateType.KeyUsage:
-                            if (value is GXAsn1BitString bs)
+                            if (value is GXBitString bs)
                             {
                                 // critical is optional. BOOLEAN DEFAULT FALSE,
                                 KeyUsage = (KeyUsage)bs.ToInteger();
@@ -583,7 +583,7 @@ namespace Gurux.DLMS.ASN
                             else if (value is bool?)
                             {
                                 value = s[2];
-                                KeyUsage = (KeyUsage)((GXAsn1BitString)value).ToInteger();
+                                KeyUsage = (KeyUsage)((GXBitString)value).ToInteger();
                             }
                             else
                             {
@@ -690,7 +690,7 @@ namespace Gurux.DLMS.ASN
             }
             /////////////////////////////
             //Get signature.
-            Signature = ((GXAsn1BitString)seq[2]).Value;
+            Signature = ((GXBitString)seq[2]).Value;
         }
 
         ///
@@ -803,7 +803,7 @@ namespace Gurux.DLMS.ASN
             {
                 ++ignore;
             }
-            byte[] tmp = GXAsn1Converter.ToByteArray(new GXAsn1BitString(new byte[] { (byte)(ignore % 8), value }));
+            byte[] tmp = GXAsn1Converter.ToByteArray(new GXBitString(new byte[] { (byte)(ignore % 8), value }));
             s1.Add(tmp);
             s.Add(s1);
             //extKeyUsage
@@ -842,7 +842,7 @@ namespace Gurux.DLMS.ASN
             GXAsn1Context tmp4 = new GXAsn1Context();
             tmp4.Index = 3;
             tmp4.Add(s);
-            object[] tmp2 = new object[] { tmp3, new GXAsn1BitString(PublicKey.RawValue, 0) };
+            object[] tmp2 = new object[] { tmp3, new GXBitString(PublicKey.RawValue, 0) };
             object[] p2;
             if (SignatureParameters == null)
             {
@@ -865,7 +865,7 @@ namespace Gurux.DLMS.ASN
                     return RawData;
                 }
                 object tmp = new object[] { new GXAsn1ObjectIdentifier(HashAlgorithmConverter.GetString(SignatureAlgorithm)) };
-                object[] list = new object[] { GetDataList(), tmp, new GXAsn1BitString(Signature, 0) };
+                object[] list = new object[] { GetDataList(), tmp, new GXBitString(Signature, 0) };
                 RawData = GXAsn1Converter.ToByteArray(list);
                 return RawData;
             }

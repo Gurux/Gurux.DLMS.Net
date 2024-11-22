@@ -79,7 +79,7 @@ namespace Gurux.DLMS.ASN
         /// </summary>
         ///  <param name="data">(PKCS#1) Public key. </param>
         ///
-        public GXAsn1PublicKey(GXAsn1BitString data)
+        public GXAsn1PublicKey(GXBitString data)
         {
             if (data == null)
             {
