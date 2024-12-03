@@ -48,7 +48,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Array capacity increase size.
         /// </summary>
-        const int ArrayCapacity = 10;
+        private const int ArrayCapacity = 10;
 
         ///<summary>
         /// Initializes a new instance of the GXByteBuffer class.
@@ -98,7 +98,7 @@ namespace Gurux.DLMS
         [DebuggerStepThrough]
         public GXByteBuffer(GXByteBuffer value)
         {
-            Capacity = (value.Size - value.Position);
+            Capacity = value.Size - value.Position;
             Set(value);
         }
 
@@ -225,6 +225,8 @@ namespace Gurux.DLMS
         /// <summary>
         /// Returns data as byte array.
         /// </summary>
+        /// <param name="index">Start index.</param>
+        /// <param name="count">Byte count.</param>
         /// <returns>Byte buffer as a byte array.</returns>
         public byte[] SubArray(int index, int count)
         {
@@ -252,7 +254,7 @@ namespace Gurux.DLMS
                     Capacity = destPos + count;
                 }
                 Buffer.BlockCopy(Data, srcPos, Data, destPos, count);
-                Size = (destPos + count);
+                Size = destPos + count;
                 if (Position > Size)
                 {
                     Position = Size;
@@ -317,7 +319,7 @@ namespace Gurux.DLMS
         {
             if (index >= Capacity)
             {
-                Capacity = (index + ArrayCapacity);
+                Capacity = index + ArrayCapacity;
             }
             Data[index] = value;
         }
@@ -544,9 +546,7 @@ namespace Gurux.DLMS
         /// </summary>
         public sbyte GetInt8()
         {
-            sbyte value = (sbyte)GetUInt8(Position);
-            ++Position;
-            return value;
+            return (sbyte)GetUInt8();
         }
 
         /// <summary>
@@ -724,8 +724,8 @@ namespace Gurux.DLMS
         /// <summary>
         /// Check is byte buffer ASCII string.
         /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="value">Validated byte array.</param>
+        /// <returns>True, if all characters are ASCII characters.</returns>
         [DebuggerStepThrough]
         public static bool IsAsciiString(byte[] value)
         {

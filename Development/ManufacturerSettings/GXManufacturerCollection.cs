@@ -207,7 +207,7 @@ namespace Gurux.DLMS.ManufacturerSettings
                 foreach (XmlNode it in xml.ChildNodes[1].ChildNodes)
                 {
                     string path = Path.Combine(ObisCodesPath, it.InnerText);
-                    byte[] data = client.DownloadData("https://www.gurux.fi/obis/" + it.InnerText);
+                    byte[] data = client.DownloadData("https://www.gurux.fi/obis/" + it.InnerText + "?random = " + new Random().Next().ToString());
                     //Make backup if file exists or content has change.
                     if (System.IO.File.Exists(path) && GetMD5Hash(data) != GetMD5HashFromFile(path))
                     {
