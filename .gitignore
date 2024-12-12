@@ -202,3 +202,4 @@ Development/.vs/Gurux.DLMS.Net/v16/Browse.VC.db-wal
 Gurux.DLMS.Simulator.Net/Properties/launchSettings.json
 *.vsidx
 *.v1
+/Gurux.DLMS.UnitTests.Net/.vs

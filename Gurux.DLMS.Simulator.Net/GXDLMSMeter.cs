@@ -92,7 +92,7 @@ namespace Gurux.DLMS.Simulator.Net
         /// </summary>
         private static object settingsLock = new object();
 
-        Gurux.Common.IGXMedia Media = null;
+        IGXMedia Media = null;
         /// <summary>
         /// Serial number of the meter.
         /// </summary>
@@ -112,10 +112,10 @@ namespace Gurux.DLMS.Simulator.Net
             UseUtc2NormalTime = useUtc2NormalTime;
             FlaID = flagId;
         }
-        public void Initialize(IGXMedia media, 
-            TraceLevel trace, 
-            string path, 
-            UInt32 sn, 
+        public void Initialize(IGXMedia media,
+            TraceLevel trace,
+            string path,
+            UInt32 sn,
             bool exclusive,
             GXDLMSObjectCollection sharedObjects)
         {
@@ -217,7 +217,7 @@ namespace Gurux.DLMS.Simulator.Net
         /// </remarks>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public static void OnGatewayReceived(object sender, Gurux.Common.ReceiveEventArgs e)
+        public static void OnGatewayReceived(object sender, ReceiveEventArgs e)
         {
             try
             {
@@ -243,7 +243,7 @@ namespace Gurux.DLMS.Simulator.Net
                         {
                             if (Trace > TraceLevel.Info)
                             {
-                                Console.WriteLine("TX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                                Console.WriteLine("TX:\t" + GXCommon.ToHex(sr.Reply, true));
                             }
                             ((IGXMedia)sender).Send(sr.Reply, e.SenderInfo);
                             return;
@@ -307,7 +307,7 @@ namespace Gurux.DLMS.Simulator.Net
                                 m.HandleRequest(sr);
                                 if (Trace > TraceLevel.Info)
                                 {
-                                    Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                                    Console.WriteLine("RX:\t" + GXCommon.ToHex(sr.Reply, true));
                                 }
                                 data.RawPdu = true;
                                 if (cl.GetData(sr.Reply, data, notify))
@@ -318,7 +318,7 @@ namespace Gurux.DLMS.Simulator.Net
                                         m.HandleRequest(sr);
                                         if (Trace > TraceLevel.Info)
                                         {
-                                            Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                                            Console.WriteLine("RX:\t" + GXCommon.ToHex(sr.Reply, true));
                                         }
                                         cl.GetData(sr.Reply, data, notify);
                                     }
@@ -336,7 +336,7 @@ namespace Gurux.DLMS.Simulator.Net
                                     }
                                     if (Trace > TraceLevel.Info)
                                     {
-                                        Console.WriteLine("TX:\t" + Gurux.Common.GXCommon.ToHex(reply, true));
+                                        Console.WriteLine("TX:\t" + GXCommon.ToHex(reply, true));
                                     }
                                     ((IGXMedia)sender).Send(reply, e.SenderInfo);
                                 }
@@ -355,7 +355,7 @@ namespace Gurux.DLMS.Simulator.Net
             }
         }
 
-        private static void HandleReply(GXByteBuffer bb, Gurux.Common.ReceiveEventArgs e)
+        private static void HandleReply(GXByteBuffer bb, ReceiveEventArgs e)
         {
             try
             {
@@ -378,7 +378,7 @@ namespace Gurux.DLMS.Simulator.Net
                             {
                                 if (Trace > TraceLevel.Info)
                                 {
-                                    Console.WriteLine("TX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                                    Console.WriteLine("TX:\t" + GXCommon.ToHex(sr.Reply, true));
                                 }
                                 bb.Clear();
                                 m.Media.Send(sr.Reply, e.SenderInfo);
@@ -403,13 +403,13 @@ namespace Gurux.DLMS.Simulator.Net
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public static void OnExclusiveReceived(object sender, Gurux.Common.ReceiveEventArgs e)
+        public static void OnExclusiveReceived(object sender, ReceiveEventArgs e)
         {
             try
             {
                 if (Trace > TraceLevel.Info)
                 {
-                    Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
+                    Console.WriteLine("RX:\t" + GXCommon.ToHex((byte[])e.Data, true));
                 }
                 GXByteBuffer bb;
                 lock (buffers)
@@ -464,7 +464,8 @@ namespace Gurux.DLMS.Simulator.Net
                 }
                 else
                 {
-                    throw new Exception("HdlcWithModeE can't be used because LocalPortSetup not found.");
+                    LocalPortSetup = new GXDLMSIECLocalPortSetup();
+                    LocalPortSetup.ProposedBaudrate = BaudRate.Baudrate9600;
                 }
             }
             //Find default HDLC Setup settings.
@@ -990,7 +991,7 @@ namespace Gurux.DLMS.Simulator.Net
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public static void OnClientDisconnected(object sender, Gurux.Common.ConnectionEventArgs e)
+        public static void OnClientDisconnected(object sender, ConnectionEventArgs e)
         {
             //Show trace only for one meter.
             if (Trace > TraceLevel.Warning)
@@ -1015,7 +1016,7 @@ namespace Gurux.DLMS.Simulator.Net
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public static void OnClientConnected(object sender, Gurux.Common.ConnectionEventArgs e)
+        public static void OnClientConnected(object sender, ConnectionEventArgs e)
         {
             //Show trace only for one meter.
             if (Trace > TraceLevel.Warning)
@@ -1039,16 +1040,17 @@ namespace Gurux.DLMS.Simulator.Net
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnReceived(object sender, Gurux.Common.ReceiveEventArgs e)
+        void OnReceived(object sender, ReceiveEventArgs e)
         {
             try
             {
                 lock (this)
                 {
                     //Show trace only for connected meters.
-                    if (Trace > TraceLevel.Info && this.ConnectionState != ConnectionState.None)
+                    if (Trace > TraceLevel.Info && (ConnectionState != ConnectionState.None ||
+                        InterfaceType == InterfaceType.HdlcWithModeE))
                     {
-                        Console.WriteLine("RX:\t" + Gurux.Common.GXCommon.ToHex((byte[])e.Data, true));
+                        Console.WriteLine("RX:\t" + GXCommon.ToHex((byte[])e.Data, true));
                     }
                     GXServerReply sr = new GXServerReply((byte[])e.Data);
                     sr.ConnectionInfo = new GXDLMSConnectionEventArgs() { ConnectionInfo = e.SenderInfo };
@@ -1062,7 +1064,7 @@ namespace Gurux.DLMS.Simulator.Net
                             Media.Send(sr.Reply, e.SenderInfo);
                             if (Trace > TraceLevel.Info)
                             {
-                                Console.WriteLine("TX:\t" + Gurux.Common.GXCommon.ToHex(sr.Reply, true));
+                                Console.WriteLine("TX:\t" + GXCommon.ToHex(sr.Reply, true));
                             }
                             if ((Media is GXSerial serial) && sr.NewBaudRate != 0)
                             {
