@@ -750,7 +750,15 @@ namespace Gurux.DLMS
             //If system title is sent.
             if ((p.settings.NegotiatedConformance & Conformance.GeneralProtection) != 0)
             {
-                len += 9;
+                //System title is not send with Italy protocol.
+                if (p.settings.Standard != Standard.Italy)
+                {
+                    len += 9;
+                }
+                else
+                {
+                    len += 1;
+                }
             }
             len += GetSigningSize(p);
             if (!p.multipleBlocks)

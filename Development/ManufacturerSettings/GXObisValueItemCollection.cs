@@ -82,7 +82,7 @@ namespace Gurux.DLMS.ManufacturerSettings
         {
             foreach (GXObisValueItem it in this)
             {
-                if (it.Value.Equals(item.Value))
+                if (it.Value == item.Value)
                 {
                     return true;
                 }

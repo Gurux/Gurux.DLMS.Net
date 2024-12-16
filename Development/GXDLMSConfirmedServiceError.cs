@@ -38,77 +38,6 @@ using Gurux.DLMS.Enums;
 namespace Gurux.DLMS
 {
     /// <summary>
-    /// DLMS specific exception response.
-    /// </summary>
-    /// <remarks>
-    /// https://www.gurux.fi/Gurux.DLMS.ErrorCodes
-    /// </remarks>
-    public class GXDLMSExceptionResponse : Exception
-    {
-        public ExceptionStateError ExceptionStateError
-        {
-            get;
-            private set;
-        }
-
-        public ExceptionServiceError ExceptionServiceError
-        {
-            get;
-            private set;
-        }
-        public object Value
-        {
-            get;
-            private set;
-        }
-
-
-        /// <summary>
-        /// Constructor for Confirmed ServiceError.
-        /// </summary>
-        internal GXDLMSExceptionResponse(ExceptionStateError error, ExceptionServiceError type, object value)
-            : base("Exception response. \"" + GetStateError(error) + "\"-exception. " + GetServiceError(type, value))
-        {
-            ExceptionStateError = error;
-            ExceptionServiceError = type;
-            Value = value;
-            HelpLink = "https://www.gurux.fi/Gurux.DLMS.ErrorCodes";
-        }
-
-        private static string GetStateError(ExceptionStateError stateError)
-        {
-            switch (stateError)
-            {
-                case ExceptionStateError.ServiceNotAllowed:
-                    return "Service not allowed";
-                case ExceptionStateError.ServiceUnknown:
-                    return "Service unknown";
-            }
-            return string.Empty;
-        }
-
-        private static string GetServiceError(ExceptionServiceError serviceError, object value)
-        {
-            switch (serviceError)
-            {
-                case ExceptionServiceError.OperationNotPossible:
-                    return "Operation not possible";
-                case ExceptionServiceError.OtherReason:
-                    return "Other reason";
-                case ExceptionServiceError.ServiceNotSupported:
-                    return "Service not supported";
-                case ExceptionServiceError.PduTooLong:
-                    return "PDU is too long";
-                case ExceptionServiceError.DecipheringError:
-                    return "Deciphering failed";
-                case ExceptionServiceError.InvocationCounterError:
-                    return "Invocation counter is invalid. Expected value is " + Convert.ToString(value);
-            }
-            return string.Empty;
-        }
-    }
-
-    /// <summary>
     /// DLMS specific exception class that has error description available from GetDescription method.
     /// </summary>
     /// <remarks>
@@ -231,6 +160,5 @@ namespace Gurux.DLMS
             get;
             private set;
         }
-
     }
 }
