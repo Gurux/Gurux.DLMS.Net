@@ -40,476 +40,710 @@ namespace Gurux.DLMS.ASN
     {
         public static string GetString(PkcsObjectIdentifier value)
         {
+            string ret;
             switch (value)
             {
                 case PkcsObjectIdentifier.RsaEncryption:
-                    return "1.2.840.113549.1.1.1";
+                    ret = "1.2.840.113549.1.1.1";
+                    break;
                 case PkcsObjectIdentifier.MD2WithRsaEncryption:
-                    return "1.2.840.113549.1.1.2";
+                    ret = "1.2.840.113549.1.1.2";
+                    break;
                 case PkcsObjectIdentifier.MD4WithRsaEncryption:
-                    return "1.2.840.113549.1.1.3";
+                    ret = "1.2.840.113549.1.1.3";
+                    break;
                 case PkcsObjectIdentifier.MD5WithRsaEncryption:
-                    return "1.2.840.113549.1.1.4";
+                    ret = "1.2.840.113549.1.1.4";
+                    break;
                 case PkcsObjectIdentifier.Sha1WithRsaEncryption:
-                    return "1.2.840.113549.1.1.5";
+                    ret = "1.2.840.113549.1.1.5";
+                    break;
                 case PkcsObjectIdentifier.SrsaOaepEncryptionSet:
-                    return "1.2.840.113549.1.1.6";
+                    ret = "1.2.840.113549.1.1.6";
+                    break;
                 case PkcsObjectIdentifier.IdRsaesOaep:
-                    return "1.2.840.113549.1.1.7";
+                    ret = "1.2.840.113549.1.1.7";
+                    break;
                 case PkcsObjectIdentifier.IdMgf1:
-                    return "1.2.840.113549.1.1.8";
+                    ret = "1.2.840.113549.1.1.8";
+                    break;
                 case PkcsObjectIdentifier.IdPSpecified:
-                    return "1.2.840.113549.1.1.9";
+                    ret = "1.2.840.113549.1.1.9";
+                    break;
                 case PkcsObjectIdentifier.IdRsassaPss:
-                    return "1.2.840.113549.1.1.10";
+                    ret = "1.2.840.113549.1.1.10";
+                    break;
                 case PkcsObjectIdentifier.Sha256WithRsaEncryption:
-                    return "1.2.840.113549.1.1.11";
+                    ret = "1.2.840.113549.1.1.11";
+                    break;
                 case PkcsObjectIdentifier.Sha384WithRsaEncryption:
-                    return "1.2.840.113549.1.1.12";
+                    ret = "1.2.840.113549.1.1.12";
+                    break;
                 case PkcsObjectIdentifier.Sha512WithRsaEncryption:
-                    return "1.2.840.113549.1.1.13";
+                    ret = "1.2.840.113549.1.1.13";
+                    break;
                 case PkcsObjectIdentifier.Sha224WithRsaEncryption:
-                    return "1.2.840.113549.1.1.14";
+                    ret = "1.2.840.113549.1.1.14";
+                    break;
                 case PkcsObjectIdentifier.DhKeyAgree1ment:
-                    return "1.2.840.113549.1.3.1";
+                    ret = "1.2.840.113549.1.3.1";
+                    break;
                 case PkcsObjectIdentifier.PbeWithMD2AndDesCbc:
-                    return "1.2.840.113549.1.5.1";
+                    ret = "1.2.840.113549.1.5.1";
+                    break;
                 case PkcsObjectIdentifier.PbeWithMD2AndRC2Cbc:
-                    return "1.2.840.113549.1.5.4";
+                    ret = "1.2.840.113549.1.5.4";
+                    break;
                 case PkcsObjectIdentifier.PbeWithMD5AndDesCbc:
-                    return "1.2.840.113549.1.5.3";
+                    ret = "1.2.840.113549.1.5.3";
+                    break;
                 case PkcsObjectIdentifier.PbeWithMD5AndRC2Cbc:
-                    return "1.2.840.113549.1.5.6";
+                    ret = "1.2.840.113549.1.5.6";
+                    break;
                 case PkcsObjectIdentifier.PbeWithSha1AndDesCbc:
-                    return "1.2.840.113549.1.5.10";
+                    ret = "1.2.840.113549.1.5.10";
+                    break;
                 case PkcsObjectIdentifier.PbeWithSha1AndRC2Cbc:
-                    return "1.2.840.113549.1.5.11";
+                    ret = "1.2.840.113549.1.5.11";
+                    break;
                 case PkcsObjectIdentifier.IdPbeS2:
-                    return "1.2.840.113549.1.5.13";
+                    ret = "1.2.840.113549.1.5.13";
+                    break;
                 case PkcsObjectIdentifier.IdPbkdf2:
-                    return "1.2.840.113549.1.5.12";
+                    ret = "1.2.840.113549.1.5.12";
+                    break;
                 case PkcsObjectIdentifier.DesEde3Cbc:
-                    return "1.2.840.113549.3.7";
+                    ret = "1.2.840.113549.3.7";
+                    break;
                 case PkcsObjectIdentifier.RC2Cbc:
-                    return "1.2.840.113549.3.2";
+                    ret = "1.2.840.113549.3.2";
+                    break;
                 case PkcsObjectIdentifier.MD2:
-                    return "1.2.840.113549.2.2";
+                    ret = "1.2.840.113549.2.2";
+                    break;
                 case PkcsObjectIdentifier.MD4:
-                    return "1.2.840.113549.2.4";
+                    ret = "1.2.840.113549.2.4";
+                    break;
                 case PkcsObjectIdentifier.MD5:
-                    return "1.2.840.113549.2.5";
+                    ret = "1.2.840.113549.2.5";
+                    break;
                 case PkcsObjectIdentifier.IdHmacWithSha1:
-                    return "1.2.840.113549.2.7";
+                    ret = "1.2.840.113549.2.7";
+                    break;
                 case PkcsObjectIdentifier.IdHmacWithSha224:
-                    return "1.2.840.113549.2.8";
+                    ret = "1.2.840.113549.2.8";
+                    break;
                 case PkcsObjectIdentifier.IdHmacWithSha256:
-                    return "1.2.840.113549.2.9";
+                    ret = "1.2.840.113549.2.9";
+                    break;
                 case PkcsObjectIdentifier.IdHmacWithSha384:
-                    return "1.2.840.113549.2.10";
+                    ret = "1.2.840.113549.2.10";
+                    break;
                 case PkcsObjectIdentifier.IdHmacWithSha512:
-                    return "1.2.840.113549.2.11";
+                    ret = "1.2.840.113549.2.11";
+                    break;
                 case PkcsObjectIdentifier.Data:
-                    return "1.2.840.113549.1.7.1";
+                    ret = "1.2.840.113549.1.7.1";
+                    break;
                 case PkcsObjectIdentifier.SignedData:
-                    return "1.2.840.113549.1.7.2";
+                    ret = "1.2.840.113549.1.7.2";
+                    break;
                 case PkcsObjectIdentifier.EnvelopedData:
-                    return "1.2.840.113549.1.7.3";
+                    ret = "1.2.840.113549.1.7.3";
+                    break;
                 case PkcsObjectIdentifier.SignedAndEnvelopedData:
-                    return "1.2.840.113549.1.7.4";
+                    ret = "1.2.840.113549.1.7.4";
+                    break;
                 case PkcsObjectIdentifier.DigestedData:
-                    return "1.2.840.113549.1.7.5";
+                    ret = "1.2.840.113549.1.7.5";
+                    break;
                 case PkcsObjectIdentifier.EncryptedData:
-                    return "1.2.840.113549.1.7.6";
+                    ret = "1.2.840.113549.1.7.6";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtEmailAddress:
-                    return "1.2.840.113549.1.9.1";
+                    ret = "1.2.840.113549.1.9.1";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtUnstructuredName:
-                    return "1.2.840.113549.1.9.2";
+                    ret = "1.2.840.113549.1.9.2";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtContentType:
-                    return "1.2.840.113549.1.9.3";
+                    ret = "1.2.840.113549.1.9.3";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtMessageDigest:
-                    return "1.2.840.113549.1.9.4";
+                    ret = "1.2.840.113549.1.9.4";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtSigningTime:
-                    return "1.2.840.113549.1.9.5";
+                    ret = "1.2.840.113549.1.9.5";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtCounterSignature:
-                    return "1.2.840.113549.1.9.6";
+                    ret = "1.2.840.113549.1.9.6";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtChallengePassword:
-                    return "1.2.840.113549.1.9.7";
+                    ret = "1.2.840.113549.1.9.7";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtUnstructuredAddress:
-                    return "1.2.840.113549.1.9.8";
+                    ret = "1.2.840.113549.1.9.8";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtExtendedCertificateAttributes:
-                    return "1.2.840.113549.1.9.9";
+                    ret = "1.2.840.113549.1.9.9";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtSigningDescription:
-                    return "1.2.840.113549.1.9.13";
+                    ret = "1.2.840.113549.1.9.13";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtExtensionRequest:
-                    return "1.2.840.113549.1.9.14";
+                    ret = "1.2.840.113549.1.9.14";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtSmimeCapabilities:
-                    return "1.2.840.113549.1.9.15";
+                    ret = "1.2.840.113549.1.9.15";
+                    break;
                 case PkcsObjectIdentifier.IdSmime:
-                    return "1.2.840.113549.1.9.16";
+                    ret = "1.2.840.113549.1.9.16";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtFriendlyName:
-                    return "1.2.840.113549.1.9.20";
+                    ret = "1.2.840.113549.1.9.20";
+                    break;
                 case PkcsObjectIdentifier.Pkcs9AtLocalKeyID:
-                    return "1.2.840.113549.1.9.21";
+                    ret = "1.2.840.113549.1.9.21";
+                    break;
                 case PkcsObjectIdentifier.X509Certificate:
-                    return "1.2.840.113549.1.9.22.1";
+                    ret = "1.2.840.113549.1.9.22.1";
+                    break;
                 case PkcsObjectIdentifier.SdsiCertificate:
-                    return "1.2.840.113549.1.9.22.2";
+                    ret = "1.2.840.113549.1.9.22.2";
+                    break;
                 case PkcsObjectIdentifier.X509Crl:
-                    return "1.2.840.113549.1.9.23.1";
+                    ret = "1.2.840.113549.1.9.23.1";
+                    break;
                 case PkcsObjectIdentifier.IdAlg:
-                    return "1.2.840.113549.1.9.16.3";
+                    ret = "1.2.840.113549.1.9.16.3";
+                    break;
                 case PkcsObjectIdentifier.IdAlgEsdh:
-                    return "1.2.840.113549.1.9.16.3.5";
+                    ret = "1.2.840.113549.1.9.16.3.5";
+                    break;
                 case PkcsObjectIdentifier.IdAlgCms3DesWrap:
-                    return "1.2.840.113549.1.9.16.3.6";
+                    ret = "1.2.840.113549.1.9.16.3.6";
+                    break;
                 case PkcsObjectIdentifier.IdAlgCmsRC2Wrap:
-                    return "1.2.840.113549.1.9.16.3.7";
+                    ret = "1.2.840.113549.1.9.16.3.7";
+                    break;
                 case PkcsObjectIdentifier.IdAlgPwriKek:
-                    return "1.2.840.113549.1.9.16.3.9";
+                    ret = "1.2.840.113549.1.9.16.3.9";
+                    break;
                 case PkcsObjectIdentifier.IdAlgSsdh:
-                    return "1.2.840.113549.1.9.16.3.10";
+                    ret = "1.2.840.113549.1.9.16.3.10";
+                    break;
                 case PkcsObjectIdentifier.IdRsaKem:
-                    return "1.2.840.113549.1.9.16.3.14";
+                    ret = "1.2.840.113549.1.9.16.3.14";
+                    break;
                 case PkcsObjectIdentifier.PreferSignedData:
-                    return "1.2.840.113549.1.9.15.1";
+                    ret = "1.2.840.113549.1.9.15.1";
+                    break;
                 case PkcsObjectIdentifier.CannotDecryptAny:
-                    return "1.2.840.113549.1.9.15.2";
+                    ret = "1.2.840.113549.1.9.15.2";
+                    break;
                 case PkcsObjectIdentifier.SmimeCapabilitiesVersions:
-                    return "1.2.840.113549.1.9.15.3";
+                    ret = "1.2.840.113549.1.9.15.3";
+                    break;
                 case PkcsObjectIdentifier.IdAAReceiptRequest:
-                    return "1.2.840.113549.1.9.16.2.1";
+                    ret = "1.2.840.113549.1.9.16.2.1";
+                    break;
                 case PkcsObjectIdentifier.IdCTAuthData:
-                    return "1.2.840.113549.1.9.16.1.2";
+                    ret = "1.2.840.113549.1.9.16.1.2";
+                    break;
                 case PkcsObjectIdentifier.IdCTTstInfo:
-                    return "1.2.840.113549.1.9.16.1.4";
+                    ret = "1.2.840.113549.1.9.16.1.4";
+                    break;
                 case PkcsObjectIdentifier.IdCTCompressedData:
-                    return "1.2.840.113549.1.9.16.1.9";
+                    ret = "1.2.840.113549.1.9.16.1.9";
+                    break;
                 case PkcsObjectIdentifier.IdCTAuthEnvelopedData:
-                    return "1.2.840.113549.1.9.16.1.23";
+                    ret = "1.2.840.113549.1.9.16.1.23";
+                    break;
                 case PkcsObjectIdentifier.IdCTTimestampedData:
-                    return "1.2.840.113549.1.9.16.1.31";
+                    ret = "1.2.840.113549.1.9.16.1.31";
+                    break;
                 case PkcsObjectIdentifier.IdCtiEtsProofOfOrigin:
-                    return "1.2.840.113549.1.9.16.6.1";
+                    ret = "1.2.840.113549.1.9.16.6.1";
+                    break;
                 case PkcsObjectIdentifier.IdCtiEtsProofOfReceipt:
-                    return "1.2.840.113549.1.9.16.6.2";
+                    ret = "1.2.840.113549.1.9.16.6.2";
+                    break;
                 case PkcsObjectIdentifier.IdCtiEtsProofOfDelivery:
-                    return "1.2.840.113549.1.9.16.6.3";
+                    ret = "1.2.840.113549.1.9.16.6.3";
+                    break;
                 case PkcsObjectIdentifier.IdCtiEtsProofOfSender:
-                    return "1.2.840.113549.1.9.16.6.4";
+                    ret = "1.2.840.113549.1.9.16.6.4";
+                    break;
                 case PkcsObjectIdentifier.IdCtiEtsProofOfApproval:
-                    return "1.2.840.113549.1.9.16.6.5";
+                    ret = "1.2.840.113549.1.9.16.6.5";
+                    break;
                 case PkcsObjectIdentifier.IdCtiEtsProofOfCreation:
-                    return "1.2.840.113549.1.9.16.6.6";
+                    ret = "1.2.840.113549.1.9.16.6.6";
+                    break;
                 case PkcsObjectIdentifier.IdAAContentHint:
-                    return "1.2.840.113549.1.9.16.2.4";
+                    ret = "1.2.840.113549.1.9.16.2.4";
+                    break;
                 case PkcsObjectIdentifier.IdAAMsgSigDigest:
-                    return "1.2.840.113549.1.9.16.2.5";
+                    ret = "1.2.840.113549.1.9.16.2.5";
+                    break;
                 case PkcsObjectIdentifier.IdAAContentReference:
-                    return "1.2.840.113549.1.9.16.2.10";
+                    ret = "1.2.840.113549.1.9.16.2.10";
+                    break;
                 case PkcsObjectIdentifier.IdAAEncrypKeyPref:
-                    return "1.2.840.113549.1.9.16.2.11";
+                    ret = "1.2.840.113549.1.9.16.2.11";
+                    break;
                 case PkcsObjectIdentifier.IdAASigningCertificate:
-                    return "1.2.840.113549.1.9.16.2.12";
+                    ret = "1.2.840.113549.1.9.16.2.12";
+                    break;
                 case PkcsObjectIdentifier.IdAASigningCertificateV2:
-                    return "1.2.840.113549.1.9.16.2.47";
+                    ret = "1.2.840.113549.1.9.16.2.47";
+                    break;
                 case PkcsObjectIdentifier.IdAAContentIdentifier:
-                    return "1.2.840.113549.1.9.16.2.7";
+                    ret = "1.2.840.113549.1.9.16.2.7";
+                    break;
                 case PkcsObjectIdentifier.IdAASignatureTimeStampToken:
-                    return "1.2.840.113549.1.9.16.2.14";
+                    ret = "1.2.840.113549.1.9.16.2.14";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsSigPolicyID:
-                    return "1.2.840.113549.1.9.16.2.15";
+                    ret = "1.2.840.113549.1.9.16.2.15";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsCommitmentType:
-                    return "1.2.840.113549.1.9.16.2.16";
+                    ret = "1.2.840.113549.1.9.16.2.16";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsSignerLocation:
-                    return "1.2.840.113549.1.9.16.2.17";
+                    ret = "1.2.840.113549.1.9.16.2.17";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsSignerAttr:
-                    return "1.2.840.113549.1.9.16.2.18";
+                    ret = "1.2.840.113549.1.9.16.2.18";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsOtherSigCert:
-                    return "1.2.840.113549.1.9.16.2.19";
+                    ret = "1.2.840.113549.1.9.16.2.19";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsContentTimestamp:
-                    return "1.2.840.113549.1.9.16.2.20";
+                    ret = "1.2.840.113549.1.9.16.2.20";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsCertificateRefs:
-                    return "1.2.840.113549.1.9.16.2.21";
+                    ret = "1.2.840.113549.1.9.16.2.21";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsRevocationRefs:
-                    return "1.2.840.113549.1.9.16.2.22";
+                    ret = "1.2.840.113549.1.9.16.2.22";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsCertValues:
-                    return "1.2.840.113549.1.9.16.2.23";
+                    ret = "1.2.840.113549.1.9.16.2.23";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsRevocationValues:
-                    return "1.2.840.113549.1.9.16.2.24";
+                    ret = "1.2.840.113549.1.9.16.2.24";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsEscTimeStamp:
-                    return "1.2.840.113549.1.9.16.2.25";
+                    ret = "1.2.840.113549.1.9.16.2.25";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsCertCrlTimestamp:
-                    return "1.2.840.113549.1.9.16.2.26";
+                    ret = "1.2.840.113549.1.9.16.2.26";
+                    break;
                 case PkcsObjectIdentifier.IdAAEtsArchiveTimestamp:
-                    return "1.2.840.113549.1.9.16.2.27";
+                    ret = "1.2.840.113549.1.9.16.2.27";
+                    break;
                 case PkcsObjectIdentifier.IdSpqEtsUri:
-                    return "1.2.840.113549.1.9.16.5.1";
+                    ret = "1.2.840.113549.1.9.16.5.1";
+                    break;
                 case PkcsObjectIdentifier.IdSpqEtsUNotice:
-                    return "1.2.840.113549.1.9.16.5.2";
+                    ret = "1.2.840.113549.1.9.16.5.2";
+                    break;
                 case PkcsObjectIdentifier.KeyBag:
-                    return "1.2.840.113549.1.12.10.1.1";
+                    ret = "1.2.840.113549.1.12.10.1.1";
+                    break;
                 case PkcsObjectIdentifier.Pkcs8ShroudedKeyBag:
-                    return "1.2.840.113549.1.12.10.1.2";
+                    ret = "1.2.840.113549.1.12.10.1.2";
+                    break;
                 case PkcsObjectIdentifier.CertBag:
-                    return "1.2.840.113549.1.12.10.1.3";
+                    ret = "1.2.840.113549.1.12.10.1.3";
+                    break;
                 case PkcsObjectIdentifier.CrlBag:
-                    return "1.2.840.113549.1.12.10.1.4";
+                    ret = "1.2.840.113549.1.12.10.1.4";
+                    break;
                 case PkcsObjectIdentifier.SecretBag:
-                    return "1.2.840.113549.1.12.10.1.5";
+                    ret = "1.2.840.113549.1.12.10.1.5";
+                    break;
                 case PkcsObjectIdentifier.SafeContentsBag:
-                    return "1.2.840.113549.1.12.10.1.6";
+                    ret = "1.2.840.113549.1.12.10.1.6";
+                    break;
                 case PkcsObjectIdentifier.PbeWithShaAnd128BitRC4:
-                    return "1.2.840.113549.1.12.1.1";
+                    ret = "1.2.840.113549.1.12.1.1";
+                    break;
                 case PkcsObjectIdentifier.PbeWithShaAnd40BitRC4:
-                    return "1.2.840.113549.1.12.1.2";
+                    ret = "1.2.840.113549.1.12.1.2";
+                    break;
                 case PkcsObjectIdentifier.PbeWithShaAnd3KeyTripleDesCbc:
-                    return "1.2.840.113549.1.12.1.3";
+                    ret = "1.2.840.113549.1.12.1.3";
+                    break;
                 case PkcsObjectIdentifier.PbeWithShaAnd2KeyTripleDesCbc:
-                    return "1.2.840.113549.1.12.1.4";
+                    ret = "1.2.840.113549.1.12.1.4";
+                    break;
                 case PkcsObjectIdentifier.PbeWithShaAnd128BitRC2Cbc:
-                    return "1.2.840.113549.1.12.1.5";
+                    ret = "1.2.840.113549.1.12.1.5";
+                    break;
                 case PkcsObjectIdentifier.PbewithShaAnd40BitRC2Cbc:
-                    return "1.2.840.113549.1.12.1.6";
+                    ret = "1.2.840.113549.1.12.1.6";
+                    break;
                 default:
-                    return null;
+                    ret = null;
+                    break;
             }
+            return ret;
         }
 
         public static PkcsObjectIdentifier FromString(string value)
         {
+            PkcsObjectIdentifier ret;
             switch (value)
             {
                 case "1.2.840.113549.1.1.1":
-                    return PkcsObjectIdentifier.RsaEncryption;
+                    ret = PkcsObjectIdentifier.RsaEncryption;
+                    break;
                 case "1.2.840.113549.1.1.2":
-                    return PkcsObjectIdentifier.MD2WithRsaEncryption;
+                    ret = PkcsObjectIdentifier.MD2WithRsaEncryption;
+                    break;
                 case "1.2.840.113549.1.1.3":
-                    return PkcsObjectIdentifier.MD4WithRsaEncryption;
+                    ret = PkcsObjectIdentifier.MD4WithRsaEncryption;
+                    break;
                 case "1.2.840.113549.1.1.4":
-                    return PkcsObjectIdentifier.MD5WithRsaEncryption;
+                    ret = PkcsObjectIdentifier.MD5WithRsaEncryption;
+                    break;
                 case "1.2.840.113549.1.1.5":
-                    return PkcsObjectIdentifier.Sha1WithRsaEncryption;
+                    ret = PkcsObjectIdentifier.Sha1WithRsaEncryption;
+                    break;
                 case "1.2.840.113549.1.1.6":
-                    return PkcsObjectIdentifier.SrsaOaepEncryptionSet;
+                    ret = PkcsObjectIdentifier.SrsaOaepEncryptionSet;
+                    break;
                 case "1.2.840.113549.1.1.7":
-                    return PkcsObjectIdentifier.IdRsaesOaep;
+                    ret = PkcsObjectIdentifier.IdRsaesOaep;
+                    break;
                 case "1.2.840.113549.1.1.8":
-                    return PkcsObjectIdentifier.IdMgf1;
+                    ret = PkcsObjectIdentifier.IdMgf1;
+                    break;
                 case "1.2.840.113549.1.1.9":
-                    return PkcsObjectIdentifier.IdPSpecified;
+                    ret = PkcsObjectIdentifier.IdPSpecified;
+                    break;
                 case "1.2.840.113549.1.1.10":
-                    return PkcsObjectIdentifier.IdRsassaPss;
+                    ret = PkcsObjectIdentifier.IdRsassaPss;
+                    break;
                 case "1.2.840.113549.1.1.11":
-                    return PkcsObjectIdentifier.Sha256WithRsaEncryption;
+                    ret = PkcsObjectIdentifier.Sha256WithRsaEncryption;
+                    break;
                 case "1.2.840.113549.1.1.12":
-                    return PkcsObjectIdentifier.Sha384WithRsaEncryption;
+                    ret = PkcsObjectIdentifier.Sha384WithRsaEncryption;
+                    break;
                 case "1.2.840.113549.1.1.13":
-                    return PkcsObjectIdentifier.Sha512WithRsaEncryption;
+                    ret = PkcsObjectIdentifier.Sha512WithRsaEncryption;
+                    break;
                 case "1.2.840.113549.1.1.14":
-                    return PkcsObjectIdentifier.Sha224WithRsaEncryption;
+                    ret = PkcsObjectIdentifier.Sha224WithRsaEncryption;
+                    break;
                 case "1.2.840.113549.1.3.1":
-                    return PkcsObjectIdentifier.DhKeyAgree1ment;
+                    ret = PkcsObjectIdentifier.DhKeyAgree1ment;
+                    break;
                 case "1.2.840.113549.1.5.1":
-                    return PkcsObjectIdentifier.PbeWithMD2AndDesCbc;
+                    ret = PkcsObjectIdentifier.PbeWithMD2AndDesCbc;
+                    break;
                 case "1.2.840.113549.1.5.4":
-                    return PkcsObjectIdentifier.PbeWithMD2AndRC2Cbc;
+                    ret = PkcsObjectIdentifier.PbeWithMD2AndRC2Cbc;
+                    break;
                 case "1.2.840.113549.1.5.3":
-                    return PkcsObjectIdentifier.PbeWithMD5AndDesCbc;
+                    ret = PkcsObjectIdentifier.PbeWithMD5AndDesCbc;
+                    break;
                 case "1.2.840.113549.1.5.6":
-                    return PkcsObjectIdentifier.PbeWithMD5AndRC2Cbc;
+                    ret = PkcsObjectIdentifier.PbeWithMD5AndRC2Cbc;
+                    break;
                 case "1.2.840.113549.1.5.10":
-                    return PkcsObjectIdentifier.PbeWithSha1AndDesCbc;
+                    ret = PkcsObjectIdentifier.PbeWithSha1AndDesCbc;
+                    break;
                 case "1.2.840.113549.1.5.11":
-                    return PkcsObjectIdentifier.PbeWithSha1AndRC2Cbc;
+                    ret = PkcsObjectIdentifier.PbeWithSha1AndRC2Cbc;
+                    break;
                 case "1.2.840.113549.1.5.13":
-                    return PkcsObjectIdentifier.IdPbeS2;
+                    ret = PkcsObjectIdentifier.IdPbeS2;
+                    break;
                 case "1.2.840.113549.1.5.12":
-                    return PkcsObjectIdentifier.IdPbkdf2;
+                    ret = PkcsObjectIdentifier.IdPbkdf2;
+                    break;
                 case "1.2.840.113549.3.7":
-                    return PkcsObjectIdentifier.DesEde3Cbc;
+                    ret = PkcsObjectIdentifier.DesEde3Cbc;
+                    break;
                 case "1.2.840.113549.3.2":
-                    return PkcsObjectIdentifier.RC2Cbc;
+                    ret = PkcsObjectIdentifier.RC2Cbc;
+                    break;
                 case "1.2.840.113549.2.2":
-                    return PkcsObjectIdentifier.MD2;
+                    ret = PkcsObjectIdentifier.MD2;
+                    break;
                 case "1.2.840.113549.2.4":
-                    return PkcsObjectIdentifier.MD4;
+                    ret = PkcsObjectIdentifier.MD4;
+                    break;
                 case "1.2.840.113549.2.5":
-                    return PkcsObjectIdentifier.MD5;
+                    ret = PkcsObjectIdentifier.MD5;
+                    break;
                 case "1.2.840.113549.2.7":
-                    return PkcsObjectIdentifier.IdHmacWithSha1;
+                    ret = PkcsObjectIdentifier.IdHmacWithSha1;
+                    break;
                 case "1.2.840.113549.2.8":
-                    return PkcsObjectIdentifier.IdHmacWithSha224;
+                    ret = PkcsObjectIdentifier.IdHmacWithSha224;
+                    break;
                 case "1.2.840.113549.2.9":
-                    return PkcsObjectIdentifier.IdHmacWithSha256;
+                    ret = PkcsObjectIdentifier.IdHmacWithSha256;
+                    break;
                 case "1.2.840.113549.2.10":
-                    return PkcsObjectIdentifier.IdHmacWithSha384;
+                    ret = PkcsObjectIdentifier.IdHmacWithSha384;
+                    break;
                 case "1.2.840.113549.2.11":
-                    return PkcsObjectIdentifier.IdHmacWithSha512;
+                    ret = PkcsObjectIdentifier.IdHmacWithSha512;
+                    break;
                 case "1.2.840.113549.1.7.1":
-                    return PkcsObjectIdentifier.Data;
+                    ret = PkcsObjectIdentifier.Data;
+                    break;
                 case "1.2.840.113549.1.7.2":
-                    return PkcsObjectIdentifier.SignedData;
+                    ret = PkcsObjectIdentifier.SignedData;
+                    break;
                 case "1.2.840.113549.1.7.3":
-                    return PkcsObjectIdentifier.EnvelopedData;
+                    ret = PkcsObjectIdentifier.EnvelopedData;
+                    break;
                 case "1.2.840.113549.1.7.4":
-                    return PkcsObjectIdentifier.SignedAndEnvelopedData;
+                    ret = PkcsObjectIdentifier.SignedAndEnvelopedData;
+                    break;
                 case "1.2.840.113549.1.7.5":
-                    return PkcsObjectIdentifier.DigestedData;
+                    ret = PkcsObjectIdentifier.DigestedData;
+                    break;
                 case "1.2.840.113549.1.7.6":
-                    return PkcsObjectIdentifier.EncryptedData;
+                    ret = PkcsObjectIdentifier.EncryptedData;
+                    break;
                 case "1.2.840.113549.1.9.1":
-                    return PkcsObjectIdentifier.Pkcs9AtEmailAddress;
+                    ret = PkcsObjectIdentifier.Pkcs9AtEmailAddress;
+                    break;
                 case "1.2.840.113549.1.9.2":
-                    return PkcsObjectIdentifier.Pkcs9AtUnstructuredName;
+                    ret = PkcsObjectIdentifier.Pkcs9AtUnstructuredName;
+                    break;
                 case "1.2.840.113549.1.9.3":
-                    return PkcsObjectIdentifier.Pkcs9AtContentType;
+                    ret = PkcsObjectIdentifier.Pkcs9AtContentType;
+                    break;
                 case "1.2.840.113549.1.9.4":
-                    return PkcsObjectIdentifier.Pkcs9AtMessageDigest;
+                    ret = PkcsObjectIdentifier.Pkcs9AtMessageDigest;
+                    break;
                 case "1.2.840.113549.1.9.5":
-                    return PkcsObjectIdentifier.Pkcs9AtSigningTime;
+                    ret = PkcsObjectIdentifier.Pkcs9AtSigningTime;
+                    break;
                 case "1.2.840.113549.1.9.6":
-                    return PkcsObjectIdentifier.Pkcs9AtCounterSignature;
+                    ret = PkcsObjectIdentifier.Pkcs9AtCounterSignature;
+                    break;
                 case "1.2.840.113549.1.9.7":
-                    return PkcsObjectIdentifier.Pkcs9AtChallengePassword;
+                    ret = PkcsObjectIdentifier.Pkcs9AtChallengePassword;
+                    break;
                 case "1.2.840.113549.1.9.8":
-                    return PkcsObjectIdentifier.Pkcs9AtUnstructuredAddress;
+                    ret = PkcsObjectIdentifier.Pkcs9AtUnstructuredAddress;
+                    break;
                 case "1.2.840.113549.1.9.9":
-                    return PkcsObjectIdentifier.Pkcs9AtExtendedCertificateAttributes;
+                    ret = PkcsObjectIdentifier.Pkcs9AtExtendedCertificateAttributes;
+                    break;
                 case "1.2.840.113549.1.9.13":
-                    return PkcsObjectIdentifier.Pkcs9AtSigningDescription;
+                    ret = PkcsObjectIdentifier.Pkcs9AtSigningDescription;
+                    break;
                 case "1.2.840.113549.1.9.14":
-                    return PkcsObjectIdentifier.Pkcs9AtExtensionRequest;
+                    ret = PkcsObjectIdentifier.Pkcs9AtExtensionRequest;
+                    break;
                 case "1.2.840.113549.1.9.15":
-                    return PkcsObjectIdentifier.Pkcs9AtSmimeCapabilities;
+                    ret = PkcsObjectIdentifier.Pkcs9AtSmimeCapabilities;
+                    break;
                 case "1.2.840.113549.1.9.16":
-                    return PkcsObjectIdentifier.IdSmime;
+                    ret = PkcsObjectIdentifier.IdSmime;
+                    break;
                 case "1.2.840.113549.1.9.20":
-                    return PkcsObjectIdentifier.Pkcs9AtFriendlyName;
+                    ret = PkcsObjectIdentifier.Pkcs9AtFriendlyName;
+                    break;
                 case "1.2.840.113549.1.9.21":
-                    return PkcsObjectIdentifier.Pkcs9AtLocalKeyID;
+                    ret = PkcsObjectIdentifier.Pkcs9AtLocalKeyID;
+                    break;
                 case "1.2.840.113549.1.9.22.1":
-                    return PkcsObjectIdentifier.X509Certificate;
+                    ret = PkcsObjectIdentifier.X509Certificate;
+                    break;
                 case "1.2.840.113549.1.9.22.2":
-                    return PkcsObjectIdentifier.SdsiCertificate;
+                    ret = PkcsObjectIdentifier.SdsiCertificate;
+                    break;
                 case "1.2.840.113549.1.9.23.1":
-                    return PkcsObjectIdentifier.X509Crl;
+                    ret = PkcsObjectIdentifier.X509Crl;
+                    break;
                 case "1.2.840.113549.1.9.16.3":
-                    return PkcsObjectIdentifier.IdAlg;
+                    ret = PkcsObjectIdentifier.IdAlg;
+                    break;
                 case "1.2.840.113549.1.9.16.3.5":
-                    return PkcsObjectIdentifier.IdAlgEsdh;
+                    ret = PkcsObjectIdentifier.IdAlgEsdh;
+                    break;
                 case "1.2.840.113549.1.9.16.3.6":
-                    return PkcsObjectIdentifier.IdAlgCms3DesWrap;
+                    ret = PkcsObjectIdentifier.IdAlgCms3DesWrap;
+                    break;
                 case "1.2.840.113549.1.9.16.3.7":
-                    return PkcsObjectIdentifier.IdAlgCmsRC2Wrap;
+                    ret = PkcsObjectIdentifier.IdAlgCmsRC2Wrap;
+                    break;
                 case "1.2.840.113549.1.9.16.3.9":
-                    return PkcsObjectIdentifier.IdAlgPwriKek;
+                    ret = PkcsObjectIdentifier.IdAlgPwriKek;
+                    break;
                 case "1.2.840.113549.1.9.16.3.10":
-                    return PkcsObjectIdentifier.IdAlgSsdh;
+                    ret = PkcsObjectIdentifier.IdAlgSsdh;
+                    break;
                 case "1.2.840.113549.1.9.16.3.14":
-                    return PkcsObjectIdentifier.IdRsaKem;
+                    ret = PkcsObjectIdentifier.IdRsaKem;
+                    break;
                 case "1.2.840.113549.1.9.15.1":
-                    return PkcsObjectIdentifier.PreferSignedData;
+                    ret = PkcsObjectIdentifier.PreferSignedData;
+                    break;
                 case "1.2.840.113549.1.9.15.2":
-                    return PkcsObjectIdentifier.CannotDecryptAny;
+                    ret = PkcsObjectIdentifier.CannotDecryptAny;
+                    break;
                 case "1.2.840.113549.1.9.15.3":
-                    return PkcsObjectIdentifier.SmimeCapabilitiesVersions;
+                    ret = PkcsObjectIdentifier.SmimeCapabilitiesVersions;
+                    break;
                 case "1.2.840.113549.1.9.16.2.1":
-                    return PkcsObjectIdentifier.IdAAReceiptRequest;
+                    ret = PkcsObjectIdentifier.IdAAReceiptRequest;
+                    break;
                 case "1.2.840.113549.1.9.16.1.2":
-                    return PkcsObjectIdentifier.IdCTAuthData;
+                    ret = PkcsObjectIdentifier.IdCTAuthData;
+                    break;
                 case "1.2.840.113549.1.9.16.1.4":
-                    return PkcsObjectIdentifier.IdCTTstInfo;
+                    ret = PkcsObjectIdentifier.IdCTTstInfo;
+                    break;
                 case "1.2.840.113549.1.9.16.1.9":
-                    return PkcsObjectIdentifier.IdCTCompressedData;
+                    ret = PkcsObjectIdentifier.IdCTCompressedData;
+                    break;
                 case "1.2.840.113549.1.9.16.1.23":
-                    return PkcsObjectIdentifier.IdCTAuthEnvelopedData;
+                    ret = PkcsObjectIdentifier.IdCTAuthEnvelopedData;
+                    break;
                 case "1.2.840.113549.1.9.16.1.31":
-                    return PkcsObjectIdentifier.IdCTTimestampedData;
+                    ret = PkcsObjectIdentifier.IdCTTimestampedData;
+                    break;
                 case "1.2.840.113549.1.9.16.6.1":
-                    return PkcsObjectIdentifier.IdCtiEtsProofOfOrigin;
+                    ret = PkcsObjectIdentifier.IdCtiEtsProofOfOrigin;
+                    break;
                 case "1.2.840.113549.1.9.16.6.2":
-                    return PkcsObjectIdentifier.IdCtiEtsProofOfReceipt;
+                    ret = PkcsObjectIdentifier.IdCtiEtsProofOfReceipt;
+                    break;
                 case "1.2.840.113549.1.9.16.6.3":
-                    return PkcsObjectIdentifier.IdCtiEtsProofOfDelivery;
+                    ret = PkcsObjectIdentifier.IdCtiEtsProofOfDelivery;
+                    break;
                 case "1.2.840.113549.1.9.16.6.4":
-                    return PkcsObjectIdentifier.IdCtiEtsProofOfSender;
+                    ret = PkcsObjectIdentifier.IdCtiEtsProofOfSender;
+                    break;
                 case "1.2.840.113549.1.9.16.6.5":
-                    return PkcsObjectIdentifier.IdCtiEtsProofOfApproval;
+                    ret = PkcsObjectIdentifier.IdCtiEtsProofOfApproval;
+                    break;
                 case "1.2.840.113549.1.9.16.6.6":
-                    return PkcsObjectIdentifier.IdCtiEtsProofOfCreation;
+                    ret = PkcsObjectIdentifier.IdCtiEtsProofOfCreation;
+                    break;
                 case "1.2.840.113549.1.9.16.2.4":
-                    return PkcsObjectIdentifier.IdAAContentHint;
+                    ret = PkcsObjectIdentifier.IdAAContentHint;
+                    break;
                 case "1.2.840.113549.1.9.16.2.5":
-                    return PkcsObjectIdentifier.IdAAMsgSigDigest;
+                    ret = PkcsObjectIdentifier.IdAAMsgSigDigest;
+                    break;
                 case "1.2.840.113549.1.9.16.2.10":
-                    return PkcsObjectIdentifier.IdAAContentReference;
+                    ret = PkcsObjectIdentifier.IdAAContentReference;
+                    break;
                 case "1.2.840.113549.1.9.16.2.11":
-                    return PkcsObjectIdentifier.IdAAEncrypKeyPref;
+                    ret = PkcsObjectIdentifier.IdAAEncrypKeyPref;
+                    break;
                 case "1.2.840.113549.1.9.16.2.12":
-                    return PkcsObjectIdentifier.IdAASigningCertificate;
+                    ret = PkcsObjectIdentifier.IdAASigningCertificate;
+                    break;
                 case "1.2.840.113549.1.9.16.2.47":
-                    return PkcsObjectIdentifier.IdAASigningCertificateV2;
+                    ret = PkcsObjectIdentifier.IdAASigningCertificateV2;
+                    break;
                 case "1.2.840.113549.1.9.16.2.7":
-                    return PkcsObjectIdentifier.IdAAContentIdentifier;
+                    ret = PkcsObjectIdentifier.IdAAContentIdentifier;
+                    break;
                 case "1.2.840.113549.1.9.16.2.14":
-                    return PkcsObjectIdentifier.IdAASignatureTimeStampToken;
+                    ret = PkcsObjectIdentifier.IdAASignatureTimeStampToken;
+                    break;
                 case "1.2.840.113549.1.9.16.2.15":
-                    return PkcsObjectIdentifier.IdAAEtsSigPolicyID;
+                    ret = PkcsObjectIdentifier.IdAAEtsSigPolicyID;
+                    break;
                 case "1.2.840.113549.1.9.16.2.16":
-                    return PkcsObjectIdentifier.IdAAEtsCommitmentType;
+                    ret = PkcsObjectIdentifier.IdAAEtsCommitmentType;
+                    break;
                 case "1.2.840.113549.1.9.16.2.17":
-                    return PkcsObjectIdentifier.IdAAEtsSignerLocation;
+                    ret = PkcsObjectIdentifier.IdAAEtsSignerLocation;
+                    break;
                 case "1.2.840.113549.1.9.16.2.18":
-                    return PkcsObjectIdentifier.IdAAEtsSignerAttr;
+                    ret = PkcsObjectIdentifier.IdAAEtsSignerAttr;
+                    break;
                 case "1.2.840.113549.1.9.16.2.19":
-                    return PkcsObjectIdentifier.IdAAEtsOtherSigCert;
+                    ret = PkcsObjectIdentifier.IdAAEtsOtherSigCert;
+                    break;
                 case "1.2.840.113549.1.9.16.2.20":
-                    return PkcsObjectIdentifier.IdAAEtsContentTimestamp;
+                    ret = PkcsObjectIdentifier.IdAAEtsContentTimestamp;
+                    break;
                 case "1.2.840.113549.1.9.16.2.21":
-                    return PkcsObjectIdentifier.IdAAEtsCertificateRefs;
+                    ret = PkcsObjectIdentifier.IdAAEtsCertificateRefs;
+                    break;
                 case "1.2.840.113549.1.9.16.2.22":
-                    return PkcsObjectIdentifier.IdAAEtsRevocationRefs;
+                    ret = PkcsObjectIdentifier.IdAAEtsRevocationRefs;
+                    break;
                 case "1.2.840.113549.1.9.16.2.23":
-                    return PkcsObjectIdentifier.IdAAEtsCertValues;
+                    ret = PkcsObjectIdentifier.IdAAEtsCertValues;
+                    break;
                 case "1.2.840.113549.1.9.16.2.24":
-                    return PkcsObjectIdentifier.IdAAEtsRevocationValues;
+                    ret = PkcsObjectIdentifier.IdAAEtsRevocationValues;
+                    break;
                 case "1.2.840.113549.1.9.16.2.25":
-                    return PkcsObjectIdentifier.IdAAEtsEscTimeStamp;
+                    ret = PkcsObjectIdentifier.IdAAEtsEscTimeStamp;
+                    break;
                 case "1.2.840.113549.1.9.16.2.26":
-                    return PkcsObjectIdentifier.IdAAEtsCertCrlTimestamp;
+                    ret = PkcsObjectIdentifier.IdAAEtsCertCrlTimestamp;
+                    break;
                 case "1.2.840.113549.1.9.16.2.27":
-                    return PkcsObjectIdentifier.IdAAEtsArchiveTimestamp;
+                    ret = PkcsObjectIdentifier.IdAAEtsArchiveTimestamp;
+                    break;
                 case "1.2.840.113549.1.9.16.5.1":
-                    return PkcsObjectIdentifier.IdSpqEtsUri;
+                    ret = PkcsObjectIdentifier.IdSpqEtsUri;
+                    break;
                 case "1.2.840.113549.1.9.16.5.2":
-                    return PkcsObjectIdentifier.IdSpqEtsUNotice;
+                    ret = PkcsObjectIdentifier.IdSpqEtsUNotice;
+                    break;
                 case "1.2.840.113549.1.12.10.1.1":
-                    return PkcsObjectIdentifier.KeyBag;
+                    ret = PkcsObjectIdentifier.KeyBag;
+                    break;
                 case "1.2.840.113549.1.12.10.1.2":
-                    return PkcsObjectIdentifier.Pkcs8ShroudedKeyBag;
+                    ret = PkcsObjectIdentifier.Pkcs8ShroudedKeyBag;
+                    break;
                 case "1.2.840.113549.1.12.10.1.3":
-                    return PkcsObjectIdentifier.CertBag;
+                    ret = PkcsObjectIdentifier.CertBag;
+                    break;
                 case "1.2.840.113549.1.12.10.1.4":
-                    return PkcsObjectIdentifier.CrlBag;
+                    ret = PkcsObjectIdentifier.CrlBag;
+                    break;
                 case "1.2.840.113549.1.12.10.1.5":
-                    return PkcsObjectIdentifier.SecretBag;
+                    ret = PkcsObjectIdentifier.SecretBag;
+                    break;
                 case "1.2.840.113549.1.12.10.1.6":
-                    return PkcsObjectIdentifier.SafeContentsBag;
+                    ret = PkcsObjectIdentifier.SafeContentsBag;
+                    break;
                 case "1.2.840.113549.1.12.1.1":
-                    return PkcsObjectIdentifier.PbeWithShaAnd128BitRC4;
+                    ret = PkcsObjectIdentifier.PbeWithShaAnd128BitRC4;
+                    break;
                 case "1.2.840.113549.1.12.1.2":
-                    return PkcsObjectIdentifier.PbeWithShaAnd40BitRC4;
+                    ret = PkcsObjectIdentifier.PbeWithShaAnd40BitRC4;
+                    break;
                 case "1.2.840.113549.1.12.1.3":
-                    return PkcsObjectIdentifier.PbeWithShaAnd3KeyTripleDesCbc;
+                    ret = PkcsObjectIdentifier.PbeWithShaAnd3KeyTripleDesCbc;
+                    break;
                 case "1.2.840.113549.1.12.1.4":
-                    return PkcsObjectIdentifier.PbeWithShaAnd2KeyTripleDesCbc;
+                    ret = PkcsObjectIdentifier.PbeWithShaAnd2KeyTripleDesCbc;
+                    break;
                 case "1.2.840.113549.1.12.1.5":
-                    return PkcsObjectIdentifier.PbeWithShaAnd128BitRC2Cbc;
+                    ret = PkcsObjectIdentifier.PbeWithShaAnd128BitRC2Cbc;
+                    break;
                 case "1.2.840.113549.1.12.1.6":
-                    return PkcsObjectIdentifier.PbewithShaAnd40BitRC2Cbc;
+                    ret = PkcsObjectIdentifier.PbewithShaAnd40BitRC2Cbc;
+                    break;
                 default:
-                    return PkcsObjectIdentifier.None;
+                    ret = PkcsObjectIdentifier.None;
+                    break;
             }
+            return ret;
         }
     }
 }

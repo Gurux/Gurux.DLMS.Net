@@ -108,7 +108,7 @@ namespace Gurux.DLMS.Ecdsa
         /// Create the private key from DER.
         /// </summary>
         /// <param name="key">DER Base64 coded string.</param>
-        /// <returns></returns>
+        /// <returns>Private key.</returns>
         public static GXPrivateKey FromDer(string der)
         {
             der = der.Replace("\r\n", "");
@@ -225,6 +225,9 @@ namespace Gurux.DLMS.Ecdsa
             return GXCommon.ToBase64(GXAsn1Converter.ToByteArray(d));
         }
 
+        /// <summary>
+        /// Get private key as PEM format.
+        /// </summary>
         public string ToPem()
         {
             return "-----BEGIN EC PRIVATE KEY-----\n" + ToDer() + "\n-----END EC PRIVATE KEY-----";
@@ -241,7 +244,7 @@ namespace Gurux.DLMS.Ecdsa
                 //Public key = private key multiple by curve.G.
                 GXBigInteger pk = new GXBigInteger(RawValue);
                 GXCurve curve = new GXCurve(Scheme);
-                GXEccPoint ret = new GXEccPoint(null, null, null);
+                GXEccPoint ret = new GXEccPoint(null, null);
                 GXShamirs.PointMulti(curve, ret, curve.G, pk);
                 int size = Scheme == Ecc.P256 ? 32 : 48;
                 GXByteBuffer key = new GXByteBuffer(65);

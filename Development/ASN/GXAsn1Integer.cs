@@ -38,7 +38,7 @@ using System.Numerics;
 namespace Gurux.DLMS.ASN
 {
     /// <summary>
-    /// ASN1 bit string.
+    /// ASN1 integer value.
     /// </summary>
     public class GXAsn1Integer
     {

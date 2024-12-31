@@ -55,8 +55,8 @@ namespace Gurux.DLMS.Ecdsa
             GXBigInteger u1, 
             GXBigInteger u2)
         {
-            GXEccPoint sum = new GXEccPoint(null, null, null);
-            GXEccPoint op2 = new GXEccPoint(new GXBigInteger(pub.X), new GXBigInteger(pub.Y), null);
+            GXEccPoint sum = new GXEccPoint(null, null);
+            GXEccPoint op2 = new GXEccPoint(new GXBigInteger(pub.X), new GXBigInteger(pub.Y));
             PointAdd(curve, sum, curve.G, op2);
             UInt16 bits1 = u1.UsedBits;
             UInt16 bits2 = u2.UsedBits;
@@ -77,7 +77,7 @@ namespace Gurux.DLMS.Ecdsa
                 ret.x = new GXBigInteger(pub.X);
                 ret.y = new GXBigInteger(pub.Y);
             }
-            GXEccPoint tmp = new GXEccPoint(null, null, null);
+            GXEccPoint tmp = new GXEccPoint(null, null);
             --pos;
             while (true)
             {
@@ -115,8 +115,6 @@ namespace Gurux.DLMS.Ecdsa
         /// <param name="p2">Point 2.</param>
         static void PointAdd(GXCurve curve, GXEccPoint ret, GXEccPoint p1, GXEccPoint p2)
         {
-            GXBigInteger negy = new GXBigInteger(curve.P);
-            negy.Sub(new GXBigInteger(p2.y));
             // Calculate lambda.
             GXBigInteger ydiff = new GXBigInteger(p2.y);
             ydiff.Sub(p1.y);
@@ -187,9 +185,9 @@ namespace Gurux.DLMS.Ecdsa
             GXBigInteger scalar)
         {
             GXEccPoint R0 = new GXEccPoint(new GXBigInteger(point.x), 
-                new GXBigInteger(point.y), null);
-            GXEccPoint R1 = new GXEccPoint(null, null, null);
-            GXEccPoint tmp = new GXEccPoint(null, null, null);
+                new GXBigInteger(point.y));
+            GXEccPoint R1 = new GXEccPoint(null, null);
+            GXEccPoint tmp = new GXEccPoint(null, null);
             PointDouble(curve, R1, point);
             UInt16 dbits = scalar.UsedBits;
             dbits -= 2;

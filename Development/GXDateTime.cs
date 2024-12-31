@@ -131,11 +131,7 @@ namespace Gurux.DLMS
 
         private static string GetDateTimeFormat(CultureInfo culture)
         {
-            string str;
-#if !NET5_0_OR_GREATER || WINDOWS_UWP
-            str = "M/d/yyyy HH:mm:ss";
-#else
-            str = culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.LongTimePattern;
+            string str = culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.LongTimePattern;
 #if !WINDOWS_UWP
             foreach (string it in culture.DateTimeFormat.GetAllDateTimePatterns())
             {
@@ -144,7 +140,6 @@ namespace Gurux.DLMS
                     return it;
                 }
             }
-#endif //!WINDOWS_UWP
 #endif //!WINDOWS_UWP
             return str;
         }

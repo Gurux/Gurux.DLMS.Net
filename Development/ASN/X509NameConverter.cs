@@ -41,204 +41,211 @@ namespace Gurux.DLMS.ASN
     {
         public static string GetString(X509Name value)
         {
+            string ret;
             switch (value)
             {
                 case X509Name.C:
-                    return "2.5.4.6";
+                    ret = "2.5.4.6";
+                    break;
                 case X509Name.O:
-                    return "2.5.4.10";
+                    ret = "2.5.4.10";
+                    break;
                 case X509Name.OU:
-                    return "2.5.4.11";
+                    ret = "2.5.4.11";
+                    break;
                 case X509Name.T:
-                    return "2.5.4.12";
+                    ret = "2.5.4.12";
+                    break;
                 case X509Name.CN:
-                    return "2.5.4.3";
+                    ret = "2.5.4.3";
+                    break;
                 case X509Name.STREET:
-                    return "2.5.4.9";
+                    ret = "2.5.4.9";
+                    break;
                 case X509Name.SerialNumber:
-                    return "2.5.4.5";
+                    ret = "2.5.4.5";
+                    break;
                 case X509Name.L:
-                    return "2.5.4.7";
+                    ret = "2.5.4.7";
+                    break;
                 case X509Name.ST:
-                    return "2.5.4.8";
+                    ret = "2.5.4.8";
+                    break;
                 case X509Name.SurName:
-                    return "2.5.4.4";
+                    ret = "2.5.4.4";
+                    break;
                 case X509Name.GivenName:
-                    return "2.5.4.42";
+                    ret = "2.5.4.42";
+                    break;
                 case X509Name.Initials:
-                    return "2.5.4.43";
+                    ret = "2.5.4.43";
+                    break;
                 case X509Name.Generation:
-                    return "2.5.4.44";
+                    ret = "2.5.4.44";
+                    break;
                 case X509Name.UniqueIdentifier:
-                    return "2.5.4.45";
+                    ret = "2.5.4.45";
+                    break;
                 case X509Name.BusinessCategory:
-                    return "2.5.4.15";
+                    ret = "2.5.4.15";
+                    break;
                 case X509Name.PostalCode:
-                    return "2.5.4.17";
+                    ret = "2.5.4.17";
+                    break;
                 case X509Name.DnQualifier:
-                    return "2.5.4.46";
+                    ret = "2.5.4.46";
+                    break;
                 case X509Name.Pseudonym:
-                    return "2.5.4.65";
+                    ret = "2.5.4.65";
+                    break;
                 case X509Name.DateOfBirth:
-                    return "1.3.6.1.5.5.7.9.1";
+                    ret = "1.3.6.1.5.5.7.9.1";
+                    break;
                 case X509Name.PlaceOfBirth:
-                    return "1.3.6.1.5.5.7.9.2";
+                    ret = "1.3.6.1.5.5.7.9.2";
+                    break;
                 case X509Name.Gender:
-                    return "1.3.6.1.5.5.7.9.3";
+                    ret = "1.3.6.1.5.5.7.9.3";
+                    break;
                 case X509Name.CountryOfCitizenship:
-                    return "1.3.6.1.5.5.7.9.4";
+                    ret = "1.3.6.1.5.5.7.9.4";
+                    break;
                 case X509Name.CountryOfResidence:
-                    return "1.3.6.1.5.5.7.9.5";
+                    ret = "1.3.6.1.5.5.7.9.5";
+                    break;
                 case X509Name.NameAtBirth:
-                    return "1.3.36.8.3.14";
+                    ret = "1.3.36.8.3.14";
+                    break;
                 case X509Name.PostalAddress:
-                    return "2.5.4.16";
+                    ret = "2.5.4.16";
+                    break;
                 case X509Name.DmdName:
-                    return "2.5.4.54";
+                    ret = "2.5.4.54";
+                    break;
                 case X509Name.TelephoneNumber:
-                    return "2.5.4.20";
+                    ret = "2.5.4.20";
+                    break;
                 case X509Name.Name:
-                    return "2.5.4.41";
+                    ret = "2.5.4.41";
+                    break;
                 case X509Name.E:
-                    return "1.2.840.113549.1.9.1";
+                    ret = "1.2.840.113549.1.9.1";
+                    break;
                 case X509Name.DC:
-                    return "0.9.2342.19200300.100.1.25";
+                    ret = "0.9.2342.19200300.100.1.25";
+                    break;
                 case X509Name.UID:
-                    return "0.9.2342.19200300.100.1.1";
+                    ret = "0.9.2342.19200300.100.1.1";
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException("Invalid X509Name. " + value);
             }
+            return ret;
         }
 
         public static X509Name FromString(string value)
         {
-            if (value == "2.5.4.6")
+            X509Name ret;
+            switch (value)
             {
-                return X509Name.C;
+                case "2.5.4.6":
+                    ret = X509Name.C;
+                    break;
+                case "2.5.4.10":
+                    ret = X509Name.O;
+                    break;
+                case "2.5.4.11":
+                    ret = X509Name.OU;
+                    break;
+                case "2.5.4.12":
+                    ret = X509Name.T;
+                    break;
+                case "2.5.4.3":
+                    ret = X509Name.CN;
+                    break;
+                case "2.5.4.9":
+                    ret = X509Name.STREET;
+                    break;
+                case "2.5.4.5":
+                    ret = X509Name.SerialNumber;
+                    break;
+                case "2.5.4.7":
+                    ret = X509Name.L;
+                    break;
+                case "2.5.4.8":
+                    ret = X509Name.ST;
+                    break;
+                case "2.5.4.4":
+                    ret = X509Name.SurName;
+                    break;
+                case "2.5.4.42":
+                    ret = X509Name.GivenName;
+                    break;
+                case "2.5.4.43":
+                    ret = X509Name.Initials;
+                    break;
+                case "2.5.4.44":
+                    ret = X509Name.Generation;
+                    break;
+                case "2.5.4.45":
+                    ret = X509Name.UniqueIdentifier;
+                    break;
+                case "2.5.4.15":
+                    ret = X509Name.BusinessCategory;
+                    break;
+                case "2.5.4.17":
+                    ret = X509Name.PostalCode;
+                    break;
+                case "2.5.4.46":
+                    ret = X509Name.DnQualifier;
+                    break;
+                case "2.5.4.65":
+                    ret = X509Name.Pseudonym;
+                    break;
+                case "1.3.6.1.5.5.7.9.1":
+                    ret = X509Name.DateOfBirth;
+                    break;
+                case "1.3.6.1.5.5.7.9.2":
+                    ret = X509Name.PlaceOfBirth;
+                    break;
+                case "1.3.6.1.5.5.7.9.3":
+                    ret = X509Name.Gender;
+                    break;
+                case "1.3.6.1.5.5.7.9.4":
+                    ret = X509Name.CountryOfCitizenship;
+                    break;
+                case "1.3.6.1.5.5.7.9.5":
+                    ret = X509Name.CountryOfResidence;
+                    break;
+                case "1.3.36.8.3.14":
+                    ret = X509Name.NameAtBirth;
+                    break;
+                case "2.5.4.16":
+                    ret = X509Name.PostalAddress;
+                    break;
+                case "2.5.4.54":
+                    ret = X509Name.DmdName;
+                    break;
+                case "2.5.4.20":
+                    ret = X509Name.TelephoneNumber;
+                    break;
+                case "2.5.4.41":
+                    ret = X509Name.Name;
+                    break;
+                case "1.2.840.113549.1.9.1":
+                    ret = X509Name.E;
+                    break;
+                case "0.9.2342.19200300.100.1.25":
+                    ret = X509Name.DC;
+                    break;
+                case "0.9.2342.19200300.100.1.1":
+                    ret = X509Name.UID;
+                    break;
+                default:
+                    ret = X509Name.None;
+                    break;
             }
-            if (value == "2.5.4.10")
-            {
-                return X509Name.O;
-            }
-            if (value == "2.5.4.11")
-            {
-                return X509Name.OU;
-            }
-            if (value == "2.5.4.12")
-            {
-                return X509Name.T;
-            }
-            if (value == "2.5.4.3")
-            {
-                return X509Name.CN;
-            }
-            if (value == "2.5.4.9")
-            {
-                return X509Name.STREET;
-            }
-            if (value == "2.5.4.5")
-            {
-                return X509Name.SerialNumber;
-            }
-            if (value == "2.5.4.7")
-            {
-                return X509Name.L;
-            }
-            if (value == "2.5.4.8")
-            {
-                return X509Name.ST;
-            }
-            if (value == "2.5.4.4")
-            {
-                return X509Name.SurName;
-            }
-            if (value == "2.5.4.42")
-            {
-                return X509Name.GivenName;
-            }
-            if (value == "2.5.4.43")
-            {
-                return X509Name.Initials;
-            }
-            if (value == "2.5.4.44")
-            {
-                return X509Name.Generation;
-            }
-            if (value == "2.5.4.45")
-            {
-                return X509Name.UniqueIdentifier;
-            }
-            if (value == "2.5.4.15")
-            {
-                return X509Name.BusinessCategory;
-            }
-            if (value == "2.5.4.17")
-            {
-                return X509Name.PostalCode;
-            }
-            if (value == "2.5.4.46")
-            {
-                return X509Name.DnQualifier;
-            }
-            if (value == "2.5.4.65")
-            {
-                return X509Name.Pseudonym;
-            }
-            if (value == "1.3.6.1.5.5.7.9.1")
-            {
-                return X509Name.DateOfBirth;
-            }
-            if (value == "1.3.6.1.5.5.7.9.2")
-            {
-                return X509Name.PlaceOfBirth;
-            }
-            if (value == "1.3.6.1.5.5.7.9.3")
-            {
-                return X509Name.Gender;
-            }
-            if (value == "1.3.6.1.5.5.7.9.4")
-            {
-                return X509Name.CountryOfCitizenship;
-            }
-
-            if (value == "1.3.6.1.5.5.7.9.5")
-            {
-                return X509Name.CountryOfResidence;
-            }
-
-            if (value == "1.3.36.8.3.14")
-            {
-                return X509Name.NameAtBirth;
-            }
-            if (value == "2.5.4.16")
-            {
-                return X509Name.PostalAddress;
-            }
-            if (value == "2.5.4.54")
-            {
-                return X509Name.DmdName;
-            }
-            if (value == "2.5.4.20")
-            {
-                return X509Name.TelephoneNumber;
-            }
-            if (value == "2.5.4.41")
-            {
-                return X509Name.Name;
-            }
-            if (value == "1.2.840.113549.1.9.1")
-            {
-                return X509Name.E;
-            }
-            if (value == "0.9.2342.19200300.100.1.25")
-            {
-                return X509Name.DC;
-            }
-            if (value == "0.9.2342.19200300.100.1.1")
-            {
-                return X509Name.UID;
-            }
-            return X509Name.None;
+            return ret;
         }
     }
 }

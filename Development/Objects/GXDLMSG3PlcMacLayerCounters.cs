@@ -47,34 +47,6 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSG3PlcMacLayerCounters : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GXDLMSG3PlcMacLayerCounters()
-        : this("0.0.29.0.0.255", 0)
-        {
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSG3PlcMacLayerCounters(string ln)
-        : this(ln, 0)
-        {
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="ln">Logical Name of the object.</param>
-        /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSG3PlcMacLayerCounters(string ln, ushort sn)
-        : base(ObjectType.G3PlcMacLayerCounters, ln, sn)
-        {
-            Version = 1;
-        }
-
-        /// <summary>
         /// Statistic counter of successfully transmitted data packets.
         /// </summary>
         /// <remarks>
@@ -192,6 +164,36 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSG3PlcMacLayerCounters()
+        : this("0.0.29.0.0.255", 0)
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        public GXDLMSG3PlcMacLayerCounters(string ln)
+        : this(ln, 0)
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        /// <param name="sn">Short Name of the object.</param>
+        public GXDLMSG3PlcMacLayerCounters(string ln, ushort sn)
+        : base(ObjectType.G3PlcMacLayerCounters, ln, sn)
+        {
+            Version = 1;
+        }
+
+
+
         /// <inheritdoc>
         public override object[] GetValues()
         {
@@ -301,140 +303,109 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            DataType ret;
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    ret = DataType.OctetString;
+                    break;
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                    ret = DataType.UInt32;
+                    break;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            if (index == 2)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 3)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 4)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 5)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 6)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 7)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 8)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 9)
-            {
-                return DataType.UInt32;
-            }
-            if (index == 10)
-            {
-                return DataType.UInt32;
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+            return ret;
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = TxDataPacketCount;
+                    break;
+                case 3:
+                    ret = RxDataPacketCount;
+                    break;
+                case 4:
+                    ret = TxCmdPacketCount;
+                    break;
+                case 5:
+                    ret = RxCmdPacketCount;
+                    break;
+                case 6:
+                    ret = CSMAFailCount;
+                    break;
+                case 7:
+                    ret = CSMANoAckCount;
+                    break;
+                case 8:
+                    ret = BadCrcCount;
+                    break;
+                case 9:
+                    ret = TxDataBroadcastCount;
+                    break;
+                case 10:
+                    ret = RxDataBroadcastCount;
+                    break;
+                default:
+                    ret = null;
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
-            if (e.Index == 2)
-            {
-                return TxDataPacketCount;
-            }
-            if (e.Index == 3)
-            {
-                return RxDataPacketCount;
-            }
-            if (e.Index == 4)
-            {
-                return TxCmdPacketCount;
-            }
-            if (e.Index == 5)
-            {
-                return RxCmdPacketCount;
-            }
-            if (e.Index == 6)
-            {
-                return CSMAFailCount;
-            }
-            if (e.Index == 7)
-            {
-                return CSMANoAckCount;
-            }
-            if (e.Index == 8)
-            {
-                return BadCrcCount;
-            }
-            if (e.Index == 9)
-            {
-                return TxDataBroadcastCount;
-            }
-            if (e.Index == 10)
-            {
-                return RxDataBroadcastCount;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                TxDataPacketCount = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 3)
-            {
-                RxDataPacketCount = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 4)
-            {
-                TxCmdPacketCount = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 5)
-            {
-                RxCmdPacketCount = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 6)
-            {
-                CSMAFailCount = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 7)
-            {
-                CSMANoAckCount = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 8)
-            {
-                BadCrcCount = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 9)
-            {
-                TxDataBroadcastCount = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 10)
-            {
-                RxDataBroadcastCount = Convert.ToUInt32(e.Value);
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    TxDataPacketCount = Convert.ToUInt32(e.Value);
+                    break;
+                case 3:
+                    RxDataPacketCount = Convert.ToUInt32(e.Value);
+                    break;
+                case 4:
+                    TxCmdPacketCount = Convert.ToUInt32(e.Value);
+                    break;
+                case 5:
+                    RxCmdPacketCount = Convert.ToUInt32(e.Value);
+                    break;
+                case 6:
+                    CSMAFailCount = Convert.ToUInt32(e.Value);
+                    break;
+                case 7:
+                    CSMANoAckCount = Convert.ToUInt32(e.Value);
+                    break;
+                case 8:
+                    BadCrcCount = Convert.ToUInt32(e.Value);
+                    break;
+                case 9:
+                    TxDataBroadcastCount = Convert.ToUInt32(e.Value);
+                    break;
+                case 10:
+                    RxDataBroadcastCount = Convert.ToUInt32(e.Value);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 

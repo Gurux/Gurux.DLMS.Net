@@ -47,36 +47,6 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSIec8802LlcType2Setup : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GXDLMSIec8802LlcType2Setup()
-        : this("0.0.27.1.0.255", 0)
-        {
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSIec8802LlcType2Setup(string ln)
-        : this(ln, 0)
-        {
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="ln">Logical Name of the object.</param>
-        /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSIec8802LlcType2Setup(string ln, ushort sn)
-        : base(ObjectType.Iec8802LlcType2Setup, ln, sn)
-        {
-            TransmitWindowSizeK = 1;
-            TransmitWindowSizeRW = 1;
-            MaximumOctetsPdu = 128;
-        }
-
-        /// <summary>
         /// Transmit Window Size K
         /// </summary>
         [XmlIgnore()]
@@ -156,6 +126,38 @@ namespace Gurux.DLMS.Objects
             get;
             set;
         }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSIec8802LlcType2Setup()
+        : this("0.0.27.1.0.255", 0)
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        public GXDLMSIec8802LlcType2Setup(string ln)
+        : this(ln, 0)
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        /// <param name="sn">Short Name of the object.</param>
+        public GXDLMSIec8802LlcType2Setup(string ln, ushort sn)
+        : base(ObjectType.Iec8802LlcType2Setup, ln, sn)
+        {
+            TransmitWindowSizeK = 1;
+            TransmitWindowSizeRW = 1;
+            MaximumOctetsPdu = 128;
+        }
+
+      
 
         /// <inheritdoc>
         public override object[] GetValues()

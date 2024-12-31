@@ -58,44 +58,6 @@ namespace Gurux.DLMS.ASN
         private byte[] _rawData;
 
         /// <summary>
-        /// Returns default file path.
-        /// </summary>
-        /// <param name="scheme">Used scheme.</param>
-        /// <param name="certificateType">Certificate type.</param>
-        /// <param name="systemTitle"> System title.</param>
-        /// <returns>File path.</returns>
-        public static string GetFilePath(Ecc scheme,
-            CertificateType certificateType,
-            byte[] systemTitle)
-        {
-            string path;
-            switch (certificateType)
-            {
-                case CertificateType.DigitalSignature:
-                    path = "D";
-                    break;
-                case CertificateType.KeyAgreement:
-                    path = "A";
-                    break;
-                case CertificateType.TLS:
-                    path = "T";
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("Unknown certificate type.");
-            }
-            path += GXDLMSTranslator.ToHex(systemTitle, false) + ".pem";
-            if (scheme == Ecc.P256)
-            {
-                path = Path.Combine("Keys", path);
-            }
-            else
-            {
-                path = Path.Combine("Keys384", path);
-            }
-            return path;
-        }
-
-        /// <summary>
         /// Description is extra metadata that is saved to PEM file. 
         /// </summary>
         public string Description
@@ -140,41 +102,6 @@ namespace Gurux.DLMS.ASN
             private set;
         }
 
-        /// <summary>
-        /// Returns default file path.
-        /// </summary>
-        /// <param name="scheme">Used scheme.</param>
-        /// <param name="certificateType">Certificate type.</param>
-        /// <returns></returns>
-        public string GetFilePath(Ecc scheme, CertificateType certificateType)
-        {
-            string path;
-            switch (certificateType)
-            {
-                case CertificateType.DigitalSignature:
-                    path = "D";
-                    break;
-                case CertificateType.KeyAgreement:
-                    path = "A";
-                    break;
-                case CertificateType.TLS:
-                    path = "T";
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("Unknown certificate type.");
-            }
-            path += PrivateKey.ToString().Substring(1) + ".pem";
-            if (scheme == Ecc.P256)
-            {
-                path = Path.Combine("Certificates", path);
-            }
-            else
-            {
-                path = Path.Combine("Certificates384", path);
-            }
-            return path;
-        }
-
         public byte[] Encoded
         {
             get
@@ -209,6 +136,79 @@ namespace Gurux.DLMS.ASN
                 _rawData = GXAsn1Converter.ToByteArray(d);
                 return _rawData;
             }
+        }
+
+        /// <summary>
+        /// Returns default file path.
+        /// </summary>
+        /// <param name="scheme">Used scheme.</param>
+        /// <param name="certificateType">Certificate type.</param>
+        /// <param name="systemTitle"> System title.</param>
+        /// <returns>File path.</returns>
+        public static string GetFilePath(Ecc scheme,
+            CertificateType certificateType,
+            byte[] systemTitle)
+        {
+            string path;
+            switch (certificateType)
+            {
+                case CertificateType.DigitalSignature:
+                    path = "D";
+                    break;
+                case CertificateType.KeyAgreement:
+                    path = "A";
+                    break;
+                case CertificateType.TLS:
+                    path = "T";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Unknown certificate type.");
+            }
+            path += GXDLMSTranslator.ToHex(systemTitle, false) + ".pem";
+            if (scheme == Ecc.P256)
+            {
+                path = Path.Combine("Keys", path);
+            }
+            else
+            {
+                path = Path.Combine("Keys384", path);
+            }
+            return path;
+        }
+
+        /// <summary>
+        /// Returns default file path.
+        /// </summary>
+        /// <param name="scheme">Used scheme.</param>
+        /// <param name="certificateType">Certificate type.</param>
+        /// <returns></returns>
+        public string GetFilePath(Ecc scheme, CertificateType certificateType)
+        {
+            string path;
+            switch (certificateType)
+            {
+                case CertificateType.DigitalSignature:
+                    path = "D";
+                    break;
+                case CertificateType.KeyAgreement:
+                    path = "A";
+                    break;
+                case CertificateType.TLS:
+                    path = "T";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Unknown certificate type.");
+            }
+            path += PrivateKey.ToString().Substring(1) + ".pem";
+            if (scheme == Ecc.P256)
+            {
+                path = Path.Combine("Certificates", path);
+            }
+            else
+            {
+                path = Path.Combine("Certificates384", path);
+            }
+            return path;
         }
 
         /// <summary>
@@ -406,7 +406,7 @@ namespace Gurux.DLMS.ASN
         /// <summary>Load private key from the PEM file.
         /// </summary>
         /// <param name="path">File path. </param>
-        /// <returns> Created GXPkcs8 object. </returns>
+        /// <returns> Created GXPkcs8 object.</returns>
         public static GXPkcs8 Load(string path)
         {
             return FromPem(File.ReadAllText(path));
@@ -415,9 +415,7 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Save private key to PEM file.
         /// </summary>
-        /// <param name="path">
-        /// File path.
-        /// </param>
+        /// <param name="path">File path.</param>
         public virtual void Save(string path)
         {
             File.WriteAllText(path, ToPem());

@@ -47,8 +47,8 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Find public key certificate by public key.
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
+        /// <param name="key">X509 certificate to search for.</param>
+        /// <returns>Certificate found or null, if the certificate is not found.</returns>
         public GXx509Certificate Find(GXx509Certificate key)
         {
             foreach (GXx509Certificate it in this)
@@ -64,8 +64,8 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Find public key certificate by serial number.
         /// </summary>
-        /// <param name="serialNumber">Serial number.</param>
-        /// <param name="issuer">Issuer.</param>
+        /// <param name="serialNumber">X509 certificate serial number to search for.</param>
+        /// <param name="issuer">X509 certificate issuer.</param>
         /// <returns>Found certificate or null if certificate is not found.</returns>
         public GXx509Certificate FindBySerial(BigInteger serialNumber, string issuer)
         {
@@ -100,21 +100,21 @@ namespace Gurux.DLMS.ASN
         }
 
         /// <summary>
-        /// Find certificate using key usage.
+        /// Find certificates by key usage.
         /// </summary>
         /// <param name="usage">Key usage.</param>
-        /// <returns>x509Certificate</returns>
+        /// <returns>>Found certificates.</returns>
         public List<GXx509Certificate> GetCertificates(KeyUsage usage)
         {
-            List<GXx509Certificate> list = new List<GXx509Certificate>();
+            List<GXx509Certificate> certificates = new List<GXx509Certificate>();
             foreach (GXx509Certificate it in this)
             {
                 if (it.KeyUsage == usage)
                 {
-                    list.Add(it);
+                    certificates.Add(it);
                 }
             }
-            return list;
+            return certificates;
         }
 
         /// <summary>
@@ -138,10 +138,10 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Import certificates from the given folder.
         /// </summary>
-        /// <param name="path"></param>
-        public void Import(string path)
+        /// <param name="folder">The folder from which the certificates are imported.</param>
+        public void Import(string folder)
         {
-            foreach (string it in Directory.GetFiles(path))
+            foreach (string it in Directory.GetFiles(folder))
             {
                 string ext = Path.GetExtension(it);
                 if (string.Compare(ext, ".pem", true) == 0 || string.Compare(ext, ".cer", true) == 0)

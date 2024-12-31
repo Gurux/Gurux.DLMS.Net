@@ -920,257 +920,219 @@ namespace Gurux.DLMS.Objects
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
-            }
-            if (e.Index == 2)
-            {
-                return ShortAddress;
-            }
-            if (e.Index == 3)
-            {
-                return RcCoord;
-            }
-            if (e.Index == 4)
-            {
-                return PANId;
-            }
-            if (e.Index == 5)
-            {
-                GXByteBuffer bb = new GXByteBuffer();
-                bb.SetUInt8((byte)DataType.Array);
-                if (KeyTable == null)
-                {
-                    bb.SetUInt8(0);
-                }
-                else
-                {
-                    GXCommon.SetObjectCount(KeyTable.Count, bb);
-                    foreach (GXKeyValuePair<byte, byte[]> it in KeyTable)
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = ShortAddress;
+                    break;
+                case 3:
+                    ret = RcCoord;
+                    break;
+                case 4:
+                    ret = PANId;
+                    break;
+                case 5:
                     {
-                        bb.SetUInt8((byte)DataType.Structure);
-                        bb.SetUInt8(2);
-                        GXCommon.SetData(settings, bb, DataType.UInt8, it.Key);
-                        GXCommon.SetData(settings, bb, DataType.OctetString, it.Value);
+                        GXByteBuffer bb = new GXByteBuffer();
+                        bb.SetUInt8((byte)DataType.Array);
+                        if (KeyTable == null)
+                        {
+                            bb.SetUInt8(0);
+                        }
+                        else
+                        {
+                            GXCommon.SetObjectCount(KeyTable.Count, bb);
+                            foreach (GXKeyValuePair<byte, byte[]> it in KeyTable)
+                            {
+                                bb.SetUInt8((byte)DataType.Structure);
+                                bb.SetUInt8(2);
+                                GXCommon.SetData(settings, bb, DataType.UInt8, it.Key);
+                                GXCommon.SetData(settings, bb, DataType.OctetString, it.Value);
+                            }
+                        }
+                        ret = bb.Array();
+                        break;
                     }
-                }
-                return bb.Array();
+                case 6:
+                    ret = FrameCounter;
+                    break;
+                case 7:
+                    ret = ToneMask;
+                    break;
+                case 8:
+                    ret = TmrTtl;
+                    break;
+                case 9:
+                    ret = MaxFrameRetries;
+                    break;
+                case 10:
+                    ret = NeighbourTableEntryTtl;
+                    break;
+                case 11:
+                    ret = GetNeighbourTables(NeighbourTable);
+                    break;
+                case 12:
+                    ret = HighPriorityWindowSize;
+                    break;
+                case 13:
+                    ret = CscmFairnessLimit;
+                    break;
+                case 14:
+                    ret = BeaconRandomizationWindowLength;
+                    break;
+                case 15:
+                    ret = A;
+                    break;
+                case 16:
+                    ret = K;
+                    break;
+                case 17:
+                    ret = MinCwAttempts;
+                    break;
+                case 18:
+                    ret = CenelecLegacyMode;
+                    break;
+                case 19:
+                    ret = FccLegacyMode;
+                    break;
+                case 20:
+                    ret = MaxBe;
+                    break;
+                case 21:
+                    ret = MaxCsmaBackoffs;
+                    break;
+                case 22:
+                    ret = MinBe;
+                    break;
+                case 23:
+                    ret = MacBroadcastMaxCwEnabled;
+                    break;
+                case 24:
+                    ret = MacTransmitAtten;
+                    break;
+                case 25:
+                    ret = GetPosTables(MacPosTable);
+                    break;
+                case 26:
+                    ret = MacDuplicateDetectionTtl;
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
+                    break;
             }
-            if (e.Index == 6)
-            {
-                return FrameCounter;
-            }
-            if (e.Index == 7)
-            {
-                return ToneMask;
-            }
-            if (e.Index == 8)
-            {
-                return TmrTtl;
-            }
-            if (e.Index == 9)
-            {
-                return MaxFrameRetries;
-            }
-            if (e.Index == 10)
-            {
-                return NeighbourTableEntryTtl;
-            }
-            if (e.Index == 11)
-            {
-                return GetNeighbourTables(NeighbourTable);
-            }
-            if (e.Index == 12)
-            {
-                return HighPriorityWindowSize;
-            }
-            if (e.Index == 13)
-            {
-                return CscmFairnessLimit;
-            }
-            if (e.Index == 14)
-            {
-                return BeaconRandomizationWindowLength;
-            }
-            if (e.Index == 15)
-            {
-                return A;
-            }
-            if (e.Index == 16)
-            {
-                return K;
-            }
-            if (e.Index == 17)
-            {
-                return MinCwAttempts;
-            }
-            if (e.Index == 18)
-            {
-                return CenelecLegacyMode;
-            }
-            if (e.Index == 19)
-            {
-                return FccLegacyMode;
-            }
-            if (e.Index == 20)
-            {
-                return MaxBe;
-            }
-            if (e.Index == 21)
-            {
-                return MaxCsmaBackoffs;
-            }
-            if (e.Index == 22)
-            {
-                return MinBe;
-            }
-            if (e.Index == 23)
-            {
-                return MacBroadcastMaxCwEnabled;
-            }
-            if (e.Index == 24)
-            {
-                return MacTransmitAtten;
-            }
-            if (e.Index == 25)
-            {
-                return GetPosTables(MacPosTable);
-            }
-            if (e.Index == 26)
-            {
-                return MacDuplicateDetectionTtl;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                ShortAddress = Convert.ToUInt16(e.Value);
-            }
-            else if (e.Index == 3)
-            {
-                RcCoord = Convert.ToUInt16(e.Value);
-            }
-            else if (e.Index == 4)
-            {
-                PANId = Convert.ToUInt16(e.Value);
-            }
-            else if (e.Index == 5)
-            {
-                KeyTable.Clear();
-                if (e.Value != null)
-                {
-                    foreach (object tmp in (IEnumerable<object>)e.Value)
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    ShortAddress = Convert.ToUInt16(e.Value);
+                    break;
+                case 3:
+                    RcCoord = Convert.ToUInt16(e.Value);
+                    break;
+                case 4:
+                    PANId = Convert.ToUInt16(e.Value);
+                    break;
+                case 5:
                     {
-                        List<object> arr;
-                        if (tmp is List<object>)
+                        KeyTable.Clear();
+                        if (e.Value != null)
                         {
-                            arr = (List<object>)tmp;
+                            foreach (object tmp in (IEnumerable<object>)e.Value)
+                            {
+                                List<object> arr;
+                                if (tmp is List<object>)
+                                {
+                                    arr = (List<object>)tmp;
+                                }
+                                else
+                                {
+                                    arr = new List<object>((object[])tmp);
+                                }
+                                KeyTable.Add(new GXKeyValuePair<byte, byte[]>(Convert.ToByte(arr[0]), (byte[])arr[1]));
+                            }
                         }
-                        else
-                        {
-                            arr = new List<object>((object[])tmp);
-                        }
-                        KeyTable.Add(new GXKeyValuePair<byte, byte[]>(Convert.ToByte(arr[0]), (byte[])arr[1]));
-                    }
-                }
-            }
-            else if (e.Index == 6)
-            {
-                FrameCounter = Convert.ToUInt32(e.Value);
-            }
-            else if (e.Index == 7)
-            {
-                ToneMask = Convert.ToString(e.Value);
-            }
-            else if (e.Index == 8)
-            {
-                TmrTtl = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 9)
-            {
-                MaxFrameRetries = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 10)
-            {
-                NeighbourTableEntryTtl = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 11)
-            {
-                NeighbourTable = ParseNeighbourTableEntry(e.Value);
-            }
-            else if (e.Index == 12)
-            {
-                HighPriorityWindowSize = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 13)
-            {
-                CscmFairnessLimit = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 14)
-            {
-                BeaconRandomizationWindowLength = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 15)
-            {
-                A = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 16)
-            {
-                K = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 17)
-            {
-                MinCwAttempts = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 18)
-            {
-                CenelecLegacyMode = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 19)
-            {
-                FccLegacyMode = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 20)
-            {
-                MaxBe = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 21)
-            {
-                MaxCsmaBackoffs = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 22)
-            {
-                MinBe = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 23)
-            {
-                MacBroadcastMaxCwEnabled = Convert.ToBoolean(e.Value);
-            }
-            else if (e.Index == 24)
-            {
-                MacTransmitAtten = Convert.ToByte(e.Value);
-            }
-            else if (e.Index == 25)
-            {
-                MacPosTable = ParsePosTableEntry(e.Value);
-            }
-            else if (e.Index == 26)
-            {
-                MacDuplicateDetectionTtl = Convert.ToByte(e.Value);
-            }
 
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                        break;
+                    }
+
+                case 6:
+                    FrameCounter = Convert.ToUInt32(e.Value);
+                    break;
+                case 7:
+                    ToneMask = Convert.ToString(e.Value);
+                    break;
+                case 8:
+                    TmrTtl = Convert.ToByte(e.Value);
+                    break;
+                case 9:
+                    MaxFrameRetries = Convert.ToByte(e.Value);
+                    break;
+                case 10:
+                    NeighbourTableEntryTtl = Convert.ToByte(e.Value);
+                    break;
+                case 11:
+                    NeighbourTable = ParseNeighbourTableEntry(e.Value);
+                    break;
+                case 12:
+                    HighPriorityWindowSize = Convert.ToByte(e.Value);
+                    break;
+                case 13:
+                    CscmFairnessLimit = Convert.ToByte(e.Value);
+                    break;
+                case 14:
+                    BeaconRandomizationWindowLength = Convert.ToByte(e.Value);
+                    break;
+                case 15:
+                    A = Convert.ToByte(e.Value);
+                    break;
+                case 16:
+                    K = Convert.ToByte(e.Value);
+                    break;
+                case 17:
+                    MinCwAttempts = Convert.ToByte(e.Value);
+                    break;
+                case 18:
+                    CenelecLegacyMode = Convert.ToByte(e.Value);
+                    break;
+                case 19:
+                    FccLegacyMode = Convert.ToByte(e.Value);
+                    break;
+                case 20:
+                    MaxBe = Convert.ToByte(e.Value);
+                    break;
+                case 21:
+                    MaxCsmaBackoffs = Convert.ToByte(e.Value);
+                    break;
+                case 22:
+                    MinBe = Convert.ToByte(e.Value);
+                    break;
+                case 23:
+                    MacBroadcastMaxCwEnabled = Convert.ToBoolean(e.Value);
+                    break;
+                case 24:
+                    MacTransmitAtten = Convert.ToByte(e.Value);
+                    break;
+                case 25:
+                    MacPosTable = ParsePosTableEntry(e.Value);
+                    break;
+                case 26:
+                    MacDuplicateDetectionTtl = Convert.ToByte(e.Value);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 

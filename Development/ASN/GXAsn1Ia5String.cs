@@ -37,8 +37,14 @@ namespace Gurux.DLMS.ASN
 
     public class GXAsn1Ia5String
     {
-
-        private string ia5String;
+        /// <summary>
+        /// IA5 string.
+        /// </summary>
+        public string Value
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Constructor.
@@ -54,24 +60,12 @@ namespace Gurux.DLMS.ASN
         /// <param name="str">IA5 string. </param>
         public GXAsn1Ia5String(string str)
         {
-            ia5String = str;
-        }
-
-        public string Value
-        {
-            get
-            {
-                return ia5String;
-            }
-            set
-            {
-                ia5String = value;
-            }
+            Value = str;
         }
 
         public override sealed string ToString()
         {
-            return ia5String;
+            return Value;
         }
     }
 

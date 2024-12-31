@@ -2880,23 +2880,7 @@ namespace Gurux.DLMS
         {
             return ReadRowsByRange(pg, new GXDateTime(start), new GXDateTime(end), columns);
         }
-
-        private enum ClockType
-        {
-            /// <summary>
-            /// Normal clock object.
-            /// </summary>
-            Clock,
-            /// <summary>
-            /// Unix time.
-            /// </summary>
-            Unix,
-            /// <summary>
-            /// Time in ms.
-            /// </summary>
-            HighResolution
-        };
-
+     
         /// <summary>
         /// Read rows by range.
         /// </summary>

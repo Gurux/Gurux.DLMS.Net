@@ -32,7 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using Gurux.DLMS.Ecdsa.Enums;
-using Gurux.DLMS.Internal;
 using System;
 using System.Collections.Generic;
 #if !WINDOWS_UWP
@@ -98,7 +97,7 @@ namespace Gurux.DLMS.Ecdsa
         /// <returns>Signature</returns>
         public byte[] Sign(byte[] data)
         {
-#if NET462 || NET46
+#if !NET5_0_OR_GREATER || WINDOWS_UWP
             if (PrivateKey == null)
             {
                 throw new ArgumentException("Invalid private key.");
@@ -111,18 +110,23 @@ namespace Gurux.DLMS.Ecdsa
                     msg = new GXBigInteger(sha.ComputeHash(data));
                 }
             }
-            else
+            else if (PrivateKey.Scheme == Ecc.P384)
             {
                 using (SHA384 sha = SHA384.Create())
                 {
                     msg = new GXBigInteger(sha.ComputeHash(data));
                 }
             }
+            else
+            {
+                throw new ArgumentOutOfRangeException("Invalid private key scheme.");
+            }
+
             // R = k * G, r = R[x]
-            GXBigInteger k = GetRandomNumber(curve.N);
+            GXBigInteger k = GetRandomNumber(PrivateKey.Scheme);
 
             GXBigInteger pk = new GXBigInteger(PrivateKey.RawValue);
-            GXEccPoint R = new GXEccPoint(new GXBigInteger(), new GXBigInteger(), new GXBigInteger());
+            GXEccPoint R = new GXEccPoint(new GXBigInteger(), new GXBigInteger());
             GXShamirs.PointMulti(curve, R, curve.G, k);
             GXBigInteger r = new GXBigInteger(R.x);
             r.Mod(curve.N);
@@ -173,9 +177,9 @@ namespace Gurux.DLMS.Ecdsa
             int size = SchemeSize(PrivateKey.Scheme);
             GXBigInteger x = new GXBigInteger(bb.SubArray(1, size));
             GXBigInteger y = new GXBigInteger(bb.SubArray(1 + size, size));
-            GXEccPoint p = new GXEccPoint(x, y, null);
+            GXEccPoint p = new GXEccPoint(x, y);
             GXCurve curve = new GXCurve(PrivateKey.Scheme);
-            GXEccPoint ret = new GXEccPoint(null, null, null);
+            GXEccPoint ret = new GXEccPoint(null, null);
             GXShamirs.PointMulti(curve, ret, p, pk);
             return ret.x.ToArray();
         }
@@ -183,11 +187,11 @@ namespace Gurux.DLMS.Ecdsa
         /// <summary>
         /// Generate public and private key pair.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Generated public and private keys.</returns>
         public static KeyValuePair<GXPublicKey, GXPrivateKey> GenerateKeyPair(Ecc scheme)
         {
-#if NET462 || NET46 || WINDOWS_UWP
-            byte[] raw = GetRandomNumber(new GXCurve(scheme).N).ToArray(false);
+#if !NET5_0_OR_GREATER || WINDOWS_UWP
+            byte[] raw = GetRandomNumber(scheme).ToArray(false);
             GXPrivateKey pk = GXPrivateKey.FromRawBytes(raw);
             GXPublicKey pub = pk.GetPublicKey();
             return new KeyValuePair<GXPublicKey, GXPrivateKey>(pub, pk);
@@ -214,10 +218,10 @@ namespace Gurux.DLMS.Ecdsa
         /// </summary>
         /// <param name="signature">Generated signature.</param>
         /// <param name="data">Data to valuate.</param>
-        /// <returns></returns>
+        /// <returns>True if the signature is valid; otherwise, false.</returns>
         public bool Verify(byte[] signature, byte[] data)
         {
-#if NET462 || NET46
+#if !NET5_0_OR_GREATER || WINDOWS_UWP
             GXBigInteger msg;
             if (PublicKey == null)
             {
@@ -253,7 +257,7 @@ namespace Gurux.DLMS.Ecdsa
             GXBigInteger u2 = new GXBigInteger(sigR);
             u2.Multiply(w);
             u2.Mod(curve.N);
-            GXEccPoint tmp = new GXEccPoint(null, null, null);
+            GXEccPoint tmp = new GXEccPoint(null, null);
             GXShamirs.Trick(curve, PublicKey, tmp, u1, u2);
             tmp.x.Mod(curve.N);
             return tmp.x.Compare(sigR) == 0;
@@ -280,21 +284,20 @@ namespace Gurux.DLMS.Ecdsa
         }
 #endif //!WINDOWS_UWP
 
-      
+
         /// <summary>
         /// Generate random number.
         /// </summary>
         /// <param name="N">N</param>
         /// <returns>Random number.</returns>
         /// <summary>
-        private static GXBigInteger GetRandomNumber(GXBigInteger N)
+        private static GXBigInteger GetRandomNumber(Ecc scheme)
         {
-            byte[] bytes = new byte[4 * N.Count];
+            int size = SchemeSize(scheme);
+            byte[] bytes = new byte[size];
             Random random = new Random();
             random.NextBytes(bytes);
-            byte[] tmp = new byte[4 * N.Count];
-            Array.Copy(bytes, tmp, bytes.Length);
-            return new GXBigInteger(tmp);
+            return new GXBigInteger(bytes);
         }
 
         /// <summary>

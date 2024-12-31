@@ -190,14 +190,14 @@ namespace Gurux.DLMS.Ecdsa
         /// Create the public key from PEM file.
         /// </summary>
         /// <param name="path">Path to the PEM file.</param>
-        /// <returns>Private key.</returns>
+        /// <returns>Public key.</returns>
         public static GXPublicKey Load(string path)
         {
             return FromPem(File.ReadAllText(path));
         }
 
         /// <summary>
-        /// Save Pkcs #10 Certificate Signing Request to PEM file.
+        /// Save public key to PEM file.
         /// </summary>
         /// <param name="path">File path. </param>
         public virtual void Save(string path)
@@ -208,7 +208,6 @@ namespace Gurux.DLMS.Ecdsa
         /// <summary>
         /// Returns the public key as a hex string.
         /// </summary>
-        /// <returns></returns>
         public string ToHex()
         {
             return GXDLMSTranslator.ToHex(RawValue);
@@ -250,6 +249,9 @@ namespace Gurux.DLMS.Ecdsa
             return GXAsn1Converter.ToByteArray(d);
         }
 
+        /// <summary>
+        /// Get public key as PEM format.
+        /// </summary>
         public string ToPem()
         {
             return "-----BEGIN PUBLIC KEY-----\n" + ToDer() + "\n-----END PUBLIC KEY-----\n";

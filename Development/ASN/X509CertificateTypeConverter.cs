@@ -32,9 +32,10 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.ASN.Enums;
 using System;
 
-namespace Gurux.DLMS.ASN.Enums
+namespace Gurux.DLMS.ASN
 {
     public static class X509CertificateTypeConverter
     {

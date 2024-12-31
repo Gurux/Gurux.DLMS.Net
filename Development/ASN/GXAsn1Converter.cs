@@ -960,8 +960,8 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Convert ASN1 certificate type to DLMS key usage.
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">Certificate type.</param>
+        /// <returns>Key usage.</returns>
         public static KeyUsage CertificateTypeToKeyUsage(CertificateType type)
         {
             KeyUsage k;
@@ -990,8 +990,8 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Get certificate type from byte array.
         /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        /// <param name="data">Byte array.</param>
+        /// <returns>Certificate type.</returns>
         public static PkcsType GetCertificateType(byte[] data)
         {
             return GetCertificateType(data, null);
@@ -1000,8 +1000,9 @@ namespace Gurux.DLMS.ASN
         /// <summary>
         /// Get certificate type from byte array.
         /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        /// <param name="data">Byte array.</param>
+        /// <param name="seq">Byte array.</param>
+        /// <returns>Certificate type.</returns>
         internal static PkcsType GetCertificateType(byte[] data, GXAsn1Sequence seq)
         {
             if (seq == null)

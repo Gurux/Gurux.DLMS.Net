@@ -107,33 +107,6 @@ namespace Gurux.DLMS.Objects
     public class GXDLMSSFSKPhyMacSetUp : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GXDLMSSFSKPhyMacSetUp()
-        : this("0.0.26.0.0.255")
-        {
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="ln">Logical Name of the object.</param>
-        public GXDLMSSFSKPhyMacSetUp(string ln)
-        : base(ObjectType.SFSKPhyMacSetUp, ln, 0)
-        {
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="ln">Logical Name of the object.</param>
-        /// <param name="sn">Short Name of the object.</param>
-        public GXDLMSSFSKPhyMacSetUp(string ln, ushort sn)
-        : base(ObjectType.SFSKPhyMacSetUp, ln, sn)
-        {
-        }
-
-        /// <summary>
         /// Initiator electrical phase.
         /// </summary>
         [XmlIgnore()]
@@ -280,6 +253,33 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public GXDLMSSFSKPhyMacSetUp()
+        : this("0.0.26.0.0.255")
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        public GXDLMSSFSKPhyMacSetUp(string ln)
+        : base(ObjectType.SFSKPhyMacSetUp, ln, 0)
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="ln">Logical Name of the object.</param>
+        /// <param name="sn">Short Name of the object.</param>
+        public GXDLMSSFSKPhyMacSetUp(string ln, ushort sn)
+        : base(ObjectType.SFSKPhyMacSetUp, ln, sn)
+        {
+        }
+
         /// <inheritdoc>
         public override object[] GetValues()
         {
@@ -314,7 +314,7 @@ namespace Gurux.DLMS.Objects
             //DeltaElectricalPhase
             attributes.Add(3);
 
-            //MaxReceivingGain,
+            //MaxReceivingGain
             if (all || CanRead(4))
             {
                 attributes.Add(4);

@@ -31,9 +31,6 @@
 // This code is licensed under the GNU General Public License v2.
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
-using System;
-using System.Numerics;
-
 namespace Gurux.DLMS.Ecdsa
 {
     /// <summary>
@@ -43,18 +40,16 @@ namespace Gurux.DLMS.Ecdsa
     {
         public GXBigInteger x;
         public GXBigInteger y;
-        public GXBigInteger z;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="xValue"></param>
         /// <param name="yValue"></param>
-        public GXEccPoint(GXBigInteger xValue, GXBigInteger yValue, GXBigInteger zValue)
+        public GXEccPoint(GXBigInteger xValue, GXBigInteger yValue)
         {
             x = xValue;
             y = yValue;
-            z = zValue;
         }
 
         /// <summary>
@@ -62,11 +57,10 @@ namespace Gurux.DLMS.Ecdsa
         /// </summary>
         /// <param name="xValue"></param>
         /// <param name="yValue"></param>
-        public GXEccPoint(int xValue, int yValue, int zValue)
+        public GXEccPoint(int xValue, int yValue)
         {
             x = new GXBigInteger(xValue);
             y = new GXBigInteger(yValue);
-            z = new GXBigInteger(zValue);
         }
     };
 }

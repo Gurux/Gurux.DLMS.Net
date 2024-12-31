@@ -33,10 +33,7 @@
 //---------------------------------------------------------------------------
 
 using Gurux.DLMS.Enums;
-using Gurux.DLMS.Internal;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Gurux.DLMS
 {

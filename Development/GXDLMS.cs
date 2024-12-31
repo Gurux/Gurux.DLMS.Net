@@ -2502,7 +2502,7 @@ namespace Gurux.DLMS
             bb.SetUInt8((byte)(11 + frameSize));
             //Length.
             bb.SetUInt8(0x50);
-            //Add  Credit fields.
+            //Add Credit fields.
             bb.SetUInt8(creditFields);
             //Add source and target MAC addresses.
             bb.SetUInt8((byte)(settings.Plc.MacSourceAddress >> 4));

@@ -33,8 +33,6 @@
 //---------------------------------------------------------------------------
 using Gurux.DLMS.Ecdsa.Enums;
 using System;
-using System.Globalization;
-using System.Numerics;
 
 namespace Gurux.DLMS.Ecdsa
 {
@@ -103,7 +101,7 @@ namespace Gurux.DLMS.Ecdsa
                 G = new GXEccPoint(new GXBigInteger(new UInt32[] { 0x6B17D1F2, 0xE12C4247, 0xF8BCE6E5, 0x63A440F2,
                     0x77037D81, 0x2DEB33A0, 0xF4A13945, 0xD898C296 }),
                     new GXBigInteger(new UInt32[] { 0x4FE342E2, 0xFE1A7F9B, 0x8EE7EB4A, 0x7C0F9E16,
-                        0x2BCE3357, 0x6B315ECE, 0xCBB64068, 0x37BF51F5 }), new GXBigInteger(1));
+                        0x2BCE3357, 0x6B315ECE, 0xCBB64068, 0x37BF51F5 }));
                 N = new GXBigInteger(new UInt32[] { 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF,
                     0xFFFFFFFF, 0xBCE6FAAD, 0xA7179E84, 0xF3B9CAC2, 0xFC632551 });
                 P = new GXBigInteger(new UInt32[] { 0xFFFFFFFF, 0x00000001, 0x00000000,
@@ -122,7 +120,7 @@ namespace Gurux.DLMS.Ecdsa
                     0x5502F25D, 0xBF55296C, 0x3A545E38, 0x72760AB7 }),
                     new GXBigInteger(new UInt32[] { 0x3617DE4A, 0x96262C6F, 0x5D9E98BF, 0x9292DC29,
                         0xF8F41DBD, 0x289A147C, 0xE9DA3113, 0xB5F0B8C0,
-                        0x0A60B1CE, 0x1D7E819D, 0x7A431D7C, 0x90EA0E5F }), new GXBigInteger(1));
+                        0x0A60B1CE, 0x1D7E819D, 0x7A431D7C, 0x90EA0E5F }));
                 N = new GXBigInteger(new UInt32[] { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
                     0xFFFFFFFF, 0xFFFFFFFF, 0xC7634D81, 0xF4372DDF,
                     0x581A0DB2, 0x48B0A77A, 0xECEC196A, 0xCCC52973 });

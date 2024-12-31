@@ -812,8 +812,12 @@ namespace Gurux.DLMS.Ecdsa
             while (denom.Compare(this) == -1)
             {
                 int bits = UsedBits - denom.UsedBits;
-                current.Lshift(bits);
-                denom.Lshift(bits);
+                if (bits == 0)
+                {
+         //           break;
+                }
+                current.Lshift(1);
+                denom.Lshift(1);
             }
             //If overflow.
             if (denom.Compare(this) == 1)
