@@ -118,7 +118,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Adjusts the value of the current credit amount attribute.
+        /// Adds a new function to the attribute function list. 
         /// </summary>
         /// <param name="client">DLMS client.</param>
         /// <param name="functions">Added functions.</param>
@@ -126,25 +126,41 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         public byte[][] AddFunction(
             GXDLMSClient client,
-            List<KeyValuePair<string, List<GXDLMSObject>>> functions)
+            string name,
+            List<GXDLMSObject> functions)
         {
-            return client.Method(this, 2,
-                FunctionListToByteArray(functions), DataType.Array);
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.Structure);
+            bb.SetUInt8(2);
+            bb.SetUInt8(DataType.OctetString);
+            GXCommon.SetObjectCount(name.Length, bb);
+            bb.Set(ASCIIEncoding.ASCII.GetBytes(name));
+            bb.SetUInt8(DataType.Array);
+            GXCommon.SetObjectCount(functions.Count, bb);
+            foreach (var it in functions)
+            {
+                bb.SetUInt8(DataType.Structure);
+                bb.SetUInt8(2);
+                GXCommon.SetData(null, bb, DataType.UInt16, (int)it.ObjectType);
+                GXCommon.SetData(null, bb, DataType.OctetString, GXCommon.LogicalNameToBytes(it.LogicalName));
+            }
+            return client.Method(this, 2, bb.Array(), DataType.Array);
         }
 
         /// <summary>
-        /// Adjusts the value of the current credit amount attribute.
+        /// Removes a function from the attribute function list.
         /// </summary>
         /// <param name="client">DLMS client.</param>
-        /// <param name="functions">Added functions.</param>
+        /// <param name="functions">Removed function name.</param>
         /// <returns>Action bytes.</returns>
         /// <summary>
-        public byte[][] RemoveFunction(
-            GXDLMSClient client,
-            List<KeyValuePair<string, List<GXDLMSObject>>> functions)
+        public byte[][] RemoveFunction(GXDLMSClient client, string name)
         {
-            return client.Method(this, 3,
-                FunctionListToByteArray(functions), DataType.Array);
+            GXByteBuffer bb = new GXByteBuffer();
+            bb.SetUInt8(DataType.OctetString);
+            GXCommon.SetObjectCount(name.Length, bb);
+            bb.Set(ASCIIEncoding.ASCII.GetBytes(name));
+            return client.Method(this, 3, bb.Array(), DataType.Array);
         }
 
         /// <summary>
@@ -266,16 +282,26 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                var functions = FunctionListFromByteArray((List<object>)e.Parameters);
-                FunctionList.AddRange(functions);
+                GXStructure it = (GXStructure)e.Parameters;
+                string fn = ASCIIEncoding.ASCII.GetString((byte[])it[0]);
+                List<GXDLMSObject> objects = new List<GXDLMSObject>();
+                foreach (GXStructure it2 in (GXArray)it[1])
+                {
+                    ObjectType ot = (ObjectType)Convert.ToInt32(it2[0]);
+                    byte[] ln = (byte[])it2[1];
+                    var obj = GXDLMSClient.CreateObject(ot);
+                    obj.LogicalName = GXCommon.ToLogicalName(ln);
+                    objects.Add(obj);
+                }
+                FunctionList.RemoveAll(w => w.Key == fn);
+                FunctionList.Add(new KeyValuePair<string, List<GXDLMSObject>>(fn, objects));
+                ActivationStatus.Add(new GXKeyValuePair<string, bool>(fn, true));
             }
             else if (e.Index == 3)
             {
-                var functions = FunctionListFromByteArray((List<object>)e.Parameters);
-                foreach (var f in functions)
-                {
-                    FunctionList.RemoveAll(w => f.Key == w.Key);
-                }
+                string fn = ASCIIEncoding.ASCII.GetString((byte[])e.Parameters);
+                FunctionList.RemoveAll(w => w.Key == fn);
+                ActivationStatus.RemoveAll(w => w.Key == fn);
             }
             else
             {
