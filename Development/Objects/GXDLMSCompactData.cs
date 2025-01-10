@@ -230,18 +230,12 @@ namespace Gurux.DLMS.Objects
 
         public static List<object> GetData(byte[] columns, byte[] value)
         {
-            return GetData(columns, value, false);
-        }
-
-        public static List<object> GetData(byte[] columns, byte[] value, bool AppendAA)
-        {
             if (columns == null || columns.Length == 0 ||
                 value == null || value.Length == 0)
             {
                 return new GXArray();
             }
             GXDataInfo info = new GXDataInfo();
-            info.AppendAA = AppendAA;
             GXByteBuffer bb = new GXByteBuffer();
             bb.Set(columns);
             GXCommon.SetObjectCount(value.Length, bb);

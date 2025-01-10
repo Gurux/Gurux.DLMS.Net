@@ -1164,11 +1164,11 @@ namespace Gurux.DLMS.Internal
             return value;
         }
 
-        private static void GetCompactArrayItem(GXDLMSSettings settings, 
-            GXByteBuffer buff, 
-            List<object> dt, 
-            List<Object> list, 
-            int len, 
+        private static void GetCompactArrayItem(GXDLMSSettings settings,
+            GXByteBuffer buff,
+            List<object> dt,
+            List<Object> list,
+            int len,
             bool array)
         {
             List<object> tmp;
@@ -1188,16 +1188,22 @@ namespace Gurux.DLMS.Internal
                 }
                 else
                 {
-                    GetCompactArrayItem(settings, buff, (List<object>)it, tmp, 1, it is GXArray);
+                    int count = 1;
+                    if (it is GXArray)
+                    {
+                        array = true;
+                        count = GXCommon.GetObjectCount(buff);
+                    }
+                    GetCompactArrayItem(settings, buff, (List<object>)it, tmp, 1, array);
                 }
             }
             list.Add(tmp);
         }
 
-        private static void GetCompactArrayItem(GXDLMSSettings settings, 
-            GXByteBuffer buff, 
-            DataType dt, 
-            List<object> list, 
+        private static void GetCompactArrayItem(GXDLMSSettings settings,
+            GXByteBuffer buff,
+            DataType dt,
+            List<object> list,
             int len)
         {
             GXDataInfo tmp = new GXDataInfo();
@@ -1338,8 +1344,8 @@ namespace Gurux.DLMS.Internal
         /// <param name="info"></param>
         /// <returns>Parsed value</returns>
         internal static object GetCompactArray(
-            GXDLMSSettings settings, 
-            GXByteBuffer buff, GXDataInfo info, 
+            GXDLMSSettings settings,
+            GXByteBuffer buff, GXDataInfo info,
             bool onlyDataTypes)
         {
             // If there is not enough data available.
@@ -1410,11 +1416,7 @@ namespace Gurux.DLMS.Internal
                         }
                         else if (cols[pos] is GXArray)
                         {
-                            //For some reason there is count here in Italy standard. Remove it.
-                            if (info.AppendAA)
-                            {
-                                GXCommon.GetObjectCount(buff);
-                            }
+                            GXCommon.GetObjectCount(buff);
                             GetCompactArrayItem(null, buff, ((List<object>)cols[pos]), row, 1, true);
                         }
                         else

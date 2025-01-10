@@ -77,15 +77,6 @@ namespace Gurux.DLMS
             internal set;
         }
 
-        ///<summary>
-        ///AA Added to compact data in Italy standard.
-        ///</summary>
-        public bool AppendAA
-        {
-            get;
-            internal set;
-        }
-
         public GXDLMSTranslatorStructure xml
         {
             get;
