@@ -615,8 +615,8 @@ namespace Gurux.DLMS.Objects
             ThresholdActive = reader.ReadElementContentAsObject("ThresholdActive", null, this, 3);
             ThresholdNormal = reader.ReadElementContentAsObject("ThresholdNormal", null, this, 4);
             ThresholdEmergency = reader.ReadElementContentAsObject("ThresholdEmergency", null, this, 5);
-            MinOverThresholdDuration = (UInt16)reader.ReadElementContentAsInt("MinOverThresholdDuration");
-            MinUnderThresholdDuration = (UInt16)reader.ReadElementContentAsInt("MinUnderThresholdDuration");
+            MinOverThresholdDuration = (UInt32)reader.ReadElementContentAsLong("MinOverThresholdDuration");
+            MinUnderThresholdDuration = (UInt32)reader.ReadElementContentAsLong("MinUnderThresholdDuration");
             if (reader.IsStartElement("EmergencyProfile", true))
             {
                 EmergencyProfile.ID = (UInt16)reader.ReadElementContentAsInt("ID");
