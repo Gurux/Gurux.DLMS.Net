@@ -41,39 +41,6 @@ using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
-    public class GXDLMSMacPosTable
-    {
-        /// <summary>
-        /// The 16-bit address the device is using to communicate through the PAN.
-        /// </summary>
-        /// <remarks>
-        /// PIB attribute 0x53.
-        /// </remarks>
-        public UInt16 ShortAddress
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Link Quality Indicator.
-        /// </summary>
-        public byte LQI
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Valid time,
-        /// </summary>
-        public UInt16 ValidTime
-        {
-            get;
-            set;
-        }
-    }
-
     /// <summary>
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSG3PlcMacSetup
@@ -493,7 +460,7 @@ namespace Gurux.DLMS.Objects
             else
             {
                 GXCommon.SetObjectCount(tables.Length, bb);
-                foreach (var it in tables)
+                foreach (GXDLMSMacPosTable it in tables)
                 {
                     bb.SetUInt8((byte)DataType.Structure);
                     bb.SetUInt8(3);
@@ -513,7 +480,7 @@ namespace Gurux.DLMS.Objects
             {
                 List<GXDLMSNeighbourTable> list = new List<GXDLMSNeighbourTable>();
                 UInt16 index = (UInt16)e.Value;
-                foreach (var it in NeighbourTable)
+                foreach (GXDLMSNeighbourTable it in NeighbourTable)
                 {
                     if (it.ShortAddress == index)
                     {
@@ -526,7 +493,7 @@ namespace Gurux.DLMS.Objects
             {
                 List<GXDLMSMacPosTable> list = new List<GXDLMSMacPosTable>();
                 UInt16 index = (UInt16)e.Value;
-                foreach (var it in MacPosTable)
+                foreach (GXDLMSMacPosTable it in MacPosTable)
                 {
                     if (it.ShortAddress == index)
                     {
@@ -1271,7 +1238,7 @@ namespace Gurux.DLMS.Objects
             writer.WriteStartElement("MacPosTable", 25);
             if (MacPosTable != null)
             {
-                foreach (var it in MacPosTable)
+                foreach (GXDLMSMacPosTable it in MacPosTable)
                 {
                     writer.WriteStartElement("Item", 25);
                     writer.WriteElementString("ShortAddress", it.ShortAddress, 25);

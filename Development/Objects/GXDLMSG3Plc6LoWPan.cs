@@ -75,10 +75,10 @@ namespace Gurux.DLMS.Objects
         {
             Version = 3;
             BlacklistTable = new List<GXKeyValuePair<UInt16, UInt16>>();
-            ContextInformationTable = new List<Objects.GXDLMSContextInformationTable>();
+            ContextInformationTable = new List<GXDLMSContextInformationTable>();
             RoutingConfiguration = new List<GXDLMSRoutingConfiguration>();
             RoutingTable = new List<GXDLMSRoutingTable>();
-            BroadcastLogTable = new List<Objects.GXDLMSBroadcastLogTable>();
+            BroadcastLogTable = new List<GXDLMSBroadcastLogTable>();
             MaxHops = 8;
             WeakLqiValue = 52;
             SecurityLevel = 5;

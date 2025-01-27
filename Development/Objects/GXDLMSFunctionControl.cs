@@ -34,7 +34,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
@@ -118,9 +117,10 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Adds a new function to the attribute function list. 
+        /// Adds a new functions to the attribute function list. 
         /// </summary>
         /// <param name="client">DLMS client.</param>
+        /// <param name="name">Attribute name.</param>
         /// <param name="functions">Added functions.</param>
         /// <returns>Action bytes.</returns>
         /// <summary>
@@ -137,7 +137,7 @@ namespace Gurux.DLMS.Objects
             bb.Set(ASCIIEncoding.ASCII.GetBytes(name));
             bb.SetUInt8(DataType.Array);
             GXCommon.SetObjectCount(functions.Count, bb);
-            foreach (var it in functions)
+            foreach (GXDLMSObject it in functions)
             {
                 bb.SetUInt8(DataType.Structure);
                 bb.SetUInt8(2);
@@ -174,7 +174,7 @@ namespace Gurux.DLMS.Objects
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(DataType.Array);
             GXCommon.SetObjectCount(functions.Count, bb);
-            foreach (var it in functions)
+            foreach (GXKeyValuePair<string, bool> it in functions)
             {
                 bb.SetUInt8(DataType.Structure);
                 bb.SetUInt8(2);
@@ -216,7 +216,7 @@ namespace Gurux.DLMS.Objects
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8(DataType.Array);
             GXCommon.SetObjectCount(functions.Count, bb);
-            foreach (var it in functions)
+            foreach (KeyValuePair<string, List<GXDLMSObject>> it in functions)
             {
                 bb.SetUInt8(DataType.Structure);
                 bb.SetUInt8(2);
@@ -225,7 +225,7 @@ namespace Gurux.DLMS.Objects
                 bb.Set(ASCIIEncoding.ASCII.GetBytes(it.Key));
                 bb.SetUInt8(DataType.Array);
                 GXCommon.SetObjectCount(it.Value.Count, bb);
-                foreach (var obj in it.Value)
+                foreach (GXDLMSObject obj in it.Value)
                 {
                     bb.SetUInt8(DataType.Structure);
                     bb.SetUInt8(2);
@@ -257,7 +257,7 @@ namespace Gurux.DLMS.Objects
                 {
                     ObjectType ot = (ObjectType)Convert.ToInt32(it2[0]);
                     byte[] ln = (byte[])it2[1];
-                    var obj = GXDLMSClient.CreateObject(ot);
+                    GXDLMSObject obj = GXDLMSClient.CreateObject(ot);
                     obj.LogicalName = GXCommon.ToLogicalName(ln);
                     objects.Add(obj);
                 }
@@ -277,7 +277,16 @@ namespace Gurux.DLMS.Objects
                 var functions = FunctionStatusFromByteArray((List<object>)e.Parameters);
                 foreach (var f in functions)
                 {
-                    ActivationStatus.Where(w => w.Key == f.Key).ToList().ForEach(w => w.Value = f.Value);
+                    for (int pos = 0; pos != ActivationStatus.Count; ++pos)
+                    {
+                        GXKeyValuePair<string, bool> it = ActivationStatus[pos];
+                        if (f.Key == it.Key)
+                        {
+                            it.Value = f.Value;
+                            ActivationStatus.RemoveAt(pos);
+                            ActivationStatus.Insert(pos, it);
+                        }
+                    }
                 }
             }
             else if (e.Index == 2)
@@ -370,7 +379,6 @@ namespace Gurux.DLMS.Objects
                 case 1:
                     return DataType.OctetString;
                 case 2:
-                    return DataType.Array;
                 case 3:
                     return DataType.Array;
                 default:

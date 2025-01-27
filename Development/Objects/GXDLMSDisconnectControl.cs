@@ -72,6 +72,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSDisconnectControl(string ln, ushort sn)
         : base(ObjectType.DisconnectControl, ln, sn)
         {
+            Version = 1;
         }
 
         /// <summary>
@@ -186,7 +187,7 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMaxSupportedVersion()
         {
-            return 0;
+            return 1;
         }
 
         int IGXDLMSBase.GetAttributeCount()

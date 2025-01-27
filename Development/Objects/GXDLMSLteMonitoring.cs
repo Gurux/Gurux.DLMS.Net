@@ -155,7 +155,7 @@ namespace Gurux.DLMS.Objects
 
         int IGXDLMSBase.GetMaxSupportedVersion()
         {
-            return 0;
+            return 1;
         }
 
         int IGXDLMSBase.GetAttributeCount()
@@ -198,16 +198,30 @@ namespace Gurux.DLMS.Objects
                     break;
                 case 2:
                     buff.SetUInt8(DataType.Structure);
-                    GXCommon.SetObjectCount(9, buff);
                     GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3402);
                     GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3412);
-                    GXCommon.SetData(settings, buff, DataType.UInt32, NetworkParameters.T3412ext2);
-                    GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3324);
-                    GXCommon.SetData(settings, buff, DataType.UInt32, NetworkParameters.TeDRX);
-                    GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.TPTW);
-                    GXCommon.SetData(settings, buff, DataType.Int8, NetworkParameters.QRxlevMin);
-                    GXCommon.SetData(settings, buff, DataType.Int8, NetworkParameters.QRxlevMinCE);
-                    GXCommon.SetData(settings, buff, DataType.Int8, NetworkParameters.QRxLevMinCE1);
+                    if (Version == 0)
+                    {
+                        GXCommon.SetObjectCount(5, buff);
+                        GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3402);
+                        GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3412);
+                        GXCommon.SetData(settings, buff, DataType.UInt8, QualityOfService.SignalQuality);
+                        GXCommon.SetData(settings, buff, DataType.UInt8, QualityOfService.SignalLevel);
+                        GXCommon.SetData(settings, buff, DataType.Int8, NetworkParameters.QRxlevMinCE);
+                    }
+                    else
+                    {
+                        GXCommon.SetObjectCount(9, buff);
+                        GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3402);
+                        GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3412);
+                        GXCommon.SetData(settings, buff, DataType.UInt32, NetworkParameters.T3412ext2);
+                        GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3324);
+                        GXCommon.SetData(settings, buff, DataType.UInt32, NetworkParameters.TeDRX);
+                        GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.TPTW);
+                        GXCommon.SetData(settings, buff, DataType.Int8, NetworkParameters.QRxlevMin);
+                        GXCommon.SetData(settings, buff, DataType.Int8, NetworkParameters.QRxlevMinCE);
+                        GXCommon.SetData(settings, buff, DataType.Int8, NetworkParameters.QRxLevMinCE1);
+                    }
                     ret = buff.Array();
                     break;
                 case 3:
@@ -243,15 +257,26 @@ namespace Gurux.DLMS.Objects
                 case 2:
                     {
                         GXStructure s = e.Value as GXStructure;
-                        NetworkParameters.T3402 = (UInt16)s[0];
-                        NetworkParameters.T3412 = (UInt16)s[1];
-                        NetworkParameters.T3412ext2 = (UInt32)s[2];
-                        NetworkParameters.T3324 = (UInt16)s[3];
-                        NetworkParameters.TeDRX = (UInt32)s[4];
-                        NetworkParameters.TPTW = (UInt16)s[5];
-                        NetworkParameters.QRxlevMin = (sbyte)s[6];
-                        NetworkParameters.QRxlevMinCE = (sbyte)s[7];
-                        NetworkParameters.QRxLevMinCE1 = (sbyte)s[8];
+                        if (Version == 0)
+                        {
+                            NetworkParameters.T3402 = Convert.ToUInt16(s[0]);
+                            NetworkParameters.T3412 = Convert.ToUInt16(s[1]);
+                            QualityOfService.SignalQuality = Convert.ToSByte(s[2]);
+                            QualityOfService.SignalLevel = Convert.ToSByte(s[3]);
+                            QualityOfService.SignalToNoiseRatio = Convert.ToSByte(s[4]);
+                        }
+                        else
+                        {
+                            NetworkParameters.T3402 = Convert.ToUInt16(s[0]);
+                            NetworkParameters.T3412 = Convert.ToUInt16(s[1]);
+                            NetworkParameters.T3412ext2 = Convert.ToUInt32(s[2]);
+                            NetworkParameters.T3324 = Convert.ToUInt16(s[3]);
+                            NetworkParameters.TeDRX = Convert.ToUInt32(s[4]);
+                            NetworkParameters.TPTW = Convert.ToUInt16(s[5]);
+                            NetworkParameters.QRxlevMin = Convert.ToSByte(s[6]);
+                            NetworkParameters.QRxlevMinCE = Convert.ToSByte(s[7]);
+                            NetworkParameters.QRxLevMinCE1 = Convert.ToSByte(s[8]);
+                        }
                     }
                     break;
                 case 3:

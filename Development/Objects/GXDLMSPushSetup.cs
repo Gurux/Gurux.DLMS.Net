@@ -40,6 +40,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System.Globalization;
+using System.Runtime;
 
 namespace Gurux.DLMS.Objects
 {
@@ -74,6 +75,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSPushSetup(string ln, ushort sn)
         : base(ObjectType.PushSetup, ln, sn)
         {
+            Version = 2;
             CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
             PushObjectList = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
             RepetitionDelay2 = new GXRepetitionDelay();
@@ -234,7 +236,17 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc>
         public override object[] GetValues()
         {
-            if (Version < 2)
+            if (Version == 0)
+            {
+                return new object[] { LogicalName,
+                PushObjectList,
+                Service + " " + Destination + " " + Message,
+                CommunicationWindow,
+                RandomisationStartInterval,
+                NumberOfRetries,
+                RepetitionDelay};
+            }
+            if (Version == 1)
             {
                 return new object[] { LogicalName,
                 PushObjectList,
@@ -405,7 +417,7 @@ namespace Gurux.DLMS.Objects
                 {
                     attributes.Add(10);
                 }
-                if (Version < 1)
+                if (Version > 1)
                 {
                     //PushOperationMethod
                     if (all || CanRead(11))
@@ -579,6 +591,9 @@ namespace Gurux.DLMS.Objects
                     GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
                     GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
                     GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
+                    //restriction_element
+                    buff.SetUInt8(DataType.Structure);
+                    buff.SetUInt8(2);
                     GXCommon.SetData(settings, buff, DataType.Enum, it.Value.Restriction.Type);
                     switch (it.Value.Restriction.Type)
                     {
@@ -780,6 +795,101 @@ namespace Gurux.DLMS.Objects
             return ret;
         }
 
+        private void SetPushObject(GXDLMSSettings settings, ValueEventArgs e)
+        {
+            PushObjectList.Clear();
+            List<object> it;
+            if (e.Value != null)
+            {
+                foreach (object t in (IEnumerable<object>)e.Value)
+                {
+                    if (t is List<object>)
+                    {
+                        it = (List<object>)t;
+                    }
+                    else
+                    {
+                        it = new List<object>((object[])t);
+                    }
+                    ObjectType type = (ObjectType)Convert.ToUInt16(it[0]);
+                    string ln = GXCommon.ToLogicalName(it[1]);
+                    GXDLMSObject obj = settings.Objects.FindByLN(type, ln);
+                    if (obj == null)
+                    {
+                        obj = GXDLMSClient.CreateObject(type);
+                        obj.LogicalName = ln;
+                    }
+                    GXDLMSCaptureObject co = new GXDLMSCaptureObject(Convert.ToInt32(it[2]), Convert.ToInt32(it[3]));
+                    PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
+                    if (Version > 1)
+                    {
+                        GXStructure restriction = (GXStructure)it[4];
+                        co.Restriction.Type = (RestrictionType)Convert.ToInt32(restriction[0]);
+                        switch (co.Restriction.Type)
+                        {
+                            case RestrictionType.None:
+                                break;
+                            case RestrictionType.Date:
+                            case RestrictionType.Entry:
+                                co.Restriction.From = restriction[1];
+                                co.Restriction.To = restriction[2];
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException("Invalid restriction type.");
+                        }
+                        foreach (GXStructure c in (GXArray)it[5])
+                        {
+                            type = (ObjectType)Convert.ToUInt16(c[0]);
+                            ln = GXCommon.ToLogicalName(c[1]);
+                            obj = settings.Objects.FindByLN(type, ln);
+                            if (obj == null)
+                            {
+                                obj = GXDLMSClient.CreateObject(type);
+                                obj.LogicalName = ln;
+                            }
+                            co.Columns.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
+                        }
+                    }
+                }
+            }
+        }
+
+        private void GetPushProtectionParameters(ValueEventArgs e)
+        {
+            List<GXPushProtectionParameters> list = new List<GXPushProtectionParameters>();
+            if (e.Value != null)
+            {
+                foreach (GXStructure it in (GXArray)e.Value)
+                {
+                    GXPushProtectionParameters p = new GXPushProtectionParameters();
+                    p.ProtectionType = (ProtectionType)Convert.ToInt32(it[0]);
+                    GXStructure options = (GXStructure)it[1];
+                    p.TransactionId = (byte[])options[0];
+                    p.OriginatorSystemTitle = (byte[])options[1];
+                    p.RecipientSystemTitle = (byte[])options[2];
+                    p.OtherInformation = (byte[])options[3];
+                    GXStructure keyInfo = (GXStructure)options[4];
+                    p.KeyInfo.DataProtectionKeyType = (DataProtectionKeyType)Convert.ToInt32(keyInfo[0]);
+                    GXStructure data = (GXStructure)keyInfo[1];
+                    if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Identified)
+                    {
+                        p.KeyInfo.IdentifiedKey.KeyType = (DataProtectionIdentifiedKeyType)Convert.ToInt32(data[0]);
+                    }
+                    else if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Wrapped)
+                    {
+                        p.KeyInfo.WrappedKey.KeyType = (DataProtectionWrappedKeyType)Convert.ToInt32(data[0]);
+                        p.KeyInfo.WrappedKey.Key = (byte[])data[1];
+                    }
+                    else if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Agreed)
+                    {
+                        p.KeyInfo.AgreedKey.Parameters = (byte[])data[0];
+                        p.KeyInfo.AgreedKey.Data = (byte[])data[1];
+                    }
+                    list.Add(p);
+                }
+            }
+            PushProtectionParameters = list.ToArray();
+        }
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
@@ -788,61 +898,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (e.Index == 2)
             {
-                PushObjectList.Clear();
-                List<object> it;
-                if (e.Value != null)
-                {
-                    foreach (object t in (IEnumerable<object>)e.Value)
-                    {
-                        if (t is List<object>)
-                        {
-                            it = (List<object>)t;
-                        }
-                        else
-                        {
-                            it = new List<object>((object[])t);
-                        }
-                        ObjectType type = (ObjectType)Convert.ToUInt16(it[0]);
-                        string ln = GXCommon.ToLogicalName(it[1]);
-                        GXDLMSObject obj = settings.Objects.FindByLN(type, ln);
-                        if (obj == null)
-                        {
-                            obj = GXDLMSClient.CreateObject(type);
-                            obj.LogicalName = ln;
-                        }
-                        GXDLMSCaptureObject co = new GXDLMSCaptureObject(Convert.ToInt32(it[2]), Convert.ToInt32(it[3]));
-                        PushObjectList.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
-                        if (Version > 1)
-                        {
-                            GXStructure restriction = (GXStructure)it[4];
-                            co.Restriction.Type = (RestrictionType)Convert.ToInt32(restriction[0]);
-                            switch (co.Restriction.Type)
-                            {
-                                case RestrictionType.None:
-                                    break;
-                                case RestrictionType.Date:
-                                case RestrictionType.Entry:
-                                    co.Restriction.From = restriction[1];
-                                    co.Restriction.To = restriction[2];
-                                    break;
-                                default:
-                                    throw new ArgumentOutOfRangeException("Invalid restriction type.");
-                            }
-                            foreach (GXStructure c in (GXArray)it[5])
-                            {
-                                type = (ObjectType)Convert.ToUInt16(c[0]);
-                                ln = GXCommon.ToLogicalName(c[1]);
-                                obj = settings.Objects.FindByLN(type, ln);
-                                if (obj == null)
-                                {
-                                    obj = GXDLMSClient.CreateObject(type);
-                                    obj.LogicalName = ln;
-                                }
-                                co.Columns.Add(new GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>(obj, co));
-                            }
-                        }
-                    }
-                }
+                SetPushObject(settings, e);
             }
             else if (e.Index == 3)
             {
@@ -930,39 +986,7 @@ namespace Gurux.DLMS.Objects
             }
             else if (Version > 0 && e.Index == 10)
             {
-                List<GXPushProtectionParameters> list = new List<GXPushProtectionParameters>();
-                if (e.Value != null)
-                {
-                    foreach (GXStructure it in (GXArray)e.Value)
-                    {
-                        GXPushProtectionParameters p = new GXPushProtectionParameters();
-                        p.ProtectionType = (ProtectionType)Convert.ToInt32(it[0]);
-                        GXStructure options = (GXStructure)it[1];
-                        p.TransactionId = (byte[])options[0];
-                        p.OriginatorSystemTitle = (byte[])options[1];
-                        p.RecipientSystemTitle = (byte[])options[2];
-                        p.OtherInformation = (byte[])options[3];
-                        GXStructure keyInfo = (GXStructure)options[4];
-                        p.KeyInfo.DataProtectionKeyType = (DataProtectionKeyType)Convert.ToInt32(keyInfo[0]);
-                        GXStructure data = (GXStructure)keyInfo[1];
-                        if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Identified)
-                        {
-                            p.KeyInfo.IdentifiedKey.KeyType = (DataProtectionIdentifiedKeyType)Convert.ToInt32(data[0]);
-                        }
-                        else if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Wrapped)
-                        {
-                            p.KeyInfo.WrappedKey.KeyType = (DataProtectionWrappedKeyType)Convert.ToInt32(data[0]);
-                            p.KeyInfo.WrappedKey.Key = (byte[])data[1];
-                        }
-                        else if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Agreed)
-                        {
-                            p.KeyInfo.AgreedKey.Parameters = (byte[])data[0];
-                            p.KeyInfo.AgreedKey.Data = (byte[])data[1];
-                        }
-                        list.Add(p);
-                    }
-                }
-                PushProtectionParameters = list.ToArray();
+                GetPushProtectionParameters(e);
             }
             else if (Version > 1 && e.Index == 11)
             {
