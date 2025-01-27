@@ -1316,7 +1316,7 @@ namespace Gurux.DLMS.Reader
                 {
                     types.Add(c.Key.GetUIDataType(c.Value.AttributeIndex));
                 }
-                List<object> rows = GXDLMSCompactData.GetData(it.TemplateDescription, it.Buffer, standard == Standard.Italy);
+                List<object> rows = GXDLMSCompactData.GetData(it.TemplateDescription, it.Buffer);
                 //Convert cols to readable format.
                 foreach (GXStructure row in rows)
                 {
