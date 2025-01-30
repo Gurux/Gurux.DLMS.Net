@@ -37,6 +37,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Objects
@@ -609,7 +610,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
         /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
-            return new string[] { "Activate account" , "Close account", "Reset account"};
+            return new string[] { "Activate account", "Close account", "Reset account" };
         }
 
         int IGXDLMSBase.GetMaxSupportedVersion()
@@ -695,7 +696,7 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                 case 3:
                     return CurrentCreditInUse;
                 case 4:
-                    return new GXBitString((UInt32) CurrentCreditStatus, 8);
+                    return new GXBitString((UInt32)CurrentCreditStatus, 8);
                 case 5:
                     return AvailableCredit;
                 case 6:
@@ -760,8 +761,8 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                             bb.SetUInt8(DataType.OctetString);
                             bb.SetUInt8(6);
                             bb.Set(GXCommon.LogicalNameToBytes(it.ChargeReference));
-                            GXCommon.SetData(null, bb, DataType.BitString, 
-                                new GXBitString((UInt32) it.CollectionConfiguration, 3));
+                            GXCommon.SetData(null, bb, DataType.BitString,
+                                new GXBitString((UInt32)it.CollectionConfiguration, 3));
                         }
                     }
                     return bb.Array();
@@ -979,7 +980,15 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
                         {
                             tmp = new List<object>((object[])e.Value);
                         }
-                        Currency.Name = (string)tmp[0];
+                        //The currency name should be utf8-string, but some meters send it as an octet-string.
+                        if (tmp[0] is byte[] ba)
+                        {
+                            Currency.Name = ASCIIEncoding.ASCII.GetString(ba);
+                        }
+                        else
+                        {
+                            Currency.Name = (string)tmp[0];
+                        }
                         Currency.Scale = (sbyte)tmp[1];
                         Currency.Unit = (Currency)Convert.ToByte(tmp[2]);
                     }

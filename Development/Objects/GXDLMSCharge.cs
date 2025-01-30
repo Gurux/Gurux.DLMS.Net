@@ -710,6 +710,12 @@ namespace Gurux.DLMS.Objects
                     if (Parent != null)
                     {
                         charge.Commodity.Target = Parent.FindByLN(ot, ln);
+                        //If object is not found from the association view.
+                        if (charge.Commodity.Target == null)
+                        {
+                            charge.Commodity.Target = GXDLMSClient.CreateObject(ot);
+                            charge.Commodity.Target.LogicalName = ln;
+                        }
                     }
                     else
                     {
