@@ -424,6 +424,7 @@ namespace Gurux.DLMS.Secure
                 if (param.Type == CountType.Packet)
                 {
                     data.Set(tmp);
+                    param.CountTag = ciphertext;
                 }
                 if ((param.Type & CountType.Data) != 0)
                 {
