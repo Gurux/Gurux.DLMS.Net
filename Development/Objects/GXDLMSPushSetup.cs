@@ -75,7 +75,9 @@ namespace Gurux.DLMS.Objects
         public GXDLMSPushSetup(string ln, ushort sn)
         : base(ObjectType.PushSetup, ln, sn)
         {
-            Version = 2;
+            //Default version is zero bacause most of the meters are using it
+            //and version 2 sends a different structure.
+            Version = 0;
             CommunicationWindow = new List<KeyValuePair<GXDateTime, GXDateTime>>();
             PushObjectList = new List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>>();
             RepetitionDelay2 = new GXRepetitionDelay();

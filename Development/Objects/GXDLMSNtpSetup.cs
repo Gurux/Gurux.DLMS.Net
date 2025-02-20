@@ -108,9 +108,8 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
-
         /// <summary>
-        /// UDP port related to this protocol.
+        /// The authentication mode.
         /// </summary>
         [XmlIgnore()]
         public NtpAuthenticationMethod Authentication
@@ -143,12 +142,12 @@ namespace Gurux.DLMS.Objects
         public override object[] GetValues()
         {
             return new object[] {
-                LogicalName, 
-                Activated, 
-                ServerAddress, 
-                Port, 
-                Authentication, 
-                Keys, 
+                LogicalName,
+                Activated,
+                ServerAddress,
+                Port,
+                Authentication,
+                Keys,
                 ClientKey
             };
         }
@@ -441,6 +440,7 @@ namespace Gurux.DLMS.Objects
                     byte[] key = GXCommon.HexToBytes(reader.ReadElementContentAsString("Key"));
                     Keys[Id] = key;
                 }
+                reader.ReadEndElement("Keys");
             }
             ClientKey = GXCommon.HexToBytes(reader.ReadElementContentAsString("ClientKey", null));
         }

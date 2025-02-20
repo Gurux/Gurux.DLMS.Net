@@ -309,7 +309,14 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        v = v.Replace("Z", "+00:00");
+                        if (addTimeZone)
+                        {
+                            v = v.Replace("Z", "+00:00");
+                        }
+                        else
+                        {
+                            v = v.Replace("Z", "");
+                        }
                         Value = DateTime.ParseExact(v, format.ToString(), culture);
                     }
                     Skip |= DateTimeSkips.DayOfWeek;
@@ -345,9 +352,9 @@ namespace Gurux.DLMS
                             }
                             Value = DateTime.ParseExact(v, format.ToString().Trim(), culture);
                         }
-                        catch (Exception e2)
+                        catch (Exception)
                         {
-                            throw e2;
+                            throw;
                         }
                     }
                 }
@@ -646,7 +653,7 @@ namespace Gurux.DLMS
             string ret = Value.ToString(format.ToString().Trim(), culture);
             if (Value.DateTime == Value.UtcDateTime)
             {
-                ret = ret.Substring(0, ret.Length - 6) + "Z";
+                ret = ret + "Z";
             }
             return ret;
         }
