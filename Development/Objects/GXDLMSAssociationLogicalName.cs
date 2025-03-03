@@ -348,7 +348,7 @@ namespace Gurux.DLMS.Objects
                 secret = tmp.Array();
             }
 #if !WINDOWS_UWP
-else if (settings.Authentication == Authentication.HighECDSA)
+            else if (settings.Authentication == Authentication.HighECDSA)
             {
                 secret = null;
                 GXByteBuffer tmp = new GXByteBuffer();
@@ -897,6 +897,30 @@ else if (settings.Authentication == Authentication.HighECDSA)
 
         void UpdateAccessRights(GXDLMSObject obj, List<object> buff)
         {
+            //Some meters return only supported access rights.
+            //All access rights are set to NoAccess.
+            if (Version < 3)
+            {
+                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetAttributeCount(); ++pos)
+                {
+                    obj.SetAccess(pos + 1, AccessMode.NoAccess);
+                }
+                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetMethodCount(); ++pos)
+                {
+                    obj.SetMethodAccess(pos + 1, MethodAccessMode.NoAccess);
+                }
+            }
+            else
+            {
+                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetAttributeCount(); ++pos)
+                {
+                    obj.SetAccess3(pos + 1, AccessMode3.NoAccess);
+                }
+                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetMethodCount(); ++pos)
+                {
+                    obj.SetMethodAccess3(pos + 1, MethodAccessMode3.NoAccess);
+                }
+            }
             if (buff.Count != 0)
             {
                 List<object> arr, it;

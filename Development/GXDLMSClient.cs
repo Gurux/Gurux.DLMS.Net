@@ -1597,6 +1597,30 @@ namespace Gurux.DLMS
         {
             int tmp;
             obj.ObjectType = objectType;
+            //Some meters return only supported access rights.
+            //All access rights are set to NoAccess.
+            if (lnVersion < 3)
+            {
+                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetAttributeCount(); ++pos)
+                {
+                    obj.SetAccess(pos + 1, AccessMode.NoAccess);
+                }
+                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetMethodCount(); ++pos)
+                {
+                    obj.SetMethodAccess(pos + 1, MethodAccessMode.NoAccess);
+                }
+            }
+            else
+            {
+                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetAttributeCount(); ++pos)
+                {
+                    obj.SetAccess3(pos + 1, AccessMode3.NoAccess);
+                }
+                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetMethodCount(); ++pos)
+                {
+                    obj.SetMethodAccess3(pos + 1, MethodAccessMode3.NoAccess);
+                }
+            }
             // Check access rights...
             if (accessRights is List<object> && ((List<object>)accessRights).Count == 2)
             {
