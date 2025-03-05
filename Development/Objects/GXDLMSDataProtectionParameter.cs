@@ -90,6 +90,6 @@ namespace Gurux.DLMS.Objects
         {
             get;
             set;
-        }
+        } = new GXDLMSDataProtectionKey();
     }
 }
