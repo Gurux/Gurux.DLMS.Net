@@ -442,18 +442,19 @@ namespace Gurux.DLMS.Objects
                     p.OtherInformation = (byte[])options[3];
                     GXStructure keyInfo = (GXStructure)options[4];
                     p.KeyInfo.DataProtectionKeyType = (DataProtectionKeyType)Convert.ToInt32(keyInfo[0]);
-                    GXStructure data = (GXStructure)keyInfo[1];
                     if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Identified)
                     {
-                        p.KeyInfo.IdentifiedKey.KeyType = (DataProtectionIdentifiedKeyType)Convert.ToInt32(data[0]);
+                        p.KeyInfo.IdentifiedKey.KeyType = (DataProtectionIdentifiedKeyType)Convert.ToInt32(keyInfo[0]);
                     }
                     else if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Wrapped)
                     {
+                        GXStructure data = (GXStructure)keyInfo[1];
                         p.KeyInfo.WrappedKey.KeyType = (DataProtectionWrappedKeyType)Convert.ToInt32(data[0]);
                         p.KeyInfo.WrappedKey.Key = (byte[])data[1];
                     }
                     else if (p.KeyInfo.DataProtectionKeyType == DataProtectionKeyType.Agreed)
                     {
+                        GXStructure data = (GXStructure)keyInfo[1];
                         p.KeyInfo.AgreedKey.Parameters = (byte[])data[0];
                         p.KeyInfo.AgreedKey.Data = (byte[])data[1];
                     }
