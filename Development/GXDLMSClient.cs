@@ -1597,28 +1597,31 @@ namespace Gurux.DLMS
         {
             int tmp;
             obj.ObjectType = objectType;
-            //Some meters return only supported access rights.
-            //All access rights are set to NoAccess.
-            if (lnVersion < 3)
+            if (obj != null && obj.GetType() != typeof(GXDLMSObject))
             {
-                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetAttributeCount(); ++pos)
+                //Some meters return only supported access rights.
+                //All access rights are set to NoAccess.
+                if (lnVersion < 3)
                 {
-                    obj.SetAccess(pos + 1, AccessMode.NoAccess);
+                    for (int pos = 0; pos != ((IGXDLMSBase)obj).GetAttributeCount(); ++pos)
+                    {
+                        obj.SetAccess(pos + 1, AccessMode.NoAccess);
+                    }
+                    for (int pos = 0; pos != ((IGXDLMSBase)obj).GetMethodCount(); ++pos)
+                    {
+                        obj.SetMethodAccess(pos + 1, MethodAccessMode.NoAccess);
+                    }
                 }
-                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetMethodCount(); ++pos)
+                else
                 {
-                    obj.SetMethodAccess(pos + 1, MethodAccessMode.NoAccess);
-                }
-            }
-            else
-            {
-                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetAttributeCount(); ++pos)
-                {
-                    obj.SetAccess3(pos + 1, AccessMode3.NoAccess);
-                }
-                for (int pos = 0; pos != ((IGXDLMSBase)obj).GetMethodCount(); ++pos)
-                {
-                    obj.SetMethodAccess3(pos + 1, MethodAccessMode3.NoAccess);
+                    for (int pos = 0; pos != ((IGXDLMSBase)obj).GetAttributeCount(); ++pos)
+                    {
+                        obj.SetAccess3(pos + 1, AccessMode3.NoAccess);
+                    }
+                    for (int pos = 0; pos != ((IGXDLMSBase)obj).GetMethodCount(); ++pos)
+                    {
+                        obj.SetMethodAccess3(pos + 1, MethodAccessMode3.NoAccess);
+                    }
                 }
             }
             // Check access rights...
@@ -2904,7 +2907,7 @@ namespace Gurux.DLMS
         {
             return ReadRowsByRange(pg, new GXDateTime(start), new GXDateTime(end), columns);
         }
-     
+
         /// <summary>
         /// Read rows by range.
         /// </summary>
