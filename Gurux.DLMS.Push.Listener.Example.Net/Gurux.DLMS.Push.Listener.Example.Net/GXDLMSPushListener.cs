@@ -72,18 +72,41 @@ namespace GuruxDLMSServerExample
         /// <summary>
         /// Client used to parse received data.
         /// </summary>
-        private GXDLMSSecureClient client = new GXDLMSSecureClient(true, -1, -1, Authentication.None, null, InterfaceType.HDLC);
+        private readonly GXDLMSSecureClient client;
 
         GXDLMSPushSetup push = new GXDLMSPushSetup();
+
+        /// <summary>
+        /// Get certificate keys from the server.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void OnGetKeys(object sender, GXCryptoKeyParameter args)
+        {
+            if ((args.KeyType & CryptoKeyType.Authentication) != 0)
+            {
+                args.AuthenticationKey = GXCommon.HexToBytes("METER_AUTHENTICATION_KEY");
+            }
+            if ((args.KeyType & CryptoKeyType.BlockCipher) != 0)
+            {
+                args.BlockCipherKey = GXCommon.HexToBytes("METER_BLOCK_CIPHER_KEY");
+            }
+        }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="port">Port to listen.</param>
-        public GXDLMSPushListener(int port)
+        public GXDLMSPushListener(int port, InterfaceType interfaceType)
         {
+            client = new GXDLMSSecureClient(true, 0, 0, Authentication.None, null, interfaceType);
+            // TODO: Reset keys so they are asked with OnKeys.
+            // If keys are set, they are used and OnKeys is not invoked.
+            // client.Ciphering.BlockCipherKey = null;
+            // client.Ciphering.AuthenticationKey = null;
+            client.OnKeys += OnGetKeys;
             // TODO: Must set communication specific settings.
-            media = new GXNet(NetworkType.Tcp, port);
+            media = new GXNet(interfaceType == InterfaceType.CoAP ? NetworkType.Udp : NetworkType.Tcp, port);
             media.Trace = TraceLevel.Verbose;
             media.OnReceived += new ReceivedEventHandler(OnReceived);
             media.OnClientConnected += new ClientConnectedEventHandler(OnClientConnected);
@@ -152,7 +175,7 @@ namespace GuruxDLMSServerExample
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnReceived(object sender, Gurux.Common.ReceiveEventArgs e)
+        void OnReceived(object sender, ReceiveEventArgs e)
         {
             try
             {
@@ -164,13 +187,23 @@ namespace GuruxDLMSServerExample
                     }
                     reply.Set((byte[])e.Data);
                     //Example handles only notify messages.
-                    GXReplyData data = new GXReplyData();
-                    client.GetData(reply, data, notify);
+                    client.GetData(reply, notify);
                     // If all data is received.
                     if (notify.IsComplete)
                     {
-                        reply.Clear();
-                        if (!notify.IsMoreData)
+                        //Don't call clear here.
+                        //There might be bytes from the next frame waiting.
+                        reply.Trim();
+                        if (notify.IsMoreData)
+                        {
+                            if (client.InterfaceType == InterfaceType.CoAP)
+                            {
+                                //Send ACK for the meter.
+                                byte[] data = client.ReceiverReady(notify);
+                                media.Send(data, e.SenderInfo);
+                            }
+                        }
+                        else
                         {
                             try
                             {
@@ -184,7 +217,7 @@ namespace GuruxDLMSServerExample
                                     Console.WriteLine(((IGXDLMSBase)it.Key).GetNames()[index] + ": " + it.Key.GetValues()[index]);
                                 }
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 Console.WriteLine(ex.Message);
                             }

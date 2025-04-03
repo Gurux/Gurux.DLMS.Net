@@ -334,9 +334,9 @@ namespace Gurux.DLMS
             {
                 return (int)AccessMode.Read;
             }
-            if (AssignedAssociation != null)
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
             {
-                if (AssignedAssociation.Version < 3)
+                if (ln.Version < 3)
                 {
                     return (int)GetAttributeAccess(arg);
                 }
@@ -352,9 +352,9 @@ namespace Gurux.DLMS
         /// <returns>Method access mode</returns>
         internal int NotifyGetMethodAccess(ValueEventArgs arg)
         {
-            if (AssignedAssociation != null)
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
             {
-                if (AssignedAssociation.Version < 3)
+                if (ln.Version < 3)
                 {
                     return (int)GetMethodAccess(arg);
                 }
@@ -815,7 +815,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Assigned association for the server.
         /// </summary>
-        protected GXDLMSAssociationLogicalName AssignedAssociation
+        protected object AssignedAssociation
         {
             get
             {
@@ -823,7 +823,14 @@ namespace Gurux.DLMS
             }
             set
             {
-                Settings.AssignedAssociation = value;
+                if (value == null || value is GXDLMSAssociationLogicalName || value is GXDLMSAssociationShortName)
+                {
+                    Settings.AssignedAssociation = value;
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("Invalid association type.");
+                }
             }
         }
 
@@ -1934,10 +1941,10 @@ namespace Gurux.DLMS
                     }
                     else
                     {
-                        if (AssignedAssociation != null &&
-                            AssignedAssociation.AuthenticationMechanismName.MechanismId != Settings.Authentication)
+                        if (AssignedAssociation is GXDLMSAssociationLogicalName ln2 &&
+                            ln2.AuthenticationMechanismName.MechanismId != Settings.Authentication)
                         {
-                                ret = SourceDiagnostic.ApplicationContextNameNotSupported;
+                            ret = SourceDiagnostic.ApplicationContextNameNotSupported;
                         }
                         else
                         {
@@ -1955,8 +1962,12 @@ namespace Gurux.DLMS
                             ret = SourceDiagnostic.AuthenticationRequired;
                             if (UseLogicalNameReferencing)
                             {
-                                GXDLMSAssociationLogicalName ln = AssignedAssociation;
-                                if (ln == null)
+                                GXDLMSAssociationLogicalName ln = null;
+                                if (AssignedAssociation is GXDLMSAssociationLogicalName ln3)
+                                {
+                                    ln = ln3;
+                                }
+                                else
                                 {
                                     ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
                                     if (ln == null)
@@ -1977,13 +1988,20 @@ namespace Gurux.DLMS
                         {
                             if (UseLogicalNameReferencing)
                             {
-                                GXDLMSAssociationLogicalName ln = AssignedAssociation;
-                                if (ln == null)
+                                GXDLMSAssociationLogicalName ln = null;
+                                if (AssignedAssociation is GXDLMSAssociationLogicalName ln3)
                                 {
-                                    ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                                    ln = ln3;
+                                }
+                                else
+                                {
                                     if (ln == null)
                                     {
-                                        ln = (GXDLMSAssociationLogicalName)NotifyFindObject(ObjectType.AssociationLogicalName, 0, "0.0.40.0.0.255");
+                                        ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
+                                        if (ln == null)
+                                        {
+                                            ln = (GXDLMSAssociationLogicalName)NotifyFindObject(ObjectType.AssociationLogicalName, 0, "0.0.40.0.0.255");
+                                        }
                                     }
                                 }
                                 if (ln != null)

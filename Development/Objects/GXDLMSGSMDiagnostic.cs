@@ -96,7 +96,7 @@ namespace Gurux.DLMS.Objects
         {
             CellInfo = new GXDLMSGSMCellInfo();
             AdjacentCells = new List<AdjacentCell>();
-            Version = 1;
+            Version = 2;
         }
 
         /// <summary>

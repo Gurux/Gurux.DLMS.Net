@@ -669,7 +669,7 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSTokenGateway());
             Items.Add(new GXDLMSCompactData());
             Items.Add(new GXDLMSDisconnectControl());
-
+            Items.Add(new GXDLMSLimiter());
             Items.Add(new GXDLMSLlcSscsSetup());
             Items.Add(new GXDLMSPrimeNbOfdmPlcPhysicalLayerCounters());
             Items.Add(new GXDLMSPrimeNbOfdmPlcMacSetup());
@@ -679,7 +679,7 @@ namespace GuruxDLMSServerExample
             Items.Add(new GXDLMSPrimeNbOfdmPlcApplicationsIdentification());
 
             Items.Add(new GXDLMSSchedule());
-
+            Items.Add(new GXDLMSFunctionControl());
             ///////////////////////////////////////////////////////////////////////
             //Server must initialize after all objects are added.
             Initialize();
@@ -1149,6 +1149,23 @@ namespace GuruxDLMSServerExample
                     SendPush(it.Target as GXDLMSPushSetup);
                     it.Handled = true;
                 }
+                if (it.Target is GXDLMSDisconnectControl dc)
+                {
+                    //Ignore disconnect actions.
+                    if (it.Index == 1)
+                    {
+                        dc.OutputState = false;
+                        dc.ControlState = ControlState.Disconnected;
+                        Console.WriteLine("Disconnect");
+                    }
+                    else if (it.Index == 2)
+                    {
+                        dc.OutputState = true;
+                        dc.ControlState = ControlState.Connected;
+                        Console.WriteLine("Reconnect");
+                    }
+                    it.Handled = true;
+                }
                 if (it.Target is GXDLMSImageTransfer)
                 {
                     GXDLMSImageTransfer i = it.Target as GXDLMSImageTransfer;
@@ -1465,25 +1482,32 @@ namespace GuruxDLMSServerExample
             if (ret)
             {
                 AssignedAssociation = null;
-                var associations = Items.GetObjects(ObjectType.AssociationLogicalName);
-                if (associations.Count == 1)
+                if (UseLogicalNameReferencing)
                 {
-                    AssignedAssociation = (GXDLMSAssociationLogicalName) associations[0];
+                    var associations = Items.GetObjects(ObjectType.AssociationLogicalName);
+                    if (associations.Count == 1)
+                    {
+                        AssignedAssociation = (GXDLMSAssociationLogicalName)associations[0];
+                    }
+                    else
+                    {
+                        foreach (GXDLMSAssociationLogicalName it in associations)
+                        {
+                            if (it.ClientSAP == clientAddress)
+                            {
+                                AssignedAssociation = it;
+                                break;
+                            }
+                        }
+                    }
+                    if (AssignedAssociation == null)
+                    {
+                        ret = false;
+                    }
                 }
                 else
                 {
-                    foreach (GXDLMSAssociationLogicalName it in associations)
-                    {
-                        if (it.ClientSAP == clientAddress)
-                        {
-                            AssignedAssociation = it;
-                            break;
-                        }
-                    }
-                }
-                if (AssignedAssociation == null)
-                {
-                    ret = false;
+                    ret = true;
                 }
             }
             return ret;
@@ -1494,26 +1518,26 @@ namespace GuruxDLMSServerExample
         /// </summary>
         protected override AccessMode3 GetAttributeAccess3(ValueEventArgs arg)
         {
-            if (AssignedAssociation == null)
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
             {
-                return arg.Target.GetAccess3(arg.Index);
+                return ln.GetAccess3(arg.Target, arg.Index);
             }
-            return AssignedAssociation.GetAccess3(arg.Target, arg.Index);
+            return arg.Target.GetAccess3(arg.Index);
         }
 
         protected override AccessMode GetAttributeAccess(ValueEventArgs arg)
         {
-            if (AssignedAssociation == null)
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
             {
-                return arg.Target.GetAccess(arg.Index);
+                //Only read is allowed for None or Low authentications.
+                if (ln.AuthenticationMechanismName.MechanismId == Authentication.None ||
+                    ln.AuthenticationMechanismName.MechanismId == Authentication.Low)
+                {
+                    return AccessMode.Read;
+                }
+                return ln.GetAccess(arg.Target, arg.Index);
             }
-            //Only read is allowed for None or Low authentications.
-            if (AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.None ||
-                AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.Low)
-            {
-                return AccessMode.Read;
-            }
-            return AssignedAssociation.GetAccess(arg.Target, arg.Index);
+            return arg.Target.GetAccess(arg.Index);
         }
 
         /// <summary>
@@ -1523,18 +1547,18 @@ namespace GuruxDLMSServerExample
         /// <returns>Method access mode</returns>
         protected override MethodAccessMode GetMethodAccess(ValueEventArgs arg)
         {
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
+            {
+                //Actions are not allowed for None or Low authentications.
+                if (ln.AuthenticationMechanismName.MechanismId == Authentication.None ||
+                    ln.AuthenticationMechanismName.MechanismId == Authentication.Low)
+                {
+                    return MethodAccessMode.NoAccess;
+                }
+                return ln.GetMethodAccess(arg.Target, arg.Index);
+            }
             //Invoke is called when high level authentication is used.
-            if (AssignedAssociation == null)
-            {
-                return arg.Target.GetMethodAccess(arg.Index);
-            }
-            //Actions are not allowed for None or Low authentications.
-            if (AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.None ||
-                AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.Low)
-            {
-                return MethodAccessMode.NoAccess;
-            }
-            return AssignedAssociation.GetMethodAccess(arg.Target, arg.Index);
+            return arg.Target.GetMethodAccess(arg.Index);
         }
 
         /// <summary>
@@ -1544,18 +1568,18 @@ namespace GuruxDLMSServerExample
         /// <returns>Method access mode</returns>
         protected override MethodAccessMode3 GetMethodAccess3(ValueEventArgs arg)
         {
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
+            {
+                //Actions are not allowed for None or Low authentications.
+                if (ln.AuthenticationMechanismName.MechanismId == Authentication.None ||
+                    ln.AuthenticationMechanismName.MechanismId == Authentication.Low)
+                {
+                    return MethodAccessMode3.NoAccess;
+                }
+                return ln.GetMethodAccess3(arg.Target, arg.Index);
+            }
             //Invoke is called when high level authentication is used.
-            if (AssignedAssociation == null)
-            {
-                return arg.Target.GetMethodAccess3(arg.Index);
-            }
-            //Actions are not allowed for None or Low authentications.
-            if (AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.None ||
-                AssignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.Low)
-            {
-                return MethodAccessMode3.NoAccess;
-            }
-            return AssignedAssociation.GetMethodAccess3(arg.Target, arg.Index);
+            return arg.Target.GetMethodAccess3(arg.Index);
         }
 
         /// <summary>
@@ -1569,7 +1593,7 @@ namespace GuruxDLMSServerExample
                 byte[] expected;
                 if (UseLogicalNameReferencing)
                 {
-                    GXDLMSAssociationLogicalName ln = AssignedAssociation;
+                    GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)AssignedAssociation;
                     if (ln == null)
                     {
                         ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");
@@ -1591,7 +1615,7 @@ namespace GuruxDLMSServerExample
             }
             if (UseLogicalNameReferencing)
             {
-                GXDLMSAssociationLogicalName ln = AssignedAssociation;
+                GXDLMSAssociationLogicalName ln = (GXDLMSAssociationLogicalName)AssignedAssociation;
                 if (ln == null)
                 {
                     ln = (GXDLMSAssociationLogicalName)Items.FindByLN(ObjectType.AssociationLogicalName, "0.0.40.0.0.255");

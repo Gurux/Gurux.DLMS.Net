@@ -58,7 +58,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Assigned association for the server.
         /// </summary>
-        private GXDLMSAssociationLogicalName assignedAssociation;
+        private object assignedAssociation;
 
         private bool useLogicalNameReferencing;
 
@@ -487,7 +487,7 @@ namespace Gurux.DLMS
                 }
                 challengeSize = value;
             }
-        }       
+        }
 
         /// <summary>
         /// Client to Server challenge.
@@ -1041,7 +1041,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Assigned association for the server.
         /// </summary>
-        internal GXDLMSAssociationLogicalName AssignedAssociation
+        internal object AssignedAssociation
         {
             get
             {
@@ -1049,10 +1049,10 @@ namespace Gurux.DLMS
             }
             set
             {
-                if (assignedAssociation != null)
+                if (assignedAssociation is GXDLMSAssociationLogicalName ln)
                 {
-                    assignedAssociation.AssociationStatus = AssociationStatus.NonAssociated;
-                    assignedAssociation.XDLMSContextInfo.CypheringInfo = null;
+                    ln.AssociationStatus = AssociationStatus.NonAssociated;
+                    ln.XDLMSContextInfo.CypheringInfo = null;
                     InvocationCounter = null;
                     Cipher.SecurityPolicy = SecurityPolicy.None;
                     EphemeralBlockCipherKey = null;
@@ -1062,11 +1062,11 @@ namespace Gurux.DLMS
                     Cipher.Signing = Signing.None;
                 }
                 assignedAssociation = value;
-                if (assignedAssociation != null)
+                if (assignedAssociation is GXDLMSAssociationLogicalName ln2)
                 {
-                    ProposedConformance = assignedAssociation.XDLMSContextInfo.Conformance;
-                    MaxServerPDUSize = assignedAssociation.XDLMSContextInfo.MaxReceivePduSize;
-                    Authentication = assignedAssociation.AuthenticationMechanismName.MechanismId;
+                    ProposedConformance = ln2.XDLMSContextInfo.Conformance;
+                    MaxServerPDUSize = ln2.XDLMSContextInfo.MaxReceivePduSize;
+                    Authentication = ln2.AuthenticationMechanismName.MechanismId;
                     UpdateSecuritySettings(null);
                 }
             }
@@ -1214,27 +1214,30 @@ namespace Gurux.DLMS
             }
             else
             {
-                assignedAssociation.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
+                if (assignedAssociation is GXDLMSAssociationLogicalName ln)
+                {
+                    ln.ApplicationContextName.ContextId = ApplicationContextName.LogicalName;
+                }
             }
         }
 
         void UpdateSecuritySettings(byte[] systemTitle)
         {
-            if (assignedAssociation != null)
+            if (assignedAssociation is GXDLMSAssociationLogicalName ln)
             {
                 // Update security settings.
-                if (assignedAssociation.SecuritySetupReference != null &&
-                   (assignedAssociation.ApplicationContextName.ContextId == ApplicationContextName.LogicalNameWithCiphering ||
-                   assignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.HighGMAC ||
-                   assignedAssociation.AuthenticationMechanismName.MechanismId == Authentication.HighECDSA))
+                if (ln.SecuritySetupReference != null &&
+                   (ln.ApplicationContextName.ContextId == ApplicationContextName.LogicalNameWithCiphering ||
+                   ln.AuthenticationMechanismName.MechanismId == Authentication.HighGMAC ||
+                   ln.AuthenticationMechanismName.MechanismId == Authentication.HighECDSA))
                 {
-                    GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup, assignedAssociation.SecuritySetupReference);
+                    GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)ln.ObjectList.FindByLN(ObjectType.SecuritySetup, ln.SecuritySetupReference);
                     UpdateSecurity(systemTitle, ss);
                 }
                 else
                 {
-                    GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup,
-                        assignedAssociation.SecuritySetupReference);
+                    GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)ln.ObjectList.FindByLN(ObjectType.SecuritySetup,
+                        ln.SecuritySetupReference);
                     UpdateSecurity(systemTitle, ss);
                 }
             }
@@ -1341,9 +1344,9 @@ namespace Gurux.DLMS
                 }
             }
             //Find keys from security setup object.
-            if (assignedAssociation != null && systemTitle != null)
+            if (assignedAssociation is GXDLMSAssociationLogicalName ln && systemTitle != null)
             {
-                GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)assignedAssociation.ObjectList.FindByLN(ObjectType.SecuritySetup, assignedAssociation.SecuritySetupReference);
+                GXDLMSSecuritySetup ss = (GXDLMSSecuritySetup)ln.ObjectList.FindByLN(ObjectType.SecuritySetup, ln.SecuritySetupReference);
                 if (ss != null)
                 {
                     GXx509Certificate cert;

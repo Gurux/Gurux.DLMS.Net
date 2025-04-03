@@ -441,7 +441,7 @@ namespace Gurux.DLMS
             GXDLMSObject obj = null;
             if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
             {
-                obj = settings.AssignedAssociation;
+                obj = (GXDLMSAssociationLogicalName)settings.AssignedAssociation;
             }
             if (obj == null)
             {
@@ -467,7 +467,7 @@ namespace Gurux.DLMS
             {
                 if (settings.AssignedAssociation != null)
                 {
-                    p.AccessMode = (int)settings.AssignedAssociation.GetMethodAccess3(obj, id);
+                    p.AccessMode = (int)((GXDLMSAssociationLogicalName)settings.AssignedAssociation).GetMethodAccess3(obj, id);
                 }
                 e = new ValueEventArgs(server, obj, id, 0, parameters);
                 e.InvokeId = invokeId;
@@ -985,7 +985,7 @@ namespace Gurux.DLMS
             GXDLMSObject obj = null;
             if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
             {
-                obj = settings.AssignedAssociation;
+                obj = (GXDLMSAssociationLogicalName)settings.AssignedAssociation;
             }
             if (obj == null)
             {
@@ -1015,7 +1015,7 @@ namespace Gurux.DLMS
                 {
                     if (settings.AssignedAssociation != null)
                     {
-                        mode = (int)settings.AssignedAssociation.GetAccess3(obj, attributeIndex);
+                        mode = (int)((GXDLMSAssociationLogicalName)settings.AssignedAssociation).GetAccess3(obj, attributeIndex);
                     }
                     // Handle default Association LN read as a special case.
                     if ((obj is GXDLMSAssociationLogicalName
@@ -1195,7 +1195,7 @@ namespace Gurux.DLMS
                         GXDLMSObject obj = null;
                         if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
                         {
-                            obj = settings.AssignedAssociation;
+                            obj = (GXDLMSAssociationLogicalName)settings.AssignedAssociation;
                         }
                         if (obj == null)
                         {
@@ -1367,7 +1367,7 @@ namespace Gurux.DLMS
             GXDLMSObject obj = null;
             if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
             {
-                obj = settings.AssignedAssociation;
+                obj = (GXDLMSAssociationLogicalName)settings.AssignedAssociation;
             }
             if (obj == null)
             {
@@ -1560,7 +1560,7 @@ namespace Gurux.DLMS
                         GXDLMSObject obj = null;
                         if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
                         {
-                            obj = settings.AssignedAssociation;
+                            obj = (GXDLMSAssociationLogicalName)settings.AssignedAssociation;
                         }
                         if (obj == null)
                         {
@@ -1727,7 +1727,7 @@ namespace Gurux.DLMS
                     GXDLMSObject obj = null;
                     if (ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
                     {
-                        obj = settings.AssignedAssociation;
+                        obj = (GXDLMSAssociationLogicalName)settings.AssignedAssociation;
                     }
                     if (obj == null)
                     {
@@ -1902,7 +1902,7 @@ namespace Gurux.DLMS
                 GXDLMSObject obj = null;
                 if ((ObjectType)ci == ObjectType.AssociationLogicalName && GXCommon.ToLogicalName(ln) == "0.0.40.0.0.255")
                 {
-                    obj = settings.AssignedAssociation;
+                    obj = (GXDLMSAssociationLogicalName)settings.AssignedAssociation;
                 }
                 if (obj == null)
                 {

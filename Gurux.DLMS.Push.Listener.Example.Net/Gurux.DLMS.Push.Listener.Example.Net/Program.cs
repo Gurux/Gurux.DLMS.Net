@@ -32,7 +32,6 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
 using Gurux.Net;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Enums;
@@ -44,13 +43,23 @@ namespace GuruxDLMSServerExample
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             try
             {
-                int port = 4059;
-                GXNet media = new GXNet(NetworkType.Tcp, "localhost", port);
-                GXDLMSSecureNotify notify = new GXDLMSSecureNotify(true, 16, 1, InterfaceType.HDLC);
+                Settings settings = new Settings();
+                ////////////////////////////////////////
+                //Handle command line parameters.
+                int ret = Settings.GetParameters(args, settings);
+                if (ret != 0)
+                {
+                    return ret;
+                }
+                GXNet media = new GXNet(
+                    settings.interfaceType == InterfaceType.CoAP ? NetworkType.Udp : NetworkType.Tcp,
+                    "localhost",
+                    settings.port);
+                GXDLMSSecureNotify notify = new GXDLMSSecureNotify(true, 16, 1, settings.interfaceType);
                 // Un-comment this if you want to send encrypted push messages.
                 // notify.Ciphering.Security = Security.AuthenticationEncryption;
                 GXDLMSPushSetup p = new GXDLMSPushSetup();
@@ -61,8 +70,8 @@ namespace GuruxDLMSServerExample
 
                 ///////////////////////////////////////////////////////////////////////
                 //Create Gurux DLMS server component for Short Name and start listen events.
-                GXDLMSPushListener pushListener = new GXDLMSPushListener(port);
-                Console.WriteLine("Listening DLMS Push IEC 62056-47 messages on port " + port + ".");
+                GXDLMSPushListener pushListener = new GXDLMSPushListener(settings.port, settings.interfaceType);
+                Console.WriteLine("Listening DLMS Push " + settings.interfaceType + " messages on port " + settings.port + ".");
                 Console.WriteLine("Press X to close and Enter to send a Push message.");
                 ConsoleKey key;
                 while ((key = Console.ReadKey().Key) != ConsoleKey.X)
@@ -85,6 +94,7 @@ namespace GuruxDLMSServerExample
             {
                 Console.WriteLine(ex.Message);
             }
+            return 0;
         }
     }
 }

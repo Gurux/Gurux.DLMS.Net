@@ -124,8 +124,11 @@ namespace Gurux.DLMS.Simulator.Net
             Media = media;
             Trace = trace;
             Exclusive = exclusive;
-            // Each association has own conformance.
-            Conformance = Conformance.None;
+            if (UseLogicalNameReferencing)
+            {
+                // Each LN association has own conformance.
+                Conformance = Conformance.None;
+            }
             if (sharedObjects != null)
             {
                 Items.AddRange(sharedObjects);
@@ -818,10 +821,10 @@ namespace Gurux.DLMS.Simulator.Net
         protected override bool IsTarget(int serverAddress, int clientAddress)
         {
             //Only one connection per meter at the time is allowed.
-            if (AssignedAssociation != null)
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
             {
-                if (AssignedAssociation.ServerSAP == serverAddress &&
-                    AssignedAssociation.ClientSAP != clientAddress)
+                if (ln.ServerSAP == serverAddress &&
+                    ln.ClientSAP != clientAddress)
                 {
                     return false;
                 }
@@ -879,13 +882,21 @@ namespace Gurux.DLMS.Simulator.Net
             if (ret)
             {
                 AssignedAssociation = null;
-                foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
+                if (UseLogicalNameReferencing)
                 {
-                    if (it.ClientSAP == clientAddress)
+                    foreach (GXDLMSAssociationLogicalName it in Items.GetObjects(ObjectType.AssociationLogicalName))
                     {
-                        AssignedAssociation = it;
-                        break;
+                        if (it.ClientSAP == clientAddress)
+                        {
+                            AssignedAssociation = it;
+                            break;
+                        }
                     }
+                }
+                else
+                {
+                    //Short name referencing allows only one association.
+                    AssignedAssociation = Items.GetObjects(ObjectType.AssociationShortName).FirstOrDefault();
                 }
             }
             return ret;
@@ -893,11 +904,19 @@ namespace Gurux.DLMS.Simulator.Net
 
         protected override AccessMode GetAttributeAccess(ValueEventArgs arg)
         {
-            return AssignedAssociation.GetAccess(arg.Target, arg.Index);
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
+            {
+                return ln.GetAccess(arg.Target, arg.Index);
+            }
+            return AccessMode.ReadWrite;
         }
         protected override AccessMode3 GetAttributeAccess3(ValueEventArgs arg)
         {
-            return AssignedAssociation.GetAccess3(arg.Target, arg.Index);
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
+            {
+                return ln.GetAccess3(arg.Target, arg.Index);
+            }
+            return AccessMode3.NoAccess;
         }
 
         /// <summary>
@@ -907,7 +926,11 @@ namespace Gurux.DLMS.Simulator.Net
         /// <returns>Method access mode</returns>
         protected override MethodAccessMode GetMethodAccess(ValueEventArgs arg)
         {
-            return AssignedAssociation.GetMethodAccess(arg.Target, arg.Index);
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
+            {
+                return ln.GetMethodAccess(arg.Target, arg.Index);
+            }
+            return MethodAccessMode.Access;
         }
 
         /// <summary>
@@ -917,37 +940,53 @@ namespace Gurux.DLMS.Simulator.Net
         /// <returns>Method access mode</returns>
         protected override MethodAccessMode3 GetMethodAccess3(ValueEventArgs arg)
         {
-            return AssignedAssociation.GetMethodAccess3(arg.Target, arg.Index);
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
+            {
+                return ln.GetMethodAccess3(arg.Target, arg.Index);
+            }
+            return MethodAccessMode3.NoAccess;
         }
+
         /// <summary>
         /// Check authentication.
         /// </summary>
         protected override SourceDiagnostic ValidateAuthentication(Authentication authentication, byte[] password)
         {
-            if (UseLogicalNameReferencing)
+            if (AssignedAssociation is GXDLMSAssociationLogicalName ln)
             {
-                if (AssignedAssociation != null)
+                if (ln.AuthenticationMechanismName.MechanismId != authentication)
                 {
-                    if (AssignedAssociation.AuthenticationMechanismName.MechanismId != authentication)
+                    if (authentication == Authentication.None)
                     {
-                        if (authentication == Authentication.None)
-                        {
-                            return SourceDiagnostic.AuthenticationRequired;
-                        }
-                        return SourceDiagnostic.AuthenticationFailure;
+                        return SourceDiagnostic.AuthenticationRequired;
                     }
-                    if (authentication != Authentication.Low)
-                    {
-                        // Other authentication levels are check later.
-                        return SourceDiagnostic.None;
-                    }
-                    if (GXCommon.EqualBytes(AssignedAssociation.Secret, password))
-                    {
-                        return SourceDiagnostic.None;
-                    }
-                    Debug.WriteLine("Invalid password. Expected: " + GXCommon.ToHex(AssignedAssociation.Secret) +
-                        " Actual: " + GXCommon.ToHex(password));
+                    return SourceDiagnostic.AuthenticationFailure;
                 }
+                if (authentication != Authentication.Low)
+                {
+                    // Other authentication levels are check later.
+                    return SourceDiagnostic.None;
+                }
+                if (GXCommon.EqualBytes(ln.Secret, password))
+                {
+                    return SourceDiagnostic.None;
+                }
+                Debug.WriteLine("Invalid password. Expected: " + GXCommon.ToHex(ln.Secret) +
+                    " Actual: " + GXCommon.ToHex(password));
+            }
+            else if (AssignedAssociation is GXDLMSAssociationShortName sn)
+            {
+                if (authentication != Authentication.Low)
+                {
+                    // Other authentication levels are check later.
+                    return SourceDiagnostic.None;
+                }
+                if (GXCommon.EqualBytes(sn.Secret, password))
+                {
+                    return SourceDiagnostic.None;
+                }
+                Debug.WriteLine("Invalid password. Expected: " + GXCommon.ToHex(sn.Secret) +
+                    " Actual: " + GXCommon.ToHex(password));
             }
             return SourceDiagnostic.AuthenticationFailure;
         }
@@ -978,9 +1017,9 @@ namespace Gurux.DLMS.Simulator.Net
                 }
             }
             // Find object from the active association view.
-            else if (AssignedAssociation != null)
+            else if (AssignedAssociation is GXDLMSAssociationLogicalName ln2)
             {
-                return AssignedAssociation.ObjectList.FindByLN(objectType, ln);
+                return ln2.ObjectList.FindByLN(objectType, ln);
             }
             return null;
         }

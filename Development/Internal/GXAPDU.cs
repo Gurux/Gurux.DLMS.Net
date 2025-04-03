@@ -38,6 +38,7 @@ using System.Text;
 using Gurux.DLMS.ASN;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Enums;
+using Gurux.DLMS.Objects;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Secure;
 
@@ -896,9 +897,9 @@ namespace Gurux.DLMS.Internal
                 }
                 return ApplicationContextName.Unknown;
             }
-            if (settings.AssignedAssociation != null)
+            if (settings.AssignedAssociation is GXDLMSAssociationLogicalName ln)
             {
-                if ((byte)settings.AssignedAssociation.ApplicationContextName.ContextId == name)
+                if ((byte)ln.ApplicationContextName.ContextId == name)
                 {
                     return ApplicationContextName.Unknown;
                 }
@@ -913,7 +914,7 @@ namespace Gurux.DLMS.Internal
                 {
                     return ApplicationContextName.Unknown;
                 }
-                return settings.AssignedAssociation.ApplicationContextName.ContextId;
+                return ln.ApplicationContextName.ContextId;
             }
 
             if (settings.UseLogicalNameReferencing)

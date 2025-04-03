@@ -66,6 +66,18 @@ namespace Gurux.DLMS.Objects.Enums
         /// <summary>
         /// CDMA
         /// </summary>
-        CDMA
+        CDMA,
+        /// <summary>
+        /// LTE Cat M1.
+        /// </summary>
+        LteCatM1,
+        /// <summary>
+        /// LTE Cat NB1.
+        /// </summary>
+        LteCatNb1,
+        /// <summary>
+        /// LTE Cat NB2.
+        /// </summary>
+        LteCatNb2,
     }
 }

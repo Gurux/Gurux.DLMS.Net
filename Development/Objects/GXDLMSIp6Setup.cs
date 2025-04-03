@@ -382,6 +382,16 @@ namespace Gurux.DLMS.Objects
             return 2;
         }
 
+        public override DataType GetUIDataType(int index)
+        {
+            if (index == 7 || index == 8)
+            {
+                //Primary and secondry address are shown as a string.
+                return DataType.String;
+            }
+            return base.GetUIDataType(index);
+        }
+
         /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
@@ -546,6 +556,47 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
+        private static IPAddress ToIP6Address(object value)
+        {
+            if (value is IPAddress ip)
+            {
+                return ip;
+            }
+            if (value is string str)
+            {
+                if (str == string.Empty)
+                {
+                    return null;
+                }
+                return IPAddress.Parse(str);
+            }
+            if (value is GXByteBuffer bb)
+            {
+                value = bb.Array();
+            }
+            if (value is byte[] ba)
+            {
+                if (ba.Length == 0)
+                {
+                    return null;
+                }
+                if (ba.Length == 16)
+                {
+                    return new IPAddress(ba);
+                }
+                StringBuilder sb = new StringBuilder();
+                for (int pos = 0; pos <= ba.Length; pos += 2)
+                {
+                    sb.Append(GXDLMSTranslator.ToHex(ba, false, pos, 2));
+                    sb.Append(':');
+                }
+                //Remove last ':'
+                --sb.Length;
+                return IPAddress.Parse(sb.ToString());
+            }
+            return null;
+        }
+
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
             if (e.Index == 1)
@@ -576,7 +627,7 @@ namespace Gurux.DLMS.Objects
                     {
                         try
                         {
-                            data.Add(new IPAddress((byte[])it));
+                            data.Add(ToIP6Address(it));
                         }
                         catch (Exception ex)
                         {
@@ -600,7 +651,7 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (object it in (IEnumerable<object>)e.Value)
                     {
-                        data.Add(new IPAddress((byte[])it));
+                        data.Add(ToIP6Address(it));
                     }
                 }
                 MulticastIPAddress = data.ToArray();
@@ -612,32 +663,18 @@ namespace Gurux.DLMS.Objects
                 {
                     foreach (object it in (IEnumerable<object>)e.Value)
                     {
-                        data.Add(new IPAddress((byte[])it));
+                        data.Add(ToIP6Address(it));
                     }
                 }
                 GatewayIPAddress = data.ToArray();
             }
             else if (e.Index == 7)
             {
-                if (e.Value == null || ((byte[])e.Value).Length == 0)
-                {
-                    PrimaryDNSAddress = null;
-                }
-                else
-                {
-                    PrimaryDNSAddress = new IPAddress((byte[])e.Value);
-                }
+                PrimaryDNSAddress = ToIP6Address(e.Value);
             }
             else if (e.Index == 8)
             {
-                if (e.Value == null || ((byte[])e.Value).Length == 0)
-                {
-                    SecondaryDNSAddress = null;
-                }
-                else
-                {
-                    SecondaryDNSAddress = new IPAddress((byte[])e.Value);
-                }
+                SecondaryDNSAddress = ToIP6Address(e.Value);
             }
             else if (e.Index == 9)
             {
