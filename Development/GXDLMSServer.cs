@@ -1911,6 +1911,11 @@ namespace Gurux.DLMS
                         error.SetUInt8(ServiceError.Initiate);
                         error.SetUInt8(Initiate.IncompatibleConformance);
                     }
+                    //If PDU is 0 we set to max allowed.
+                    else if (Settings.MaxPduSize == 0)
+                    {
+                        Settings.MaxPduSize = 65535;
+                    }
                     //If PDU is too low.
                     else if (Settings.MaxPduSize < 64)
                     {
