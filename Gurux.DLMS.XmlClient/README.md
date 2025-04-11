@@ -17,8 +17,7 @@ Build
 =========================== 
 
 If you want to build source codes you need Nuget package manager for Visual Studio.
-If you are usinng Visual Studio 2010 or 2013 you can get it here:
-https://visualstudiogallery.msdn.microsoft.com/27077b70-9dad-4c64-adcf-c7cf6bc9970c
+https://learn.microsoft.com/en-us/nuget/install-nuget-client-tools
 
 
 Gurux.DLMS.XMLClient 
@@ -49,7 +48,7 @@ You give (Interface type, OBIS code and attribute id).
 </Messages>
 
 You can convert DLMS bytes to xml easily. First read your meter with GXDLMSDirector or some other app. Then open [GuruxDLMSTranslator](https://www.gurux.fi/GuruxDLMSTranslator) and 
-select Messages tab. Paste sent bytes to the left side and press "To Messages" -button. Create file and copy generated xml to file ("sample1.xml")
+select Messages tab. Paste sent bytes to the left side and press "To Conformance Test" -button. Create file and copy generated xml to file ("sample1.xml")
 You can add comment field where you describe purpose of generated command.
 
 You can try with this data:
