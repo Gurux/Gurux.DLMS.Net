@@ -3123,6 +3123,25 @@ namespace Gurux.DLMS.Internal
             return new string(new char[] { c2, c1, c });
         }
 
+        /// <summary>
+        /// Get serial number from the system title.
+        /// </summary>
+        /// <param name="st"></param>
+        /// <returns></returns>
+        private static long GetSerialNumber(byte[] st)
+        {
+            //Serial number;
+            long sn = (st[3] << 8);
+            sn |= st[4];
+            sn <<= 8;
+            sn |= st[5];
+            sn <<= 8;
+            sn |= st[6];
+            sn <<= 8;
+            sn |= st[7];
+            return sn;
+        }
+
         static string IdisSystemTitleToString(byte[] st, bool addComments)
         {
             StringBuilder sb = new StringBuilder();
@@ -3177,24 +3196,16 @@ namespace Gurux.DLMS.Internal
                     sb.Append("Multi Utility");
                 }
                 //Serial number;
-                int sn = (st[4] & 0xF) << 24;
-                sn |= (st[5] << 16);
-                sn |= (st[6] << 8);
-                sn |= (st[7]);
                 sb.AppendLine("");
                 sb.Append("Serial number: ");
-                sb.AppendLine(sn.ToString());
+                sb.AppendLine(GetSerialNumber(st).ToString());
             }
             else
             {
                 sb.Append(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
                 sb.Append(" ");
-                //Serial number;
-                int sn = (st[4] & 0xF) << 24;
-                sn |= (st[5] << 16);
-                sn |= (st[6] << 8);
-                sn |= (st[7]);
-                sb.Append(sn.ToString());
+                //Serial number;                
+                sb.Append(GetSerialNumber(st).ToString());
             }
             return sb.ToString();
         }
@@ -3209,20 +3220,14 @@ namespace Gurux.DLMS.Internal
                 sb.AppendLine(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
                 sb.Append("Serial number: ");
                 //Serial number;
-                int sn = (st[5] << 16);
-                sn |= (st[6] << 8);
-                sn |= (st[7]);
-                sb.AppendLine(sn.ToString());
+                sb.AppendLine(GetSerialNumber(st).ToString());
             }
             else
             {
                 sb.Append(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
                 sb.Append(" ");
                 //Serial number;
-                int sn = (st[5] << 16);
-                sn |= (st[6] << 8);
-                sn |= (st[7]);
-                sb.AppendLine(sn.ToString());
+                sb.AppendLine(GetSerialNumber(st).ToString());
             }
             return sb.ToString();
         }

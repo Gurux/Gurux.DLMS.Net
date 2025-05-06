@@ -1157,12 +1157,14 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
-            List<string> list = new List<string>();
-            list.Add(Internal.GXCommon.GetLogicalNameString());
-            list.Add("Security Policy");
-            list.Add("Security Suite");
-            list.Add("Client System Title");
-            list.Add("Server System Title");
+            List<string> list = new List<string>
+            {
+                Internal.GXCommon.GetLogicalNameString(),
+                "Security Policy",
+                "Security Suite",
+                "Client System Title",
+                "Server System Title"
+            };
             if (Version > 0)
             {
                 list.Add("Certificates");
@@ -1173,9 +1175,11 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
-            List<string> list = new List<string>();
-            list.Add("Security activate");
-            list.Add("Key transfer");
+            List<string> list = new List<string>
+            {
+                "Security activate",
+                "Key transfer"
+            };
             if (Version > 0)
             {
                 list.Add("Key agreement");

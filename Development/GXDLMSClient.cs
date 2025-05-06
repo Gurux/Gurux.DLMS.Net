@@ -42,6 +42,7 @@ using Gurux.DLMS.ManufacturerSettings;
 using Gurux.DLMS.Secure;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Ecdsa;
+using System.Runtime;
 
 namespace Gurux.DLMS
 {
@@ -1351,7 +1352,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Generates a release request.
+        /// Generates a request to release the connection.
         /// </summary>
         /// <returns>Release request, as byte array.</returns>
         public byte[][] ReleaseRequest()
@@ -1360,7 +1361,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Generates a release request.
+        /// Generates a request to release the connection.
         /// </summary>
         /// <returns>Release request, as byte array.</returns>
         public byte[][] ReleaseRequest(bool force)
@@ -1393,6 +1394,7 @@ namespace Gurux.DLMS
                 buff.SetUInt8(00);
                 //Restore default PDU size for the release.
                 MaxReceivePDUSize = InitializePduSize;
+                Settings.NegotiatedConformance = Settings.ProposedConformance;
                 GXAPDU.GenerateUserInformation(Settings, Settings.Cipher, null, buff);
                 //Increase IC.
                 if (Settings.IsCiphered(false))
@@ -1418,6 +1420,48 @@ namespace Gurux.DLMS
             Settings.CtoSChallenge = InitializeChallenge;
             return reply;
         }
+
+        /// <summary>
+        /// Parses the release response from the meter.
+        /// </summary>
+        /// <param name="value">Release request from the meter.</param>
+        public void ParseRelease(GXByteBuffer value)
+        {
+            value.Position = 0;
+            if (value.GetUInt8() != (byte)Command.ReleaseResponse)
+            {
+                throw new ArgumentException("Invalid release response.");
+            }
+            if (value.Available < GXCommon.GetObjectCount(value))
+            {
+                throw new OutOfMemoryException();
+            }
+            //BerType
+            if (value.GetUInt8() != 0x80)
+            {
+                throw new ArgumentException("Invalid release response.");
+            }
+            //Len.
+            value.GetUInt8();
+            if (value.Available != 0)
+            {
+                if (value.GetUInt8() != 0xBE)
+                {
+                    throw new ArgumentException("Invalid release response.");
+                }
+                UInt16 pduSize = Settings.MaxPduSize;
+                GXAPDU.ParsePDU2(Settings, Settings.Cipher, value, null);
+                if (InitializePduSize != Settings.MaxPduSize)
+                {
+                    throw new ArgumentException("Invalid release response.");
+                }
+                if (Settings.ProposedConformance != Settings.NegotiatedConformance)
+                {
+                    throw new ArgumentException("Invalid release response.");
+                }
+            }
+        }
+
         /// <summary>
         /// Generates a disconnect request.
         /// </summary>

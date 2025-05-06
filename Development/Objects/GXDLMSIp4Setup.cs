@@ -138,6 +138,39 @@ namespace Gurux.DLMS.Objects
             set;
         }
 
+        /// <summary>
+        /// Adds multicast IP address.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="address">New IP Address.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] AddMcIpAaddress(GXDLMSClient client, IPAddress address)
+        {
+            return client.Method(this, 1, FromAddressString(address));
+        }
+
+        /// <summary>
+        /// Delete multicast IP address.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="address">Deleted IP Address.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] DeleteMcIpAaddress(GXDLMSClient client, IPAddress address)
+        {
+            return client.Method(this, 2, FromAddressString(address));
+        }
+
+        /// <summary>
+        /// Returns the count of IP addresses array.
+        /// </summary>
+        /// <param name="client">DLMS client.</param>
+        /// <param name="index">IP address index.</param>
+        /// <returns>Action bytes.</returns>
+        public byte[][] GetMcIpAddressCount(GXDLMSClient client, byte index)
+        {
+            return client.Method(this, 3, index);
+        }
+
         /// <inheritdoc>
         public override object[] GetValues()
         {
@@ -225,7 +258,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetMethodNames()
         {
-            return new string[] { "Add mc IP address", "Delete mc IP address", "Get nbof mc IP addresses" };
+            return new string[] { "Add mc IP address", 
+                "Delete mc IP address", 
+                "Get nbof mc IP addresses" };
         }
 
         int IGXDLMSBase.GetMaxSupportedVersion()

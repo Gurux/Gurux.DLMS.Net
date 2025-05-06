@@ -600,11 +600,25 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
         /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(),"PaymentMode", "CurrentCreditInUse",
-        "CurrentCreditStatus", "AvailableCredit", "AmountToClear", "ClearanceThreshold",
-        "AggregatedDebt", "CreditReferences", "ChargeReferences", "CreditChargeConfigurations",
-                "TokenGatewayConfigurations", "AccountActivationTime", "AccountClosureTime", "Currency",
-        "LowCreditThreshold", "NextCreditAvailableThreshold", "MaxProvision", "MaxProvisionPeriod"};
+            return new string[] { Internal.GXCommon.GetLogicalNameString(),
+                "Payment mode", 
+                "Current credit in use",
+                "Current credit status", 
+                "Available credit", 
+                "Amount to clear", 
+                "Clearance threshold",
+                "Aggregated debt", 
+                "Credit references", 
+                "Charge references", 
+                "Credit charge configurations",
+                "Token gateway configurations", 
+                "Account activation time", 
+                "Account closure time", 
+                "Currency",
+                "Low credit threshold", 
+                "Next credit available threshold", 
+                "Max provision", 
+                "Max provision period"};
         }
 
         /// <inheritdoc />

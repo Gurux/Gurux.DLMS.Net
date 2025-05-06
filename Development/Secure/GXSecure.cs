@@ -57,6 +57,39 @@ namespace Gurux.DLMS.Secure
 
         }
 
+        public static byte[] AesEncrypt(byte[] data, byte[] secret)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                byte[] key = new byte[16];
+                Array.Copy(secret, key, secret.Length);
+                aes.Mode = CipherMode.ECB;
+                aes.Padding = PaddingMode.None;
+                aes.Key = key;
+                using (ICryptoTransform encryptor = aes.CreateEncryptor())
+                {
+                    return encryptor.TransformFinalBlock(data, 0, data.Length);
+                }
+            }
+        }
+
+        public static byte[] AesDecrypt(byte[] data, byte[] secret)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                byte[] key = new byte[16];
+                Array.Copy(secret, key, secret.Length);
+                aes.Mode = CipherMode.ECB;
+                aes.Padding = PaddingMode.None;
+                aes.Key = key;
+                using (ICryptoTransform encryptor = aes.CreateDecryptor())
+                {
+                    return encryptor.TransformFinalBlock(data, 0, data.Length);
+                }
+            }
+        }
+
+
         ///<summary>
         /// Chipher text.
         ///</summary>
@@ -73,29 +106,7 @@ namespace Gurux.DLMS.Secure
             byte[] tmp;
             if (settings.Authentication == Authentication.High)
             {
-                int len = secret.Length;
-                if (len % 16 != 0)
-                {
-                    len += 16 - (secret.Length % 16);
-                }
-                if (data.Length < len)
-                {
-                    len = data.Length;
-                }
-                byte[] p = new byte[len];
-                byte[] s = new byte[16];
-                byte[] x = new byte[16];
-                int i;
-                Array.Copy(data, p, len);
-                secret.CopyTo(s, 0);
-                for (i = 0; i < p.Length; i += 16)
-                {
-                    Buffer.BlockCopy(p, i, x, 0, Math.Min(p.Length, 16));
-                    GXAes128.Encrypt(x, s);
-                    Buffer.BlockCopy(x, 0, p, i, Math.Min(p.Length, 16));
-                }
-                Buffer.BlockCopy(p, 0, x, 0, Math.Min(p.Length, 16));
-                return x;
+                return AesEncrypt(data, secret);
             }
             // Get server Challenge.
             GXByteBuffer challenge = new GXByteBuffer();

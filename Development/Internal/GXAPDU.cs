@@ -244,7 +244,11 @@ namespace Gurux.DLMS.Internal
         /// <param name="settings">DLMS settings.</param>
         /// <param name="cipher"></param>
         /// <param name="data">Generated user information.</param>
-        static internal void GenerateUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer encryptedData, GXByteBuffer data)
+        static internal void GenerateUserInformation(
+            GXDLMSSettings settings, 
+            GXICipher cipher, 
+            GXByteBuffer encryptedData, 
+            GXByteBuffer data)
         {
             data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation);
             if (!settings.IsCiphered(true))
@@ -1198,6 +1202,12 @@ namespace Gurux.DLMS.Internal
                                 // Result source diagnostic component.
                                 if (tag2 != (byte)BerType.Integer)
                                 {
+                                    if (xml != null)
+                                    {
+                                        //RespondingAPTitle
+                                        xml.AppendComment("Invalid tag. " + tag2.ToString("X"));
+                                        continue;
+                                    }
                                     throw new Exception("Invalid tag.");
                                 }
                                 if (buff.GetUInt8() != 1)
@@ -1300,7 +1310,21 @@ namespace Gurux.DLMS.Internal
                         if (xml != null)
                         {
                             //CallingAPTitle
-                            xml.AppendLine(TranslatorGeneralTags.CallingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
+                            if (settings.SourceSystemTitle != null &&
+                                settings.SourceSystemTitle.Length != 8)
+                            {
+                                xml.AppendComment("Invalid system title." );
+                                xml.AppendLine(TranslatorGeneralTags.CallingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
+                                if (settings.SourceSystemTitle.Length > 8)
+                                {
+                                    GXByteBuffer bb = new GXByteBuffer(settings.SourceSystemTitle);
+                                    settings.SourceSystemTitle = bb.SubArray(0, 8);
+                                }
+                            }
+                            else
+                            {
+                                xml.AppendLine(TranslatorGeneralTags.CallingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
+                            }
                         }
                         break;
                     //Server Challenge.

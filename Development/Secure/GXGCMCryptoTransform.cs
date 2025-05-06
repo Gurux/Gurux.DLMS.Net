@@ -78,6 +78,16 @@ namespace Gurux.DLMS.Secure
             _nonceAndCounter = new byte[16];
             GXByteBuffer bb = new GXByteBuffer();
             bb.Set(nonce);
+            if (nonce.Length > 8)
+            {
+                //If system title is too long.
+                bb.Size -= 8 - nonce.Length;
+            }
+            else if (nonce.Length < 8)
+            {
+                //If system title is too small.
+                bb.Size -= nonce.Length - 8;
+            }
             bb.SetUInt32(counter);
             bb.SetUInt32(_algorithmInitialblockCounter);
             bb.Get(_nonceAndCounter);

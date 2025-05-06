@@ -104,17 +104,6 @@ namespace Gurux.DLMS.Secure
             }
             set
             {
-                if (value != null)
-                {
-                    if (value.Length == 0)
-                    {
-                        value = null;
-                    }
-                    else if (value.Length != 8)
-                    {
-                        throw new ArgumentOutOfRangeException("Invalid system title. System title size is 8 bytes.");
-                    }
-                }
                 systemTitle = value;
             }
         }
@@ -126,18 +115,7 @@ namespace Gurux.DLMS.Secure
                 return blockCipherKey;
             }
             set
-            {
-                if (value != null)
-                {
-                    if (value.Length == 0)
-                    {
-                        value = null;
-                    }
-                    else if (value.Length != 16 && value.Length != 32)
-                    {
-                        throw new ArgumentOutOfRangeException(Properties.Resources.InvalidBlockCipherKey);
-                    }
-                }
+            {              
                 blockCipherKey = value;
             }
         }
@@ -149,18 +127,7 @@ namespace Gurux.DLMS.Secure
                 return authenticationKey;
             }
             set
-            {
-                if (value != null)
-                {
-                    if (value.Length == 0)
-                    {
-                        value = null;
-                    }
-                    else if (value.Length != 16 && value.Length != 32)
-                    {
-                        throw new ArgumentOutOfRangeException(Properties.Resources.InvalidAuthenticationKey);
-                    }
-                }
+            {                
                 authenticationKey = value;
             }
         }

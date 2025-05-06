@@ -150,7 +150,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// The number of seconds to wait between two consecutive RREQ – RERR generations.
+        /// The number of seconds to wait between two consecutive RREQ-RERR generations.
         /// </summary>
         /// <remarks>
         /// PIB attribute: 0x19.

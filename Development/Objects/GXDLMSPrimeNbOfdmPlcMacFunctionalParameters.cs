@@ -157,7 +157,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Beacon slot in which this device’s switch node transmits its beacon.
+        /// Beacon slot in which this device's switch node transmits its beacon.
         /// </summary>
         [XmlIgnore()]
         public byte BeaconRxSlot

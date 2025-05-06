@@ -165,9 +165,11 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Executed Script Logical Name",
-                              "Type", "Execution Time"
-                            };
+            return new string[] { 
+                Internal.GXCommon.GetLogicalNameString(), 
+                "Executed script logical name",
+                "Type", 
+                "Execution time"};
         }
 
         /// <inheritdoc />

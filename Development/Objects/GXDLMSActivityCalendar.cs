@@ -220,9 +220,16 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] {Internal.GXCommon.GetLogicalNameString(), "Active Calendar Name ", "Active Season Profile", "Active Week Profile Table",
-                             "Active Day Profile Table", "Passive Calendar Name", "Passive Season Profile", "Passive Week Profile Table", "Passive Day Profile Table", "Time"
-                            };
+            return new string[] {Internal.GXCommon.GetLogicalNameString(), 
+                "Active calendar name", 
+                "Active season profile", 
+                "Active week profile table",
+                "Active day profile table", 
+                "Passive calendar name", 
+                "Passive season profile", 
+                "Passive week profile table", 
+                "Passive day profile table", 
+                "Time"};
 
         }
         /// <inheritdoc />

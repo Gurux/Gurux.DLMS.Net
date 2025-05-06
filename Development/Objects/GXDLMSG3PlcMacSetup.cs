@@ -759,8 +759,8 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "MacShortAddress", "MacRcCoord", "MacPANId", "MackeyTable ", "MacFrameCounter",
-                "MacToneMask", "MacTmrTtl", "MacMaxFrameRetries", "MacneighbourTableEntryTtl", "MacNeighbourTable", "MachighPriorityWindowSize",
+            return new string[] { Internal.GXCommon.GetLogicalNameString(), "MacShortAddress", "MacRcCoord", "MacPANId", "MacKeyTable ", "MacFrameCounter",
+                "MacToneMask", "MacTmrTtl", "MacMaxFrameRetries", "MacNeighbourTableEntryTtl", "MacNeighbourTable", "MacHighPriorityWindowSize",
                 "MacCscmFairnessLimit", "MacBeaconRandomizationWindowLength", "MacA", "MacK", "MacMinCwAttempts", "MacCenelecLegacyMode",
                 "MacFCCLegacyMode", "MacMaxBe", "MacMaxCsmaBackoffs", "MacMinBe",
             "MacBroadcastMaxCwEnabled", "MacTransmitAtten", "MacPosTable", "MacDuplicateDetectionTtl"};
