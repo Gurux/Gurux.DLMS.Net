@@ -3128,10 +3128,13 @@ namespace Gurux.DLMS.Internal
         /// </summary>
         /// <param name="st"></param>
         /// <returns></returns>
-        private static long GetSerialNumber(byte[] st)
+        private static long GetSerialNumber(byte[] st, bool isIdis)
         {
-            //Serial number;
-            long sn = (st[3] << 8);
+            long sn = 0;
+            if (!isIdis)
+            {
+                sn = (st[3] << 8);
+            }
             sn |= st[4];
             sn <<= 8;
             sn |= st[5];
@@ -3198,14 +3201,14 @@ namespace Gurux.DLMS.Internal
                 //Serial number;
                 sb.AppendLine("");
                 sb.Append("Serial number: ");
-                sb.AppendLine(GetSerialNumber(st).ToString());
+                sb.AppendLine(GetSerialNumber(st, true).ToString());
             }
             else
             {
                 sb.Append(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
                 sb.Append(" ");
                 //Serial number;                
-                sb.Append(GetSerialNumber(st).ToString());
+                sb.Append(GetSerialNumber(st, false).ToString());
             }
             return sb.ToString();
         }
@@ -3220,14 +3223,14 @@ namespace Gurux.DLMS.Internal
                 sb.AppendLine(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
                 sb.Append("Serial number: ");
                 //Serial number;
-                sb.AppendLine(GetSerialNumber(st).ToString());
+                sb.AppendLine(GetSerialNumber(st, false).ToString());
             }
             else
             {
                 sb.Append(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
                 sb.Append(" ");
                 //Serial number;
-                sb.AppendLine(GetSerialNumber(st).ToString());
+                sb.AppendLine(GetSerialNumber(st, false).ToString());
             }
             return sb.ToString();
         }
