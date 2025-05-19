@@ -36,7 +36,6 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 using Gurux.Net;
 using Gurux.Serial;
-using System.IO;
 using System.Text;
 
 namespace Gurux.DLMS.Simulator.Net
