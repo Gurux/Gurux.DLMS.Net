@@ -683,13 +683,13 @@ namespace Gurux.DLMS
 
         private void Remove(StringBuilder format, CultureInfo culture)
         {
-#if !NET5_0_OR_GREATER || WINDOWS_UWP
+#if !(NET5_0_OR_GREATER || NET48) || WINDOWS_UWP
             string timeSeparator = ":";
             string dateSeparator = "/";
 #else
             string timeSeparator = culture.DateTimeFormat.TimeSeparator;
             string dateSeparator = culture.DateTimeFormat.DateSeparator;
-#endif //!WINDOWS_UWP
+#endif //!(NET5_0_OR_GREATER || NET48) || WINDOWS_UWP
             if (this is GXDate)
             {
                 Remove(format, "HH", timeSeparator);
@@ -759,13 +759,13 @@ namespace Gurux.DLMS
             StringBuilder format = new StringBuilder();
             if (Skip != DateTimeSkips.None)
             {
-#if !NET5_0_OR_GREATER || WINDOWS_UWP
+#if !(NET5_0_OR_GREATER || NET48) || WINDOWS_UWP
                 string timeSeparator = ":";
                 string dateSeparator = "/";
 #else
                 string timeSeparator = culture.DateTimeFormat.TimeSeparator;
                 string dateSeparator = culture.DateTimeFormat.DateSeparator;
-#endif //!NET5_0_OR_GREATER || WINDOWS_UWP
+#endif //!(NET5_0_OR_GREATER || NET48) || WINDOWS_UWP
 
                 format.Append(GetDateTimeFormat(culture));
                 Remove(format, culture);

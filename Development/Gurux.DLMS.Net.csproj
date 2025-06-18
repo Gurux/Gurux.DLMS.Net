@@ -5,7 +5,7 @@
     <AssemblyName>Gurux.DLMS</AssemblyName>
     <Company>Gurux Ltd</Company>
     <Authors>Gurux Ltd</Authors>
-    <Copyright>Copyright (c) 1998-2023 Gurux Ltd. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 1998-2025 Gurux Ltd. All rights reserved.</Copyright>
     <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
     <Description>Gurux DLMS library for C#</Description>
     <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>

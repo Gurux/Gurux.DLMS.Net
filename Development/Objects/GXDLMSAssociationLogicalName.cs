@@ -2158,7 +2158,11 @@ namespace Gurux.DLMS.Objects
             {
                 return (AccessMode)GetAttributeAccess(target, index);
             }
-            return (AccessMode)tmp[index - 1];
+            if (index <= tmp.Length)
+            {
+                return (AccessMode)tmp[index - 1];
+            }
+            return AccessMode.NoAccess;
         }
 
         /// <summary>
@@ -2319,7 +2323,11 @@ namespace Gurux.DLMS.Objects
             {
                 return this.GetMethodAccess(index);
             }
-            return (MethodAccessMode)methodAccessRights[target][index - 1];
+            if (index <= methodAccessRights[target].Length)
+            {
+                return (MethodAccessMode)methodAccessRights[target][index - 1];
+            }
+            return MethodAccessMode.NoAccess;
         }
 
         /// <summary>
