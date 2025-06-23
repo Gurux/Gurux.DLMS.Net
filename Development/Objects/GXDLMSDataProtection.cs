@@ -349,45 +349,34 @@ namespace Gurux.DLMS.Objects
             foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in Objects)
             {
                 buff.SetUInt8(DataType.Structure);
-                if (Version < 1)
+                buff.SetUInt8(5);
+                GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
+                GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
+                GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
+                GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
+                //restriction_element
+                buff.SetUInt8(DataType.Structure);
+                buff.SetUInt8(2);
+                GXCommon.SetData(settings, buff, DataType.Enum, it.Value.Restriction.Type);
+                switch (it.Value.Restriction.Type)
                 {
-                    buff.SetUInt8(4);
-                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
-                    GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
-                    GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
-                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
+                    case RestrictionType.None:
+                        GXCommon.SetData(settings, buff, DataType.None, null);
+                        break;
+                    case RestrictionType.Date:
+                        buff.SetUInt8(DataType.Structure);
+                        buff.SetUInt8(2);
+                        GXCommon.SetData(settings, buff, DataType.OctetString, it.Value.Restriction.From);
+                        GXCommon.SetData(settings, buff, DataType.OctetString, it.Value.Restriction.To);
+                        break;
+                    case RestrictionType.Entry:
+                        buff.SetUInt8(DataType.Structure);
+                        buff.SetUInt8(2);
+                        GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.Restriction.From);
+                        GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.Restriction.To);
+                        break;
                 }
-                else
-                {
-                    buff.SetUInt8((byte)(Version == 1 ? 5 : 6));
-                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Key.ObjectType);
-                    GXCommon.SetData(settings, buff, DataType.OctetString, GXCommon.LogicalNameToBytes(it.Key.LogicalName));
-                    GXCommon.SetData(settings, buff, DataType.Int8, it.Value.AttributeIndex);
-                    GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.DataIndex);
-                    //restriction_element
-                    buff.SetUInt8(DataType.Structure);
-                    buff.SetUInt8(2);
-                    GXCommon.SetData(settings, buff, DataType.Enum, it.Value.Restriction.Type);
-                    switch (it.Value.Restriction.Type)
-                    {
-                        case RestrictionType.None:
-                            GXCommon.SetData(settings, buff, DataType.None, null);
-                            break;
-                        case RestrictionType.Date:
-                            buff.SetUInt8(DataType.Structure);
-                            buff.SetUInt8(2);
-                            GXCommon.SetData(settings, buff, DataType.OctetString, it.Value.Restriction.From);
-                            GXCommon.SetData(settings, buff, DataType.OctetString, it.Value.Restriction.To);
-                            break;
-                        case RestrictionType.Entry:
-                            buff.SetUInt8(DataType.Structure);
-                            buff.SetUInt8(2);
-                            GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.Restriction.From);
-                            GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.Restriction.To);
-                            break;
-                    }
-                }
-            }
+            }            
             return buff.Array();
         }
 
