@@ -573,6 +573,14 @@ namespace Gurux.DLMS.Reader
             {
                 try
                 {
+                    var lns = _client.Objects.GetObjects(ObjectType.AssociationLogicalName);
+                    if (lns.Count > 2)
+                    {
+                        foreach(GXDLMSAssociationLogicalName it in lns)
+                        {
+                            it.MultipleAssociationViews = true;
+                        }
+                    }
                     _client.Objects.Save(outputFile, new GXXmlWriterSettings() { Values = false });
                 }
                 catch (Exception)
@@ -602,11 +610,17 @@ namespace Gurux.DLMS.Reader
                 {
                     if (it is GXDLMSRegister || it is GXDLMSExtendedRegister)
                     {
-                        list.Add(new KeyValuePair<GXDLMSObject, int>(it, 3));
+                        if (_client.CanRead(it, 3))
+                        {
+                            list.Add(new KeyValuePair<GXDLMSObject, int>(it, 3));
+                        }
                     }
                     if (it is GXDLMSDemandRegister)
                     {
-                        list.Add(new KeyValuePair<GXDLMSObject, int>(it, 4));
+                        if (_client.CanRead(it, 4))
+                        {
+                            list.Add(new KeyValuePair<GXDLMSObject, int>(it, 4));
+                        }
                     }
                 }
                 if (list.Count != 0)
@@ -889,7 +903,7 @@ namespace Gurux.DLMS.Reader
                 {
                     try
                     {
-                        if ((it.GetAccess(pos) & AccessMode.Read) != 0)
+                        if (_client.CanRead(it, pos))
                         {
                             object val = Read(it, pos);
                             ShowValue(val, pos);
@@ -1095,7 +1109,7 @@ namespace Gurux.DLMS.Reader
         /// <returns>Read value.</returns>
         public object Read(GXDLMSObject it, int attributeIndex)
         {
-            if ((it.GetAccess(attributeIndex) & AccessMode.Read) != 0)
+            if (_client.CanRead(it, attributeIndex))
             {
                 GXReplyData reply = new GXReplyData();
                 if (!ReadDataBlock(_client.Read(it, attributeIndex), reply))

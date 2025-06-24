@@ -892,6 +892,11 @@ namespace Gurux.DLMS.Simulator.Net
                             break;
                         }
                     }
+                    if (AssignedAssociation == null)
+                    {
+                        //If client address is wrong.
+                        ret = false;
+                    }
                 }
                 else
                 {
