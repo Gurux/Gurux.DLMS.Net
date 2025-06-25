@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Objects>
+    <GXDLMSData>
+        <LN>0.0.42.0.0.255</LN>
+        <Access>11</Access>
+        <Value Type="9">47 52 58 33</Value>
+    </GXDLMSData>
+    <GXDLMSAssociationLogicalName>
+        <LN>0.0.40.0.1.255</LN>
+        <Version>3</Version>
+        <Access3>80038003800380038003800380008003800380038003</Access3>
+        <MethodAccess3>800180018001800180018001</MethodAccess3>
+        <ObjectList>
+            <GXDLMSData>
+                <LN>0.0.42.0.0.255</LN>
+                <Access3>80018003</Access3>
+            </GXDLMSData>
+        </ObjectList>
+        <ClientSAP>1</ClientSAP>
+        <ServerSAP>1</ServerSAP>
+        <ApplicationContextName>
+            <JointIsoCtt>2</JointIsoCtt>
+            <Country>16</Country>
+            <CountryName>756</CountryName>
+            <IdentifiedOrganization>5</IdentifiedOrganization>
+            <DlmsUA>8</DlmsUA>
+            <ApplicationContext>1</ApplicationContext>
+            <ContextId>1</ContextId>
+        </ApplicationContextName>
+        <XDLMSContextInfo>
+            <Conformance>16252928</Conformance>
+            <MaxReceivePduSize>1024</MaxReceivePduSize>
+            <MaxSendPduSize>1024</MaxSendPduSize>
+            <DlmsVersionNumber>6</DlmsVersionNumber>
+        </XDLMSContextInfo>
+        <AuthenticationMechanismName>
+            <JointIsoCtt>2</JointIsoCtt>
+            <Country>16</Country>
+            <CountryName>756</CountryName>
+            <IdentifiedOrganization>5</IdentifiedOrganization>
+            <DlmsUA>8</DlmsUA>
+            <AuthenticationMechanismName>2</AuthenticationMechanismName>
+            <MechanismId>4</MechanismId>
+        </AuthenticationMechanismName>
+        <Secret>47 75 72 75 78</Secret>
+        <AssociationStatus>2</AssociationStatus>
+        <SecuritySetupReference>0.0.43.0.0.255</SecuritySetupReference>
+        <Users />
+    </GXDLMSAssociationLogicalName>
+    <GXDLMSData>
+        <LN>0.0.43.1.1.255</LN>
+        <Access3>80038003</Access3>
+        <Value Type="6">149</Value>
+    </GXDLMSData>
+</Objects>

@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Objects>
+    <GXDLMSAssociationLogicalName>
+        <LN>0.0.40.0.1.255</LN>
+        <Version>2</Version>
+        <Access>11111111111</Access>
+        <MethodAccess>000000</MethodAccess>
+        <ObjectList>
+            <GXDLMSData>
+                <LN>0.0.42.0.0.255</LN>
+                <Access>11</Access>
+            </GXDLMSData>
+            <GXDLMSData>
+                <LN>0.0.43.1.0.255</LN>
+                <Access>11</Access>
+            </GXDLMSData>
+        </ObjectList>
+        <ClientSAP>16</ClientSAP>
+        <ServerSAP>1</ServerSAP>
+        <ApplicationContextName>
+            <JointIsoCtt>2</JointIsoCtt>
+            <Country>16</Country>
+            <CountryName>756</CountryName>
+            <IdentifiedOrganization>5</IdentifiedOrganization>
+            <DlmsUA>8</DlmsUA>
+            <ApplicationContext>1</ApplicationContext>
+            <ContextId>1</ContextId>
+        </ApplicationContextName>
+        <XDLMSContextInfo>
+            <Conformance>524288</Conformance>
+            <MaxReceivePduSize>1024</MaxReceivePduSize>
+            <MaxSendPduSize>1024</MaxSendPduSize>
+            <DlmsVersionNumber>6</DlmsVersionNumber>
+        </XDLMSContextInfo>
+        <AuthenticationMechanismName>
+            <JointIsoCtt>2</JointIsoCtt>
+            <Country>16</Country>
+            <CountryName>756</CountryName>
+            <IdentifiedOrganization>5</IdentifiedOrganization>
+            <DlmsUA>8</DlmsUA>
+            <AuthenticationMechanismName>2</AuthenticationMechanismName>
+        </AuthenticationMechanismName>
+        <SecuritySetupReference>0.0.0.0.0.0</SecuritySetupReference>
+        <Users />
+    </GXDLMSAssociationLogicalName>
+    <GXDLMSData>
+        <LN>0.0.42.0.0.255</LN>
+        <Access>11</Access>
+        <Value Type="9">47 52 58 32</Value>
+    </GXDLMSData>
+    <GXDLMSData>
+        <LN>0.0.43.1.0.255</LN>
+        <Access>11</Access>
+        <Value Type="6">51</Value>
+    </GXDLMSData>
+    <GXDLMSAssociationLogicalName>
+        <LN>0.0.40.0.2.255</LN>
+        <Version>2</Version>
+        <Access>13333333333</Access>
+        <MethodAccess>111111</MethodAccess>
+        <ObjectList>
+            <GXDLMSData>
+                <LN>0.0.42.0.0.255</LN>
+                <Access>11</Access>
+            </GXDLMSData>
+            <GXDLMSData>
+                <LN>0.0.43.1.0.255</LN>
+                <Access>11</Access>
+            </GXDLMSData>
+            <GXDLMSSecuritySetup>
+                <LN>0.0.43.0.0.255</LN>
+                <Access>13333</Access>
+                <MethodAccess>11</MethodAccess>
+            </GXDLMSSecuritySetup>
+        </ObjectList>
+        <ClientSAP>1</ClientSAP>
+        <ServerSAP>1</ServerSAP>
+        <ApplicationContextName>
+            <JointIsoCtt>2</JointIsoCtt>
+            <Country>16</Country>
+            <CountryName>756</CountryName>
+            <IdentifiedOrganization>5</IdentifiedOrganization>
+            <DlmsUA>8</DlmsUA>
+            <ApplicationContext>1</ApplicationContext>
+            <ContextId>3</ContextId>
+        </ApplicationContextName>
+        <XDLMSContextInfo>
+            <Conformance>16252928</Conformance>
+            <MaxReceivePduSize>1024</MaxReceivePduSize>
+            <MaxSendPduSize>1024</MaxSendPduSize>
+            <DlmsVersionNumber>6</DlmsVersionNumber>
+        </XDLMSContextInfo>
+        <AuthenticationMechanismName>
+            <JointIsoCtt>2</JointIsoCtt>
+            <Country>16</Country>
+            <CountryName>756</CountryName>
+            <IdentifiedOrganization>5</IdentifiedOrganization>
+            <DlmsUA>8</DlmsUA>
+            <AuthenticationMechanismName>2</AuthenticationMechanismName>
+            <MechanismId>5</MechanismId>
+        </AuthenticationMechanismName>
+        <AssociationStatus>2</AssociationStatus>
+        <SecuritySetupReference>0.0.43.0.0.255</SecuritySetupReference>
+        <Users />
+    </GXDLMSAssociationLogicalName>
+    <GXDLMSSecuritySetup>
+        <LN>0.0.43.0.0.255</LN>
+        <Version>1</Version>
+        <Access>13333</Access>
+        <MethodAccess>11</MethodAccess>
+        <SecurityPolicy>108</SecurityPolicy>
+        <SecuritySuite>2</SecuritySuite>
+        <ServerSystemTitle>47 52 58 00 00 00 00 01</ServerSystemTitle>
+        <Certificates />
+        <Guek>000102030405060708090A0B0C0D0E0F000102030405060708090A0B0C0D0E0F</Guek>
+        <Gbek>000102030405060708090A0B0C0D0E0F000102030405060708090A0B0C0D0E0F</Gbek>
+        <Gak>D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDFD0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF</Gak>
+        <Kek>3131313131313131313131313131313131313131313131313131313131313131</Kek>
+    </GXDLMSSecuritySetup>
+    <GXDLMSData>
+        <LN>0.0.43.1.1.255</LN>
+        <Access>13</Access>
+        <Value Type="6">149</Value>
+    </GXDLMSData>
+    <GXDLMSData>
+        <LN>0.0.94.91.18.255</LN>
+        <Access>13</Access>
+        <Value Type="4">0000000000000000000000000000000000000000000000000000000000000000000000000000000000000011</Value>
+    </GXDLMSData>
+    <GXDLMSSapAssignment>
+        <LN>0.0.41.0.0.255</LN>
+        <Access>13</Access>
+        <MethodAccess>1</MethodAccess>
+        <SapAssignmentList />
+    </GXDLMSSapAssignment>
+</Objects>
