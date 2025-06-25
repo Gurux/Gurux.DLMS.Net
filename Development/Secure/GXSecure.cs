@@ -787,6 +787,12 @@ namespace Gurux.DLMS.Secure
 
             byte sc = data.GetUInt8();
             p.SecuritySuite = (SecuritySuite)(sc & 0x3);
+            if (p.Xml == null && p.SecuritySuite != p.Settings.Cipher.SecuritySuite)
+            {
+                //If client try to connect with wrong security suite version.
+                throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
+                        ExceptionServiceError.DecipheringError, 0);
+            }
             p.Security = (Security)(sc & 0x30);
             if ((sc & 0x80) != 0)
             {

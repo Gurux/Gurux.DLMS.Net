@@ -2386,16 +2386,26 @@ namespace Gurux.DLMS
         public bool IsChangedWithAction(ObjectType objectType, int methodIndex)
         {
             if ((objectType == ObjectType.AssociationLogicalName && methodIndex != 1) ||
-                (objectType == ObjectType.SecuritySetup && (methodIndex == 1 || methodIndex == 4 || methodIndex == 6 || methodIndex == 7 || methodIndex == 8)))
+                (objectType == ObjectType.SecuritySetup && (methodIndex == 1 || methodIndex == 2 || methodIndex == 4 || methodIndex == 6 || methodIndex == 8)))
             {
                 return true;
             }
             //SAP assignment is added or removed.
-            return objectType == ObjectType.SapAssignment ||
+            if (objectType == ObjectType.SapAssignment ||
             //Connection state is changed.
             objectType == ObjectType.DisconnectControl ||
             objectType == ObjectType.SpecialDaysTable ||
-            objectType == ObjectType.RegisterActivation;
+            objectType == ObjectType.RegisterActivation ||
+            objectType == ObjectType.FunctionControl ||
+            objectType == ObjectType.Ip6Setup)
+            {
+                return true;
+            }
+            if (objectType == ObjectType.NtpSetup && methodIndex != 1)
+            {
+                return true;
+            }
+            return false;
         }
 
         internal void InvokePreRead(ValueEventArgs[] args)

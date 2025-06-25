@@ -135,7 +135,8 @@ namespace Gurux.DLMS.Objects
             }
             set
             {
-                if (Version < 2 && value != null && value.Length != 16 && value.Length != 0)
+                if ((SecuritySuite != SecuritySuite.Suite2 && value != null && value.Length != 16 && value.Length != 0) ||
+                    SecuritySuite == SecuritySuite.Suite2 && value != null && value.Length != 32 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(Guek));
                 }
@@ -154,7 +155,8 @@ namespace Gurux.DLMS.Objects
             }
             set
             {
-                if (Version < 2 && value != null && value.Length != 16 && value.Length != 0)
+                if ((SecuritySuite != SecuritySuite.Suite2 && value != null && value.Length != 16 && value.Length != 0) ||
+                    SecuritySuite == SecuritySuite.Suite2 && value != null && value.Length != 32 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(Gbek));
                 }
@@ -173,7 +175,8 @@ namespace Gurux.DLMS.Objects
             }
             set
             {
-                if (Version < 2 && value != null && value.Length != 16 && value.Length != 0)
+                if ((SecuritySuite != SecuritySuite.Suite2 && value != null && value.Length != 16 && value.Length != 0) ||
+                    SecuritySuite == SecuritySuite.Suite2 && value != null && value.Length != 32 && value.Length != 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(Gak));
                 }
