@@ -27,7 +27,7 @@
 3;0.0.94.34.101.255;0;Duration of current long power failures in phase L1
 3;0.0.94.34.102.255;0;Duration of current long power failures in phase L2
 3;0.0.94.34.103.255;0;Duration of current long power failures in phase L3
-1;0.0.94.34.80.255;Time trigger for voltage sags, for voltage swell or long power failure;25
+1;0.0.94.34.80.255;0;Time trigger for voltage sags, for voltage swell or long power failure;25
 1;0.1.94.34.105.255;0;Standard Event Log Filter
 1;0.1.94.34.106.255;0;Fraud Detection Log Filter
 1;0.1.94.34.107.255;0;Power Quality Non-finished Event Log Filter

@@ -1375,7 +1375,10 @@ namespace Gurux.DLMS
                         }
                     }
                     //Check inactivity time out.
-                    if (Hdlc != null && Hdlc.InactivityTimeout != 0)
+                    if ((Settings.InterfaceType == InterfaceType.HDLC || 
+                        Settings.InterfaceType == InterfaceType.HdlcWithModeE || 
+                        Settings.InterfaceType == InterfaceType.PlcHdlc) &&
+                        Hdlc != null && Hdlc.InactivityTimeout != 0)
                     {
                         if (info.Command != Command.Snrm)
                         {
@@ -1389,7 +1392,8 @@ namespace Gurux.DLMS
                             }
                         }
                     }
-                    else if (Wrapper != null && Wrapper.InactivityTimeout != 0)
+                    else if (Settings.InterfaceType == InterfaceType.WRAPPER && 
+                        Wrapper != null && Wrapper.InactivityTimeout != 0)
                     {
                         if (info.Command != Command.Aarq)
                         {
