@@ -35,15 +35,10 @@ using Gurux.Common;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 using Gurux.DLMS.Secure;
-using Gurux.DLMS.Simulator.Net;
 using Gurux.Serial;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Ports;
 using System.Text;
-using System.Threading;
 
 namespace Gurux.DLMS.Reader
 {

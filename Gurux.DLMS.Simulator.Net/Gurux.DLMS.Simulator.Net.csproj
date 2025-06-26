@@ -2,11 +2,11 @@
   <PropertyGroup>
     <Company>Gurux Ltd</Company>
     <Authors>Gurux Ltd</Authors>
-    <Copyright>Copyright (c) 1998-2024 Gurux Ltd. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 1998-2025 Gurux Ltd. All rights reserved.</Copyright>
     <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
     <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -16,8 +16,8 @@
     <None Remove="*.bat" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Gurux.Net" Version="8.4.2302.904" />
-    <PackageReference Include="Gurux.Serial" Version="8.4.2302.902" />
+    <PackageReference Include="Gurux.Net" Version="8.4.2503.1001" />
+    <PackageReference Include="Gurux.Serial" Version="8.4.2503.603" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Development\Gurux.DLMS.Net.csproj" />

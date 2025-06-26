@@ -32,10 +32,14 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.Common;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
 using Gurux.Net;
 using Gurux.Serial;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Text;
 
 namespace Gurux.DLMS.Simulator.Net
@@ -82,6 +86,16 @@ namespace Gurux.DLMS.Simulator.Net
             }
         }
 
+        static IPAddress GetLocalIPAddress()
+        {
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+            {
+                socket.Connect("www.gurux.fi", 80);
+                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                return endPoint?.Address;
+            }
+        }
+
         /// <summary>
         /// Password are given as command line parameters 
         /// because they can't read from the meter.
@@ -90,12 +104,133 @@ namespace Gurux.DLMS.Simulator.Net
         /// <param name="server"></param>
         static private void UpdateSettings(Settings settings, GXDLMSMeter server)
         {
+            bool changed = false;
             if (settings.client.Password != null)
             {
                 foreach (GXDLMSAssociationLogicalName it in server.Items.GetObjects(ObjectType.AssociationLogicalName))
                 {
-                    it.Secret = settings.client.Password;
+                    if (GXCommon.ToHex(it.Secret) != GXCommon.ToHex(settings.client.Password))
+                    {
+                        it.Secret = settings.client.Password;
+                        changed = true;
+                    }
                 }
+            }
+            //Update IP address to the meter.
+            IPAddress ipAddress = null;
+            IPAddress subnetMask = null;
+            IPAddress gateway = null;
+            string mac = null;
+            try
+            {
+                ipAddress = GetLocalIPAddress();
+                foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni.OperationalStatus == OperationalStatus.Up &&
+                        ni.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                    {
+                        foreach (UnicastIPAddressInformation ipInfo in ni.GetIPProperties().UnicastAddresses)
+                        {
+                            if (ipInfo.Address.ToString() == ipAddress.ToString())
+                            {
+                                mac = string.Join(":", ni.GetPhysicalAddress().GetAddressBytes().Select(b => b.ToString("X2")));
+                                subnetMask = ipInfo.IPv4Mask;
+                                foreach (var it in ni.GetIPProperties().GatewayAddresses)
+                                {
+                                    if (it.Address.AddressFamily == AddressFamily.InterNetwork)
+                                    {
+                                        gateway = it.Address;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    if (subnetMask != null)
+                    {
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                //Find first IP address.
+                foreach (var it in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+                {
+                    if (it.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        ipAddress = it;
+                        break;
+                    }
+                }
+            }
+
+            IPAddress dnsAddress = null;
+            foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                IPInterfaceProperties adapterProperties = adapter.GetIPProperties();
+                var dnsAddresses = adapterProperties.DnsAddresses;
+
+                if (dnsAddresses.Count > 0)
+                {
+                    foreach (var dns in dnsAddresses)
+                    {
+                        dnsAddress = dns;
+                        break;
+                    }
+                }
+            }
+
+            if (mac != null)
+            {
+                foreach (GXDLMSMacAddressSetup it in server.Items.GetObjects(ObjectType.MacAddressSetup))
+                {
+                    if (it.MacAddress != mac)
+                    {
+                        it.MacAddress = mac;
+                        changed = true;
+                    }
+                }
+            }
+            if (ipAddress != null || dnsAddress != null)
+            {
+                foreach (GXDLMSIp4Setup it in server.Items.GetObjects(ObjectType.Ip4Setup))
+                {
+                    if (ipAddress != null)
+                    {
+                        if (it.IPAddress != ipAddress)
+                        {
+                            it.IPAddress = ipAddress;
+                            it.SubnetMask = subnetMask;
+                            it.GatewayIPAddress = gateway;
+                            changed = true;
+                        }
+                    }
+                    if (dnsAddress != null)
+                    {
+                        if (it.PrimaryDNSAddress != dnsAddress)
+                        {
+                            it.PrimaryDNSAddress = dnsAddress;
+                            changed = true;
+                        }
+                    }
+                }
+                foreach (GXDLMSIp6Setup it in server.Items.GetObjects(ObjectType.Ip6Setup))
+                {
+                    if (dnsAddress != null)
+                    {
+                        if (it.PrimaryDNSAddress != dnsAddress)
+                        {
+                            it.PrimaryDNSAddress = dnsAddress;
+                            changed = true;
+                        }
+                    }
+                }
+            }
+            if (changed)
+            {
+                GXXmlWriterSettings s = new GXXmlWriterSettings();
+                server.Items.Save(settings.inputFile, s);
             }
         }
 
@@ -160,7 +295,7 @@ namespace Gurux.DLMS.Simulator.Net
                     {
                         net.OnReceived += new Gurux.Common.ReceivedEventHandler(GXDLMSMeter.OnGatewayReceived);
                         GXDLMSMeter.GatewayServer = new GXDLMSMeter(settings.client.UseLogicalNameReferencing, settings.client.InterfaceType,
-                                                                    settings.client.UseUtc2NormalTime, 
+                                                                    settings.client.UseUtc2NormalTime,
                                                                     settings.client.ManufacturerId);
                         GXDLMSMeter.GatewayServer.Initialize();
                         UpdateSettings(settings, GXDLMSMeter.GatewayServer);
@@ -198,8 +333,8 @@ namespace Gurux.DLMS.Simulator.Net
                     }
                     if (settings.exclusive)
                     {
-                        server.Initialize(net, settings.trace, 
-                            settings.inputFile, (UInt32) index, 
+                        server.Initialize(net, settings.trace,
+                            settings.inputFile, (UInt32)index,
                             settings.exclusive, sharedObjects);
                         GXDLMSMeter.meters.Add(index, server);
                     }
@@ -207,8 +342,8 @@ namespace Gurux.DLMS.Simulator.Net
                     {
                         try
                         {
-                            server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace, 
-                                settings.inputFile, (UInt32)index + 1, 
+                            server.Initialize(new GXNet(net.Protocol, net.Port + pos), settings.trace,
+                                settings.inputFile, (UInt32)index + 1,
                                 settings.exclusive, sharedObjects);
                         }
                         catch (System.Net.Sockets.SocketException ex)
@@ -216,7 +351,10 @@ namespace Gurux.DLMS.Simulator.Net
                             Console.WriteLine(string.Format("Port {0} already in use.", net.Port + pos));
                         }
                     }
-                    UpdateSettings(settings, server);
+                    if (pos == 0)
+                    {
+                        UpdateSettings(settings, server);
+                    }
                     if (pos == 0 && settings.client.UseLogicalNameReferencing)
                     {
                         str = "Server address: " + settings.client.ServerAddress.ToString();
