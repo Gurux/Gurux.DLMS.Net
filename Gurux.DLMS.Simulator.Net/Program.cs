@@ -84,17 +84,7 @@ namespace Gurux.DLMS.Simulator.Net
                     reader.Close();
                 }
             }
-        }
-
-        static IPAddress GetLocalIPAddress()
-        {
-            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
-            {
-                socket.Connect("www.gurux.fi", 80);
-                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                return endPoint?.Address;
-            }
-        }
+        }    
 
         /// <summary>
         /// Password are given as command line parameters 
@@ -117,112 +107,114 @@ namespace Gurux.DLMS.Simulator.Net
                 }
             }
             //Update IP address to the meter.
-            IPAddress ipAddress = null;
-            IPAddress subnetMask = null;
-            IPAddress gateway = null;
-            string mac = null;
-            try
+            if (settings.media is GXNet net && !string.IsNullOrEmpty(net.HostName))
             {
-                ipAddress = GetLocalIPAddress();
-                foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
+                IPAddress ipAddress = IPAddress.Parse(net.HostName);
+                IPAddress subnetMask = null;
+                IPAddress gateway = null;
+                string mac = null;
+                try
                 {
-                    if (ni.OperationalStatus == OperationalStatus.Up &&
-                        ni.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                    foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
                     {
-                        foreach (UnicastIPAddressInformation ipInfo in ni.GetIPProperties().UnicastAddresses)
+                        if (ni.OperationalStatus == OperationalStatus.Up &&
+                            ni.NetworkInterfaceType != NetworkInterfaceType.Loopback)
                         {
-                            if (ipInfo.Address.ToString() == ipAddress.ToString())
+                            foreach (UnicastIPAddressInformation ipInfo in ni.GetIPProperties().UnicastAddresses)
                             {
-                                mac = string.Join(":", ni.GetPhysicalAddress().GetAddressBytes().Select(b => b.ToString("X2")));
-                                subnetMask = ipInfo.IPv4Mask;
-                                foreach (var it in ni.GetIPProperties().GatewayAddresses)
+                                if (ipInfo.Address.ToString() == ipAddress.ToString())
                                 {
-                                    if (it.Address.AddressFamily == AddressFamily.InterNetwork)
+                                    mac = string.Join(":", ni.GetPhysicalAddress().GetAddressBytes().Select(b => b.ToString("X2")));
+                                    subnetMask = ipInfo.IPv4Mask;
+                                    foreach (var it in ni.GetIPProperties().GatewayAddresses)
                                     {
-                                        gateway = it.Address;
+                                        if (it.Address.AddressFamily == AddressFamily.InterNetwork)
+                                        {
+                                            gateway = it.Address;
+                                        }
                                     }
+                                    break;
                                 }
-                                break;
+                            }
+                        }
+                        if (subnetMask != null)
+                        {
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //Find first IP address.
+                    foreach (var it in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+                    {
+                        if (it.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            ipAddress = it;
+                            break;
+                        }
+                    }
+                }
+
+                IPAddress dnsAddress = null;
+                foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    IPInterfaceProperties adapterProperties = adapter.GetIPProperties();
+                    var dnsAddresses = adapterProperties.DnsAddresses;
+
+                    if (dnsAddresses.Count > 0)
+                    {
+                        foreach (var dns in dnsAddresses)
+                        {
+                            dnsAddress = dns;
+                            break;
+                        }
+                    }
+                }
+
+                if (mac != null)
+                {
+                    foreach (GXDLMSMacAddressSetup it in server.Items.GetObjects(ObjectType.MacAddressSetup))
+                    {
+                        if (it.MacAddress != mac)
+                        {
+                            it.MacAddress = mac;
+                            changed = true;
+                        }
+                    }
+                }
+                if (ipAddress != null || dnsAddress != null)
+                {
+                    foreach (GXDLMSIp4Setup it in server.Items.GetObjects(ObjectType.Ip4Setup))
+                    {
+                        if (ipAddress != null)
+                        {
+                            if (it.IPAddress.ToString() != ipAddress.ToString())
+                            {
+                                it.IPAddress = ipAddress;
+                                it.SubnetMask = subnetMask;
+                                it.GatewayIPAddress = gateway;
+                                changed = true;
+                            }
+                        }
+                        if (dnsAddress != null)
+                        {
+                            if (it.PrimaryDNSAddress.ToString() != dnsAddress.ToString())
+                            {
+                                it.PrimaryDNSAddress = dnsAddress;
+                                changed = true;
                             }
                         }
                     }
-                    if (subnetMask != null)
+                    foreach (GXDLMSIp6Setup it in server.Items.GetObjects(ObjectType.Ip6Setup))
                     {
-                        break;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //Find first IP address.
-                foreach (var it in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
-                {
-                    if (it.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        ipAddress = it;
-                        break;
-                    }
-                }
-            }
-
-            IPAddress dnsAddress = null;
-            foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                IPInterfaceProperties adapterProperties = adapter.GetIPProperties();
-                var dnsAddresses = adapterProperties.DnsAddresses;
-
-                if (dnsAddresses.Count > 0)
-                {
-                    foreach (var dns in dnsAddresses)
-                    {
-                        dnsAddress = dns;
-                        break;
-                    }
-                }
-            }
-
-            if (mac != null)
-            {
-                foreach (GXDLMSMacAddressSetup it in server.Items.GetObjects(ObjectType.MacAddressSetup))
-                {
-                    if (it.MacAddress != mac)
-                    {
-                        it.MacAddress = mac;
-                        changed = true;
-                    }
-                }
-            }
-            if (ipAddress != null || dnsAddress != null)
-            {
-                foreach (GXDLMSIp4Setup it in server.Items.GetObjects(ObjectType.Ip4Setup))
-                {
-                    if (ipAddress != null)
-                    {
-                        if (it.IPAddress != ipAddress)
+                        if (dnsAddress != null)
                         {
-                            it.IPAddress = ipAddress;
-                            it.SubnetMask = subnetMask;
-                            it.GatewayIPAddress = gateway;
-                            changed = true;
-                        }
-                    }
-                    if (dnsAddress != null)
-                    {
-                        if (it.PrimaryDNSAddress != dnsAddress)
-                        {
-                            it.PrimaryDNSAddress = dnsAddress;
-                            changed = true;
-                        }
-                    }
-                }
-                foreach (GXDLMSIp6Setup it in server.Items.GetObjects(ObjectType.Ip6Setup))
-                {
-                    if (dnsAddress != null)
-                    {
-                        if (it.PrimaryDNSAddress != dnsAddress)
-                        {
-                            it.PrimaryDNSAddress = dnsAddress;
-                            changed = true;
+                            if (it.PrimaryDNSAddress.ToString() != dnsAddress.ToString())
+                            {
+                                it.PrimaryDNSAddress = dnsAddress;
+                                changed = true;
+                            }
                         }
                     }
                 }
