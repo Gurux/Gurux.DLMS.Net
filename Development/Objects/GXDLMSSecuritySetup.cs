@@ -910,7 +910,6 @@ namespace Gurux.DLMS.Objects
                 }
                 else if (type == 1)
                 {
-                    Array.Reverse((byte[])tmp[0]);
                     string issuer;
                     try
                     {
@@ -920,7 +919,8 @@ namespace Gurux.DLMS.Objects
                     {
                         issuer = ASCIIEncoding.ASCII.GetString((byte[])tmp[1]);
                     }
-                    cert = ServerCertificates.FindBySerial(new BigInteger((byte[])tmp[0]), issuer);
+                    GXAsn1Integer sn = (GXAsn1Integer) GXAsn1Converter.FromByteArray((byte[])tmp[0]);
+                    cert = ServerCertificates.FindBySerial(sn.ToBigInteger(), issuer);
                 }
                 if (cert == null)
                 {

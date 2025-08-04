@@ -905,7 +905,10 @@ namespace Gurux.DLMS.Secure
                 GXCryptoKeyParameter args = new GXCryptoKeyParameter()
                 {
                     InvocationCounter = invocationCounter,
-                    SystemTitle = p.SystemTitle
+                    SystemTitle = p.SystemTitle,
+                    SecuritySuite = p.SecuritySuite,
+                    BlockCipherKey = p.BlockCipherKey,
+                    AuthenticationKey = p.AuthenticationKey,
                 };
                 if (p.BlockCipherKey == null)
                 {

@@ -219,7 +219,12 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         string[] IGXDLMSBase.GetNames()
         {
-            return new string[] { Internal.GXCommon.GetLogicalNameString(), "Value" };
+            return new string[] { Internal.GXCommon.GetLogicalNameString(),
+                "Buffer",
+                "Object list",
+                "Get parameters",
+                "Set parameters",
+                "Required protection"};
         }
 
         /// <inheritdoc />
@@ -376,7 +381,7 @@ namespace Gurux.DLMS.Objects
                         GXCommon.SetData(settings, buff, DataType.UInt16, it.Value.Restriction.To);
                         break;
                 }
-            }            
+            }
             return buff.Array();
         }
 

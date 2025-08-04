@@ -2975,6 +2975,11 @@ namespace Gurux.DLMS
                         bool llc = GetLLCBytes(server, reply);
                         if (data.Xml == null)
                         {
+                            if (!llc && (frame == 0x13 || frame == 0x3))
+                            {
+                                //Check is this is a push message.
+                                llc = GetLLCBytes(!server, reply);
+                            }
                             if (!llc)
                             {
                                 throw new Exception("LLC bytes are missing from the message.");
@@ -3077,7 +3082,8 @@ namespace Gurux.DLMS
                         reply.Position = (index + 1);
                     }
                     //If client wants to know used client and server address.
-                    else if (settings.ClientAddress == 0 && settings.ServerAddress == 0x7F)
+                    else if (settings.ClientAddress == 0 &&
+                        (settings.ServerAddress == 0x7F || settings.ServerAddress == 0))
                     {
                         return true;
                     }

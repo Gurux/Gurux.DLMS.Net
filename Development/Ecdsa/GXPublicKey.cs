@@ -43,7 +43,7 @@ using System.Text;
 namespace Gurux.DLMS.Ecdsa
 {
     /// <summary>
-    /// Private key.
+    /// Public key.
     /// </summary>
     public class GXPublicKey
     {

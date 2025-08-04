@@ -57,7 +57,7 @@ namespace Gurux.DLMS.ASN
     public class GXx509Certificate
     {
         /// <summary>
-        /// Return default file path.
+        /// Returns default file path.
         /// </summary>
         /// <returns></returns>
         public static string GetFilePath(GXx509Certificate cert)
