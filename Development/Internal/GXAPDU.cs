@@ -1099,7 +1099,7 @@ namespace Gurux.DLMS.Internal
             int len;
             byte tag;
             AssociationResult resultComponent = AssociationResult.Accepted;
-            object ret = 0;
+            object ret = AssociationResult.Accepted;
             string msg;
             ApplicationContextName name;
             while (buff.Position < buff.Size)
@@ -1112,7 +1112,7 @@ namespace Gurux.DLMS.Internal
                         {
                             if (settings.IsServer)
                             {
-                                return name;
+                                continue;
                             }
                             switch (name)
                             {
