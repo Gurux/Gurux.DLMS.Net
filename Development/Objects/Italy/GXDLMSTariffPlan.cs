@@ -421,9 +421,9 @@ namespace Gurux.DLMS.Objects.Italy
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Name", CalendarName, 2);
-            writer.WriteElementString("Enabled", Enabled, 3);
-            writer.WriteElementString("ActivationTime", ActivationTime, 4);
+            writer.WriteElementString("Name", CalendarName);
+            writer.WriteElementString("Enabled", Enabled);
+            writer.WriteElementString("ActivationTime", ActivationTime);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

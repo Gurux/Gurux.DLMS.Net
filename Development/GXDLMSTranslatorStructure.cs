@@ -93,7 +93,7 @@ namespace Gurux.DLMS
 
         public String GetDataType(DataType type)
         {
-            return GetTag(GXDLMS.DATA_TYPE_OFFSET + (int)type);
+            return GetTag(GXDLMS.DataTypeOffset + (int)type);
         }
 
         /**

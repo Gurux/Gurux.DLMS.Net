@@ -41,194 +41,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
-{
-    /// <summary>
-    /// Charge per unit scaling.
-    /// </summary>
-    /// <remarks>
-    ///  Online help:<br/>
-    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-    /// </remarks>
-    public class GXChargePerUnitScaling
-    {
-        /// <summary>
-        /// Commodity scale.
-        /// </summary>
-        /// <remarks>
-        ///  Online help:<br/>
-        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-        /// </remarks>
-        public sbyte CommodityScale
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Price scale.
-        /// </summary>
-        /// <remarks>
-        ///  Online help:<br/>
-        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-        /// </remarks>
-        public sbyte PriceScale
-        {
-            get;
-            set;
-        }
-    }
-
-    /// <summary>
-    /// Commodity.
-    /// </summary>
-    /// <remarks>
-    ///  Online help:<br/>
-    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-    /// </remarks>
-    public class GXCommodity
-    {
-        /// <summary>
-        /// Executed object
-        /// </summary>
-        /// <remarks>
-        ///  Online help:<br/>
-        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-        /// </remarks>
-        public GXDLMSObject Target
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Attribute index.
-        /// </summary>
-        /// <remarks>
-        ///  Online help:<br/>
-        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-        /// </remarks>
-        public int Index
-        {
-            get;
-            set;
-        }
-    };
-
-    /// <summary>
-    /// Charge table.
-    /// </summary>
-    /// <remarks>
-    ///  Online help:<br/>
-    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-    /// </remarks>
-    public class GXChargeTable
-    {
-        /// <summary>
-        /// Index.
-        /// </summary>
-        /// <remarks>
-        ///  Online help:<br/>
-        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-        /// </remarks>
-        public string Index
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Charge per unit.
-        /// </summary>
-        /// <remarks>
-        ///  Online help:<br/>
-        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-        /// </remarks>
-        public short ChargePerUnit
-        {
-            get;
-            set;
-        }
-    }
-
-
-    /// <summary>
-    ///  Online help:<br/>
-    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-    /// </summary>
-    public class GXUnitCharge
-    {
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public GXUnitCharge()
-        {
-            ChargePerUnitScaling = new GXChargePerUnitScaling();
-            Commodity = new GXCommodity();
-        }
-
-        /// <summary>
-        /// Charge per unit scaling.
-        /// </summary>
-        /// <remarks>
-        ///  Online help:<br/>
-        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-        /// </remarks>
-        public GXChargePerUnitScaling ChargePerUnitScaling
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Commodity.
-        /// </summary>
-        /// <remarks>
-        ///  Online help:<br/>
-        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-        /// </remarks>
-        public GXCommodity Commodity
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Charge tables.
-        /// </summary>
-        /// <remarks>
-        ///  Online help:<br/>
-        ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-        /// </remarks>
-        public GXChargeTable[] ChargeTables
-        {
-            get;
-            set;
-        }
-    }
-
-    /// <summary>
-    /// Charge type.
-    /// </summary>
-    /// <remarks>
-    ///  Online help:<br/>
-    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
-    /// </remarks>
-    public enum ChargeType : byte
-    {
-        /// <summary>
-        /// Consumption based collection.
-        /// </summary>
-        ConsumptionBasedCollection,
-        /// <summary>
-        /// Time based collection.
-        /// </summary>
-        TimeBasedCollection,
-        /// <summary>
-        /// Payment based collection.
-        /// </summary>
-        PaymentEventBasedCollection
-    }
-
+{         
     /// <summary>
     ///  Online help:<br/>
     ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCharge
@@ -890,30 +703,30 @@ namespace Gurux.DLMS.Objects
             Proportion = (UInt16)reader.ReadElementContentAsInt("Proportion");
         }
 
-        private static void SaveUnitCharge(GXXmlWriter writer, string name, GXUnitCharge charge, int index)
+        private static void SaveUnitCharge(GXXmlWriter writer, string name, GXUnitCharge charge)
         {
-            writer.WriteStartElement(name, index);
-            writer.WriteElementString("Scale", charge.ChargePerUnitScaling.CommodityScale, index);
-            writer.WriteElementString("PriceScale", charge.ChargePerUnitScaling.PriceScale, index);
+            writer.WriteStartElement(name);
+            writer.WriteElementString("Scale", charge.ChargePerUnitScaling.CommodityScale);
+            writer.WriteElementString("PriceScale", charge.ChargePerUnitScaling.PriceScale);
             if (charge.Commodity.Target != null)
             {
-                writer.WriteElementString("Type", (int)charge.Commodity.Target.ObjectType, index);
-                writer.WriteElementString("Ln", charge.Commodity.Target.LogicalName, index);
+                writer.WriteElementString("Type", (int)charge.Commodity.Target.ObjectType);
+                writer.WriteElementString("Ln", charge.Commodity.Target.LogicalName);
             }
             else
             {
-                writer.WriteElementString("Type", 0, index);
-                writer.WriteElementString("Ln", "0.0.0.0.0.0", index);
+                writer.WriteElementString("Type", 0);
+                writer.WriteElementString("Ln", "0.0.0.0.0.0");
             }
-            writer.WriteElementString("Index", charge.Commodity.Index, index);
-            writer.WriteStartElement("ChargeTables", 0);
+            writer.WriteElementString("Index", charge.Commodity.Index);
+            writer.WriteStartElement("ChargeTables");
             if (charge.ChargeTables != null)
             {
                 foreach (GXChargeTable it in charge.ChargeTables)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("Index", it.Index, index);
-                    writer.WriteElementString("ChargePerUnit", it.ChargePerUnit, index);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Index", it.Index);
+                    writer.WriteElementString("ChargePerUnit", it.ChargePerUnit);
                     writer.WriteEndElement();
                 }
             }
@@ -923,18 +736,18 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("TotalAmountPaid", TotalAmountPaid, 2);
-            writer.WriteElementString("ChargeType", (int)ChargeType, 3);
-            writer.WriteElementString("Priority", Priority, 4);
-            SaveUnitCharge(writer, "UnitChargeActive", UnitChargeActive, 5);
-            SaveUnitCharge(writer, "UnitChargePassive", UnitChargePassive, 6);
-            writer.WriteElementString("UnitChargeActivationTime", UnitChargeActivationTime, 7);
-            writer.WriteElementString("Period", Period, 8);
-            writer.WriteElementString("ChargeConfiguration", (int)ChargeConfiguration, 9);
-            writer.WriteElementString("LastCollectionTime", LastCollectionTime, 10);
-            writer.WriteElementString("LastCollectionAmount", LastCollectionAmount, 11);
-            writer.WriteElementString("TotalAmountRemaining", TotalAmountRemaining, 12);
-            writer.WriteElementString("Proportion", Proportion, 13);
+            writer.WriteElementString("TotalAmountPaid", TotalAmountPaid);
+            writer.WriteElementString("ChargeType", (int)ChargeType);
+            writer.WriteElementString("Priority", Priority);
+            SaveUnitCharge(writer, "UnitChargeActive", UnitChargeActive);
+            SaveUnitCharge(writer, "UnitChargePassive", UnitChargePassive);
+            writer.WriteElementString("UnitChargeActivationTime", UnitChargeActivationTime);
+            writer.WriteElementString("Period", Period);
+            writer.WriteElementString("ChargeConfiguration", (int)ChargeConfiguration);
+            writer.WriteElementString("LastCollectionTime", LastCollectionTime);
+            writer.WriteElementString("LastCollectionAmount", LastCollectionAmount);
+            writer.WriteElementString("TotalAmountRemaining", TotalAmountRemaining);
+            writer.WriteElementString("Proportion", Proportion);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

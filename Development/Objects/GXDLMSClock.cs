@@ -531,162 +531,157 @@ namespace Gurux.DLMS.Objects
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = Time;
+                    break;
+                case 3:
+                    ret = TimeZone;
+                    break;
+                case 4:
+                    ret = Status;
+                    break;
+                case 5:
+                    ret = Begin;
+                    break;
+                case 6:
+                    ret = End;
+                    break;
+                case 7:
+                    ret = Deviation;
+                    break;
+                case 8:
+                    ret = Enabled;
+                    break;
+                case 9:
+                    ret = ClockBase;
+                    break;
+                default:
+                    ret = null;
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
-            if (e.Index == 2)
-            {
-                return Time;
-            }
-            if (e.Index == 3)
-            {
-                return TimeZone;
-            }
-            if (e.Index == 4)
-            {
-                return Status;
-            }
-            if (e.Index == 5)
-            {
-                return Begin;
-            }
-            if (e.Index == 6)
-            {
-                return End;
-            }
-            if (e.Index == 7)
-            {
-                return Deviation;
-            }
-            if (e.Index == 8)
-            {
-                return Enabled;
-            }
-            if (e.Index == 9)
-            {
-                return ClockBase;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                if (e.Value == null)
-                {
-                    Time = new GXDateTime(DateTime.MinValue);
-                }
-                else
-                {
-                    if (e.Value is byte[])
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
                     {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings != null && settings.UseUtc2NormalTime);
-                    }
-                    else if (e.Value is string)
-                    {
-                        e.Value = new GXDateTime((string)e.Value);
-                    }
-                    if (e.Value is GXDateTime)
-                    {
-                        Time = (GXDateTime)e.Value;
-                    }
-                    else if (e.Value is String)
-                    {
-                        DateTime tm;
-                        if (!DateTime.TryParse((String)e.Value, out tm))
+                        if (e.Value == null)
                         {
-                            Time = DateTime.ParseExact((String)e.Value, CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern + " " + CultureInfo.CurrentCulture.DateTimeFormat.LongTimePattern, CultureInfo.CurrentUICulture);
+                            Time = new GXDateTime(DateTime.MinValue);
                         }
                         else
                         {
-                            Time = tm;
+                            if (e.Value is byte[])
+                            {
+                                e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings != null && settings.UseUtc2NormalTime);
+                            }
+                            else if (e.Value is string)
+                            {
+                                e.Value = new GXDateTime((string)e.Value);
+                            }
+                            if (e.Value is GXDateTime)
+                            {
+                                Time = (GXDateTime)e.Value;
+                            }
+                            else if (e.Value is string)
+                            {
+                                DateTime tm;
+                                if (!DateTime.TryParse((string)e.Value, out tm))
+                                {
+                                    Time = DateTime.ParseExact((string)e.Value, CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern + " " + CultureInfo.CurrentCulture.DateTimeFormat.LongTimePattern, CultureInfo.CurrentUICulture);
+                                }
+                                else
+                                {
+                                    Time = tm;
+                                }
+                            }
+                            else
+                            {
+                                Time = Convert.ToDateTime(e.Value);
+                            }
+                        }
+
+                        break;
+                    }
+
+                case 3:
+                    TimeZone = Convert.ToInt32(e.Value);
+                    break;
+                case 4:
+                    Status = (ClockStatus)Convert.ToInt32(e.Value);
+                    break;
+                case 5:
+                    if (e.Value == null)
+                    {
+                        Begin = new GXDateTime(DateTime.MinValue);
+                    }
+                    else
+                    {
+                        if (e.Value is byte[])
+                        {
+                            e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                        }
+                        else if (e.Value is string)
+                        {
+                            e.Value = new GXDateTime((string)e.Value);
+                        }
+                        Begin = (GXDateTime)e.Value;
+                    }
+                    break;
+                case 6:
+                    if (e.Value == null)
+                    {
+                        End = new GXDateTime(DateTime.MinValue);
+                    }
+                    else
+                    {
+                        if (e.Value is byte[])
+                        {
+                            e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
+                        }
+                        else if (e.Value is string)
+                        {
+                            e.Value = new GXDateTime((string)e.Value);
+                        }
+                        End = (GXDateTime)e.Value;
+                    }
+                    break;
+                case 7:
+                    Deviation = Convert.ToInt32(e.Value);
+                    break;
+                case 8:
+                    Enabled = Convert.ToBoolean(e.Value);
+                    if (settings != null && settings.IsServer)
+                    {
+                        if (Enabled)
+                        {
+                            Status |= ClockStatus.DaylightSavingActive;
+                        }
+                        else
+                        {
+                            Status &= ~ClockStatus.DaylightSavingActive;
                         }
                     }
-                    else
-                    {
-                        Time = Convert.ToDateTime(e.Value);
-                    }
-                }
-            }
-            else if (e.Index == 3)
-            {
-                TimeZone = Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 4)
-            {
-                Status = (ClockStatus)Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 5)
-            {
-                if (e.Value == null)
-                {
-                    Begin = new GXDateTime(DateTime.MinValue);
-                }
-                else
-                {
-                    if (e.Value is byte[])
-                    {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
-                    }
-                    else if (e.Value is string)
-                    {
-                        e.Value = new GXDateTime((string)e.Value);
-                    }
-                    Begin = (GXDateTime)e.Value;
-                }
-            }
-            else if (e.Index == 6)
-            {
-                if (e.Value == null)
-                {
-                    End = new GXDateTime(DateTime.MinValue);
-                }
-                else
-                {
-                    if (e.Value is byte[])
-                    {
-                        e.Value = GXDLMSClient.ChangeType((byte[])e.Value, DataType.DateTime, settings.UseUtc2NormalTime);
-                    }
-                    else if (e.Value is string)
-                    {
-                        e.Value = new GXDateTime((string)e.Value);
-                    }
-                    End = (GXDateTime)e.Value;
-                }
-            }
-            else if (e.Index == 7)
-            {
-                Deviation = Convert.ToInt32(e.Value);
-            }
-            else if (e.Index == 8)
-            {
-                Enabled = Convert.ToBoolean(e.Value);
-                if (settings != null && settings.IsServer)
-                {
-                    if (Enabled)
-                    {
-                        Status |= ClockStatus.DaylightSavingActive;
-                    }
-                    else
-                    {
-                        Status &= ~ClockStatus.DaylightSavingActive;
-                    }
-                }
-            }
-            else if (e.Index == 9)
-            {
-                ClockBase = (ClockBase)Convert.ToInt32(e.Value);
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                    break;
+                case 9:
+                    ClockBase = (ClockBase)Convert.ToInt32(e.Value);
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 
@@ -704,14 +699,14 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Time", Time, 2);
-            writer.WriteElementString("TimeZone", TimeZone, 3);
-            writer.WriteElementString("Status", (int)Status, 4);
-            writer.WriteElementString("Begin", Begin, 5);
-            writer.WriteElementString("End", End, 6);
-            writer.WriteElementString("Deviation", Deviation, 7);
-            writer.WriteElementString("Enabled", Enabled, 8);
-            writer.WriteElementString("ClockBase", (int)ClockBase, 9);
+            writer.WriteElementString("Time", Time);
+            writer.WriteElementString("TimeZone", TimeZone);
+            writer.WriteElementString("Status", (int)Status);
+            writer.WriteElementString("Begin", Begin);
+            writer.WriteElementString("End", End);
+            writer.WriteElementString("Deviation", Deviation);
+            writer.WriteElementString("Enabled", Enabled);
+            writer.WriteElementString("ClockBase", (int)ClockBase);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

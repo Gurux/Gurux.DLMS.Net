@@ -528,8 +528,8 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Secret", GXDLMSTranslator.ToHex(Secret), 2);
-            writer.WriteElementString("SecuritySetupReference", SecuritySetupReference, 3);
+            writer.WriteElementString("Secret", GXDLMSTranslator.ToHex(Secret));
+            writer.WriteElementString("SecuritySetupReference", SecuritySetupReference);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

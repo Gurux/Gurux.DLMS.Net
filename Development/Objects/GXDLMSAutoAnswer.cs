@@ -475,31 +475,31 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Mode", (int)Mode, 2);
+            writer.WriteElementString("Mode", (int)Mode);
             if (ListeningWindow != null)
             {
-                writer.WriteStartElement("ListeningWindow", 3);
+                writer.WriteStartElement("ListeningWindow");
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in ListeningWindow)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("Start", it.Key, 0);
-                    writer.WriteElementString("End", it.Value, 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Start", it.Key);
+                    writer.WriteElementString("End", it.Value);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("Status", (int)Status, 4);
-            writer.WriteElementString("NumberOfCalls", NumberOfCalls, 5);
-            writer.WriteElementString("NumberOfRingsInListeningWindow", NumberOfRingsInListeningWindow, 6);
-            writer.WriteElementString("NumberOfRingsOutListeningWindow", NumberOfRingsOutListeningWindow, 6);
+            writer.WriteElementString("Status", (int)Status);
+            writer.WriteElementString("NumberOfCalls", NumberOfCalls);
+            writer.WriteElementString("NumberOfRingsInListeningWindow", NumberOfRingsInListeningWindow);
+            writer.WriteElementString("NumberOfRingsOutListeningWindow", NumberOfRingsOutListeningWindow);
             if (AllowedCallers != null)
             {
-                writer.WriteStartElement("AllowedCallers", 3);
+                writer.WriteStartElement("AllowedCallers");
                 foreach (KeyValuePair<string, CallType> it in AllowedCallers)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("Id", it.Key, 0);
-                    writer.WriteElementString("Type", (int)it.Value, 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Id", it.Key);
+                    writer.WriteElementString("Type", (int)it.Value);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();

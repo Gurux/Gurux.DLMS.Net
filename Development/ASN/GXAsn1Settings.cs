@@ -156,18 +156,27 @@ namespace Gurux.DLMS.ASN
             sb.Append(value);
         }
 
+        /// <summary>
+        /// Increments the indentation level and appends a new line to the current content.
+        /// </summary>
         public void Increase()
         {
             ++count;
             Append("\r\n");
         }
 
+        /// <summary>
+        /// Decrease indentation level.
+        /// </summary>
         public void Decrease()
         {
             --count;
             AppendSpaces();
         }
 
+        /// <summary>
+        /// Returns settings as string.
+        /// </summary>
         public override string ToString()
         {
             return sb.ToString();

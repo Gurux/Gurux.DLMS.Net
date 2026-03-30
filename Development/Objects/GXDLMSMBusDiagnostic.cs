@@ -42,65 +42,7 @@ using Gurux.DLMS.Internal;
 using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
-{
-    /// <summary>
-    /// Last received frame counter and client identification.
-    /// </summary>
-    public class GXBroadcastFrameCounter
-    {
-        /// <summary>
-        /// Client ID.
-        /// </summary>
-        public byte ClientId
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Counter.
-        /// </summary>
-        public UInt32 Counter
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Time stamp.
-        /// </summary>
-        public GXDateTime TimeStamp
-        {
-            get;
-            set;
-        }
-    }
-
-    /// <summary>
-    /// Last changed value.
-    /// </summary>
-    public class GXCaptureTime
-    {
-        /// <summary>
-        /// Attribute ID.
-        /// </summary>
-        public byte AttributeId
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Time stamp.
-        /// </summary>
-        public GXDateTime TimeStamp
-        {
-            get;
-            set;
-        }
-    }
-
-
+{      
     /// <summary>
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSMBusDiagnostic
@@ -564,29 +506,29 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("ReceivedSignalStrength", ReceivedSignalStrength, 2);
-            writer.WriteElementString("ChannelId", ChannelId, 3);
-            writer.WriteElementString("LinkStatus", (byte)LinkStatus, 4);
-            writer.WriteStartElement("BroadcastFrames", 5);
+            writer.WriteElementString("ReceivedSignalStrength", ReceivedSignalStrength);
+            writer.WriteElementString("ChannelId", ChannelId);
+            writer.WriteElementString("LinkStatus", (byte)LinkStatus);
+            writer.WriteStartElement("BroadcastFrames");
             if (BroadcastFrames != null)
             {
                 foreach (var it in BroadcastFrames)
                 {
-                    writer.WriteStartElement("Item", 5);
+                    writer.WriteStartElement("Item");
                     //Some meters are returning time here, not date-time.
-                    writer.WriteElementString("ClientId", it.ClientId, 5);
-                    writer.WriteElementString("Counter", it.Counter, 5);
-                    writer.WriteElementString("TimeStamp", it.TimeStamp, 5);
+                    writer.WriteElementString("ClientId", it.ClientId);
+                    writer.WriteElementString("Counter", it.Counter);
+                    writer.WriteElementString("TimeStamp", it.TimeStamp);
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
-            writer.WriteElementString("Transmissions", Transmissions, 6);
-            writer.WriteElementString("ReceivedFrames", ReceivedFrames, 7);
-            writer.WriteElementString("FailedReceivedFrames", FailedReceivedFrames, 8);
-            writer.WriteStartElement("CaptureTime", 9);
-            writer.WriteElementString("AttributeId", CaptureTime.AttributeId, 9);
-            writer.WriteElementString("TimeStamp", CaptureTime.TimeStamp, 9);
+            writer.WriteElementString("Transmissions", Transmissions);
+            writer.WriteElementString("ReceivedFrames", ReceivedFrames);
+            writer.WriteElementString("FailedReceivedFrames", FailedReceivedFrames);
+            writer.WriteStartElement("CaptureTime");
+            writer.WriteElementString("AttributeId", CaptureTime.AttributeId);
+            writer.WriteElementString("TimeStamp", CaptureTime.TimeStamp);
             writer.WriteEndElement();
         }
 

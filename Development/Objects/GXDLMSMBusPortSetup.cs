@@ -451,25 +451,24 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("ProfileSelection", ProfileSelection, 2);
-            writer.WriteElementString("Status", (int)PortCommunicationStatus, 3);
-            writer.WriteElementString("DataHeaderType", (int)DataHeaderType, 4);
-            writer.WriteElementString("PrimaryAddress", PrimaryAddress, 5);
-            writer.WriteElementString("IdentificationNumber", IdentificationNumber, 6);
-
-            writer.WriteElementString("ManufacturerId", ManufacturerId, 7);
-            writer.WriteElementString("Version", MBusVersion, 8);
-            writer.WriteElementString("DeviceType", (int)DeviceType, 9);
-            writer.WriteElementString("MaxPduSize", MaxPduSize, 10);
-            writer.WriteStartElement("ListeningWindow", 11);
+            writer.WriteElementString("ProfileSelection", ProfileSelection);
+            writer.WriteElementString("Status", (int)PortCommunicationStatus);
+            writer.WriteElementString("DataHeaderType", (int)DataHeaderType);
+            writer.WriteElementString("PrimaryAddress", PrimaryAddress);
+            writer.WriteElementString("IdentificationNumber", IdentificationNumber);
+            writer.WriteElementString("ManufacturerId", ManufacturerId);
+            writer.WriteElementString("Version", MBusVersion);
+            writer.WriteElementString("DeviceType", (int)DeviceType);
+            writer.WriteElementString("MaxPduSize", MaxPduSize);
+            writer.WriteStartElement("ListeningWindow");
             if (ListeningWindow != null)
             {
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in ListeningWindow)
                 {
-                    writer.WriteStartElement("Item", 11);
+                    writer.WriteStartElement("Item");
                     //Some meters are returning time here, not date-time.
-                    writer.WriteElementString("Start", new GXDateTime(it.Key), 11);
-                    writer.WriteElementString("End", new GXDateTime(it.Value), 11);
+                    writer.WriteElementString("Start", new GXDateTime(it.Key));
+                    writer.WriteElementString("End", new GXDateTime(it.Value));
                     writer.WriteEndElement();
                 }
             }

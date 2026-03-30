@@ -309,10 +309,10 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("DefaultBaud", (int)DefaultBaud, 2);
-            writer.WriteElementString("AvailableBaud", (int)AvailableBaud, 3);
-            writer.WriteElementString("AddressState", (int)AddressState, 4);
-            writer.WriteElementString("BusAddress", BusAddress, 5);
+            writer.WriteElementString("DefaultBaud", (int)DefaultBaud);
+            writer.WriteElementString("AvailableBaud", (int)AvailableBaud);
+            writer.WriteElementString("AddressState", (int)AddressState);
+            writer.WriteElementString("BusAddress", BusAddress);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -38,79 +38,10 @@ using System.Xml.Serialization;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
 using System.Text;
+using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
-{
-    /// <summary>
-    /// Enumerates token status codes.
-    /// </summary>
-    ///  <remarks>
-    ///  Online help:<br/>
-    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
-    /// </remarks>
-    public enum TokenStatusCode : int
-    {
-        /// <summary>
-        /// Token format result OK.
-        /// </summary>
-        FormatOk,
-        /// <summary>
-        /// Authentication result OK.
-        /// </summary>
-        AuthenticationOk,
-        /// <summary>
-        /// Validation result OK.
-        /// </summary>
-        ValidationOk,
-        /// <summary>
-        /// Token execution result OK.
-        /// </summary>
-        TokenExecutionOk,
-        /// <summary>
-        /// Token format failure.
-        /// </summary>
-        TokenFormatFailure,
-        /// <summary>
-        /// Authentication failure.
-        /// </summary>
-        AuthenticationFailure,
-        /// <summary>
-        /// Validation result failure.
-        /// </summary>
-        ValidationResultFailure,
-        /// <summary>
-        /// Token execution result failure.
-        /// </summary>
-        TokenExecutionResultFailure,
-        /// <summary>
-        /// Token received and not yet processed.
-        /// </summary>
-        TokenReceived
-    }
-
-    /// <summary>
-    /// Enumerates token delivery methods.
-    /// </summary>
-    /// <remarks>
-    ///  Online help:<br/>
-    ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
-    /// </remarks>
-    public enum TokenDelivery : byte
-    {
-        /// <summary>
-        /// Via remote communications.
-        /// </summary>
-        Remote,
-        /// <summary>
-        /// Via local communications.
-        /// </summary>
-        Local,
-        /// <summary>
-        /// Via manual entry.
-        /// </summary>
-        Manual
-    }
-
+{      
     /// <summary>
     /// Online help:<br/>
     ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSTokenGateway
@@ -482,22 +413,22 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Token", GXCommon.ToHex(Token, false), 2);
-            writer.WriteElementString("Time", Time, 3);
-            writer.WriteStartElement("Descriptions", 4);
+            writer.WriteElementString("Token", GXCommon.ToHex(Token, false));
+            writer.WriteElementString("Time", Time);
+            writer.WriteStartElement("Descriptions");
             if (Descriptions != null)
             {
                 foreach (string it in Descriptions)
                 {
-                    writer.WriteStartElement("Item", 4);
-                    writer.WriteElementString("Name", it, 4);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Name", it);
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
-            writer.WriteElementString("DeliveryMethod", (int)DeliveryMethod, 5);
-            writer.WriteElementString("Status", (int)StatusCode, 6);
-            writer.WriteElementString("Data", DataValue, 7);
+            writer.WriteElementString("DeliveryMethod", (int)DeliveryMethod);
+            writer.WriteElementString("Status", (int)StatusCode);
+            writer.WriteElementString("Data", DataValue);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

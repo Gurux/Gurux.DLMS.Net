@@ -42,77 +42,6 @@ using System.Xml.Serialization;
 
 namespace Gurux.DLMS.Objects
 {
-
-
-    public class GXCreditChargeConfiguration
-    {
-        public string CreditReference
-        {
-            get;
-            set;
-        }
-
-        public string ChargeReference
-        {
-            get;
-            set;
-        }
-
-        public CreditCollectionConfiguration CollectionConfiguration
-        {
-            get;
-            set;
-        }
-    }
-
-    public class GXTokenGatewayConfiguration
-    {
-        public string CreditReference
-        {
-            get;
-            set;
-        }
-
-        public byte TokenProportion
-        {
-            get;
-            set;
-        }
-    }
-
-    /// <summary>
-    /// Used currency.
-    /// </summary>
-    public class GXCurrency
-    {
-        /// <summary>
-        /// Currency name.
-        /// </summary>
-        public string Name
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Currency scale.
-        /// </summary>
-        public sbyte Scale
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Currency unit.
-        /// </summary>
-        public Currency Unit
-        {
-            get;
-            set;
-        }
-    }
-
     /// <summary>
     ///  Online help:<br/>
     ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSAccount
@@ -601,23 +530,23 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
         string[] IGXDLMSBase.GetNames()
         {
             return new string[] { Internal.GXCommon.GetLogicalNameString(),
-                "Payment mode", 
+                "Payment mode",
                 "Current credit in use",
-                "Current credit status", 
-                "Available credit", 
-                "Amount to clear", 
+                "Current credit status",
+                "Available credit",
+                "Amount to clear",
                 "Clearance threshold",
-                "Aggregated debt", 
-                "Credit references", 
-                "Charge references", 
+                "Aggregated debt",
+                "Credit references",
+                "Charge references",
                 "Credit charge configurations",
-                "Token gateway configurations", 
-                "Account activation time", 
-                "Account closure time", 
+                "Token gateway configurations",
+                "Account activation time",
+                "Account closure time",
                 "Currency",
-                "Low credit threshold", 
-                "Next credit available threshold", 
-                "Max provision", 
+                "Low credit threshold",
+                "Next credit available threshold",
+                "Max provision",
                 "Max provision period"};
         }
 
@@ -1101,48 +1030,48 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
             MaxProvisionPeriod = reader.ReadElementContentAsInt("MaxProvisionPeriod");
         }
 
-        private void SaveReferences(GXXmlWriter writer, List<string> list, string name, int index)
+        private void SaveReferences(GXXmlWriter writer, List<string> list, string name)
         {
-            writer.WriteStartElement(name, index);
+            writer.WriteStartElement(name);
             if (list != null)
             {
                 foreach (string it in list)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("Name", it, 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Name", it);
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
         }
 
-        private void SaveCreditChargeConfigurations(GXXmlWriter writer, List<GXCreditChargeConfiguration> list, int index)
+        private void SaveCreditChargeConfigurations(GXXmlWriter writer, List<GXCreditChargeConfiguration> list)
         {
-            writer.WriteStartElement("CreditChargeConfigurations", index);
+            writer.WriteStartElement("CreditChargeConfigurations");
             if (list != null)
             {
                 foreach (GXCreditChargeConfiguration it in list)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("Credit", it.CreditReference, 0);
-                    writer.WriteElementString("Charge", it.ChargeReference, 0);
-                    writer.WriteElementString("Configuration", (int)it.CollectionConfiguration, 3);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Credit", it.CreditReference);
+                    writer.WriteElementString("Charge", it.ChargeReference);
+                    writer.WriteElementString("Configuration", (int)it.CollectionConfiguration);
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
         }
 
-        private void SaveTokenGatewayConfigurations(GXXmlWriter writer, List<GXTokenGatewayConfiguration> list, int index)
+        private void SaveTokenGatewayConfigurations(GXXmlWriter writer, List<GXTokenGatewayConfiguration> list)
         {
             if (list != null)
             {
-                writer.WriteStartElement("TokenGatewayConfigurations", index);
+                writer.WriteStartElement("TokenGatewayConfigurations");
                 foreach (GXTokenGatewayConfiguration it in list)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("Credit", it.CreditReference, 0);
-                    writer.WriteElementString("Token", it.TokenProportion, 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Credit", it.CreditReference);
+                    writer.WriteElementString("Token", it.TokenProportion);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
@@ -1150,27 +1079,27 @@ LowCreditThreshold, NextCreditAvailableThreshold, MaxProvision, MaxProvisionPeri
         }
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("PaymentMode", (int)PaymentMode, 2);
-            writer.WriteElementString("AccountStatus", (int)AccountStatus, 3);
-            writer.WriteElementString("CurrentCreditInUse", CurrentCreditInUse, 4);
-            writer.WriteElementString("CurrentCreditStatus", (byte)CurrentCreditStatus, 5);
-            writer.WriteElementString("AvailableCredit", AvailableCredit, 6);
-            writer.WriteElementString("AmountToClear", AmountToClear, 7);
-            writer.WriteElementString("ClearanceThreshold", ClearanceThreshold, 8);
-            writer.WriteElementString("AggregatedDebt", AggregatedDebt, 9);
-            SaveReferences(writer, CreditReferences, "CreditReferences", 19);
-            SaveReferences(writer, ChargeReferences, "ChargeReferences", 11);
-            SaveCreditChargeConfigurations(writer, CreditChargeConfigurations, 12);
-            SaveTokenGatewayConfigurations(writer, TokenGatewayConfigurations, 13);
-            writer.WriteElementString("AccountActivationTime", AccountActivationTime, 14);
-            writer.WriteElementString("AccountClosureTime", AccountClosureTime, 15);
-            writer.WriteElementString("CurrencyName", Currency.Name, 16);
-            writer.WriteElementString("CurrencyScale", Currency.Scale, 17);
-            writer.WriteElementString("CurrencyUnit", (int)Currency.Unit, 18);
-            writer.WriteElementString("LowCreditThreshold", LowCreditThreshold, 19);
-            writer.WriteElementString("NextCreditAvailableThreshold", NextCreditAvailableThreshold, 20);
-            writer.WriteElementString("MaxProvision", MaxProvision, 21);
-            writer.WriteElementString("MaxProvisionPeriod", MaxProvisionPeriod, 22);
+            writer.WriteElementString("PaymentMode", (int)PaymentMode);
+            writer.WriteElementString("AccountStatus", (int)AccountStatus);
+            writer.WriteElementString("CurrentCreditInUse", CurrentCreditInUse);
+            writer.WriteElementString("CurrentCreditStatus", (byte)CurrentCreditStatus);
+            writer.WriteElementString("AvailableCredit", AvailableCredit);
+            writer.WriteElementString("AmountToClear", AmountToClear);
+            writer.WriteElementString("ClearanceThreshold", ClearanceThreshold);
+            writer.WriteElementString("AggregatedDebt", AggregatedDebt);
+            SaveReferences(writer, CreditReferences, "CreditReferences");
+            SaveReferences(writer, ChargeReferences, "ChargeReferences");
+            SaveCreditChargeConfigurations(writer, CreditChargeConfigurations);
+            SaveTokenGatewayConfigurations(writer, TokenGatewayConfigurations);
+            writer.WriteElementString("AccountActivationTime", AccountActivationTime);
+            writer.WriteElementString("AccountClosureTime", AccountClosureTime);
+            writer.WriteElementString("CurrencyName", Currency.Name);
+            writer.WriteElementString("CurrencyScale", Currency.Scale);
+            writer.WriteElementString("CurrencyUnit", (int)Currency.Unit);
+            writer.WriteElementString("LowCreditThreshold", LowCreditThreshold);
+            writer.WriteElementString("NextCreditAvailableThreshold", NextCreditAvailableThreshold);
+            writer.WriteElementString("MaxProvision", MaxProvision);
+            writer.WriteElementString("MaxProvisionPeriod", MaxProvisionPeriod);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -492,25 +492,25 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteStartElement("ChangedParameter", 2);
+            writer.WriteStartElement("ChangedParameter");
             if (ChangedParameter != null && ChangedParameter.Target != null)
             {
-                writer.WriteElementString("Type", (int)ChangedParameter.Target.ObjectType, 2);
-                writer.WriteElementString("LN", ChangedParameter.Target.LogicalName, 2);
-                writer.WriteElementString("Index", ChangedParameter.AttributeIndex, 2);
-                writer.WriteElementObject("Value", ChangedParameter.Value, 2);
+                writer.WriteElementString("Type", (int)ChangedParameter.Target.ObjectType);
+                writer.WriteElementString("LN", ChangedParameter.Target.LogicalName);
+                writer.WriteElementString("Index", ChangedParameter.AttributeIndex);
+                writer.WriteElementObject("Value", ChangedParameter.Value);
             }
             writer.WriteEndElement();
-            writer.WriteElementString("Time", CaptureTime, 3);
-            writer.WriteStartElement("Parameters", 4);
+            writer.WriteElementString("Time", CaptureTime);
+            writer.WriteStartElement("Parameters");
             if (Parameters != null && Parameters.Count != 0)
             {
                 foreach (GXDLMSTarget it in Parameters)
                 {
-                    writer.WriteStartElement("Item", 4);
-                    writer.WriteElementString("Type", (int)it.Target.ObjectType, 4);
-                    writer.WriteElementString("LN", it.Target.LogicalName, 4);
-                    writer.WriteElementString("Index", it.AttributeIndex, 4);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Type", (int)it.Target.ObjectType);
+                    writer.WriteElementString("LN", it.Target.LogicalName);
+                    writer.WriteElementString("Index", it.AttributeIndex);
                     writer.WriteEndElement();
                 }
             }

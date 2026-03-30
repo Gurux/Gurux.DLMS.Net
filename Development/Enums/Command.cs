@@ -187,6 +187,11 @@ namespace Gurux.DLMS.Enums
         DataNotification = 0x0F,
 
         /// <summary>
+        /// Data notification confirm.
+        /// </summary>
+        DataNotificationConfirm = 16,
+
+        /// <summary>
         /// Glo get request.
         /// </summary>
         GloGetRequest = 0xC8,

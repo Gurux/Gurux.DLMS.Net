@@ -357,11 +357,7 @@ namespace Gurux.DLMS.Objects
                 //If client set new value.
                 if (!settings.IsServer && Scaler != 1 && CurrentAverageValue != null)
                 {
-                    Type type = null;
-                    if (CurrentAverageValue != null)
-                    {
-                        type = CurrentAverageValue.GetType();
-                    }
+                    Type type = CurrentAverageValue.GetType();                    
                     object tmp;
                     tmp = Convert.ToDouble(CurrentAverageValue) / Scaler;
                     if (type != null)
@@ -640,15 +636,15 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementObject("CurrentAverageValue", CurrentAverageValue, GetDataType(2), GetUIDataType(2), 2);
-            writer.WriteElementObject("LastAverageValue", LastAverageValue, 3);
-            writer.WriteElementString("Scaler", Scaler, 1, 4);
-            writer.WriteElementString("Unit", (int)Unit, 5);
-            writer.WriteElementObject("Status", Status, 6);
-            writer.WriteElementString("CaptureTime", CaptureTime, 7);
-            writer.WriteElementString("StartTimeCurrent", StartTimeCurrent, 8);
-            writer.WriteElementString("Period", Period, 9);
-            writer.WriteElementString("NumberOfPeriods", NumberOfPeriods, 10);
+            writer.WriteElementObject("CurrentAverageValue", CurrentAverageValue, GetDataType(2), GetUIDataType(2));
+            writer.WriteElementObject("LastAverageValue", LastAverageValue);
+            writer.WriteElementString("Scaler", Scaler, 1);
+            writer.WriteElementString("Unit", (int)Unit);
+            writer.WriteElementObject("Status", Status);
+            writer.WriteElementString("CaptureTime", CaptureTime);
+            writer.WriteElementString("StartTimeCurrent", StartTimeCurrent);
+            writer.WriteElementString("Period", Period);
+            writer.WriteElementString("NumberOfPeriods", NumberOfPeriods);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

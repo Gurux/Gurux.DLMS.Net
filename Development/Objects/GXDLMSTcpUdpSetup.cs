@@ -323,11 +323,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Port", Port, 2);
-            writer.WriteElementString("IPReference", IPReference, 3);
-            writer.WriteElementString("MaximumSegmentSize", MaximumSegmentSize, 4);
-            writer.WriteElementString("MaximumSimultaneousConnections", MaximumSimultaneousConnections, 5);
-            writer.WriteElementString("InactivityTimeout", InactivityTimeout, 6);
+            writer.WriteElementString("Port", Port);
+            writer.WriteElementString("IPReference", IPReference);
+            writer.WriteElementString("MaximumSegmentSize", MaximumSegmentSize);
+            writer.WriteElementString("MaximumSimultaneousConnections", MaximumSimultaneousConnections);
+            writer.WriteElementString("InactivityTimeout", InactivityTimeout);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

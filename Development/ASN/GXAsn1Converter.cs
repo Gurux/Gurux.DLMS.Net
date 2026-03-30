@@ -151,13 +151,13 @@ namespace Gurux.DLMS.ASN
 
         private static void GetValue(GXByteBuffer bb, IList<object> objects, GXAsn1Settings s, bool getNext)
         {
-            int len;
+            int len1;
             short type;
             IList<object> tmp;
             byte[] tmp2;
             type = bb.GetUInt8();
-            len = GXCommon.GetObjectCount(bb);
-            if (len > bb.Available)
+            len1 = GXCommon.GetObjectCount(bb);
+            if (len1 > bb.Available)
             {
                 throw new OutOfMemoryException("GXAsn1Converter.GetValue");
             }
@@ -173,9 +173,9 @@ namespace Gurux.DLMS.ASN
                 s.AppendSpaces();
                 if (type == (byte)BerType.Integer)
                 {
-                    if (len == 1 || len == 2 || len == 4 || len == 8)
+                    if (len1 == 1 || len1 == 2 || len1 == 4 || len1 == 8)
                     {
-                        tagString = s.GetTag((short)-len);
+                        tagString = s.GetTag((short)-len1);
                     }
                     else
                     {
@@ -203,7 +203,7 @@ namespace Gurux.DLMS.ASN
                     }
                     tmp = new GXAsn1Context() { Index = type & 0xF };
                     objects.Add(tmp);
-                    while (bb.Position < start + len)
+                    while (bb.Position < start + len1)
                     {
                         GetValue(bb, tmp, s, false);
                     }
@@ -220,7 +220,7 @@ namespace Gurux.DLMS.ASN
                     tmp = new GXAsn1Sequence();
                     objects.Add(tmp);
                     int cnt = 0;
-                    while (bb.Position < start + len)
+                    while (bb.Position < start + len1)
                     {
                         ++cnt;
                         GetValue(bb, tmp, s, false);
@@ -259,7 +259,7 @@ namespace Gurux.DLMS.ASN
                     }
                     break;
                 case (byte)BerType.ObjectIdentifier:
-                    GXAsn1ObjectIdentifier oi = new GXAsn1ObjectIdentifier(bb, len);
+                    GXAsn1ObjectIdentifier oi = new GXAsn1ObjectIdentifier(bb, len1);
                     objects.Add(oi);
                     if (s != null)
                     {
@@ -274,7 +274,7 @@ namespace Gurux.DLMS.ASN
                     break;
                 case (byte)BerType.PrintableString:
                     {
-                        string str = bb.GetString(len);
+                        string str = bb.GetString(len1);
                         objects.Add(str);
                         if (s != null)
                         {
@@ -284,7 +284,7 @@ namespace Gurux.DLMS.ASN
                     break;
                 case (byte)BerType.BmpString:
                     {
-                        string str = bb.GetStringUnicode(len);
+                        string str = bb.GetStringUnicode(len1);
                         objects.Add(str);
                         if (s != null)
                         {
@@ -293,8 +293,8 @@ namespace Gurux.DLMS.ASN
                     }
                     break;
                 case (byte)BerType.Utf8StringTag:
-                    objects.Add(new GXAsn1Utf8String(bb.GetString(bb.Position, len)));
-                    bb.Position = bb.Position + len;
+                    objects.Add(new GXAsn1Utf8String(bb.GetString(bb.Position, len1)));
+                    bb.Position = bb.Position + len1;
                     if (s != null)
                     {
                         s.Append(Convert.ToString(objects[objects.Count - 1]));
@@ -302,28 +302,28 @@ namespace Gurux.DLMS.ASN
 
                     break;
                 case (byte)BerType.Ia5String:
-                    objects.Add(new GXAsn1Ia5String(bb.GetString(len)));
+                    objects.Add(new GXAsn1Ia5String(bb.GetString(len1)));
                     if (s != null)
                     {
                         s.Append(Convert.ToString(objects[objects.Count - 1]));
                     }
                     break;
                 case (byte)BerType.Integer:
-                    if (len == 1)
+                    if (len1 == 1)
                     {
                         objects.Add(bb.GetInt8());
                     }
-                    else if (len == 2)
+                    else if (len1 == 2)
                     {
                         objects.Add(bb.GetInt16());
                     }
-                    else if (len == 4)
+                    else if (len1 == 4)
                     {
                         objects.Add(bb.GetInt32());
                     }
                     else
                     {
-                        tmp2 = new byte[len];
+                        tmp2 = new byte[len1];
                         bb.Get(tmp2);
                         objects.Add(new GXAsn1Integer(tmp2));
                     }
@@ -336,9 +336,9 @@ namespace Gurux.DLMS.ASN
                     objects.Add(null);
                     break;
                 case (byte)BerType.BitString:
-                    GXBitString tmp3 = new GXBitString(bb.SubArray(bb.Position, len));
+                    GXBitString tmp3 = new GXBitString(bb.SubArray(bb.Position, len1));
                     objects.Add(tmp3);
-                    bb.Position = bb.Position + len;
+                    bb.Position = bb.Position + len1;
                     if (s != null)
                     {
                         // Append comment.
@@ -347,7 +347,7 @@ namespace Gurux.DLMS.ASN
                     }
                     break;
                 case (byte)BerType.UtcTime:
-                    tmp2 = new byte[len];
+                    tmp2 = new byte[len1];
                     bb.Get(tmp2);
                     objects.Add(GetUtcTime(ASCIIEncoding.ASCII.GetString(tmp2)));
                     if (s != null)
@@ -356,7 +356,7 @@ namespace Gurux.DLMS.ASN
                     }
                     break;
                 case (byte)BerType.GeneralizedTime:
-                    tmp2 = new byte[len];
+                    tmp2 = new byte[len1];
                     bb.Get(tmp2);
                     objects.Add(GXCommon.GetGeneralizedTime(ASCIIEncoding.ASCII.GetString(tmp2)));
                     if (s != null)
@@ -372,7 +372,7 @@ namespace Gurux.DLMS.ASN
                 case (byte)BerType.Context | 5:
                 case (byte)BerType.Context | 6:
                     tmp = new GXAsn1Context() { Constructed = false, Index = type & 0xF };
-                    tmp2 = new byte[len];
+                    tmp2 = new byte[len1];
                     bb.Get(tmp2);
                     tmp.Add(tmp2);
                     objects.Add(tmp);
@@ -398,7 +398,7 @@ namespace Gurux.DLMS.ASN
                             }
                             break;
                         default:
-                            tmp2 = new byte[len];
+                            tmp2 = new byte[len1];
                             bb.Get(tmp2);
                             objects.Add(tmp2);
                             if (s != null)

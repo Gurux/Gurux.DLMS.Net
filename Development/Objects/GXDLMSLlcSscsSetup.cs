@@ -233,8 +233,8 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("ServiceNodeAddress", ServiceNodeAddress, 2);
-            writer.WriteElementString("BaseNodeAddress", BaseNodeAddress, 3);
+            writer.WriteElementString("ServiceNodeAddress", ServiceNodeAddress);
+            writer.WriteElementString("BaseNodeAddress", BaseNodeAddress);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

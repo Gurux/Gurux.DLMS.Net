@@ -562,35 +562,35 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("DataLinkLayerReference", DataLinkLayerReference, 2);
-            writer.WriteElementString("IPAddress", Convert.ToString(IPAddress), 3);
-            writer.WriteStartElement("MulticastIPAddress", 4);
+            writer.WriteElementString("DataLinkLayerReference", DataLinkLayerReference);
+            writer.WriteElementString("IPAddress", Convert.ToString(IPAddress));
+            writer.WriteStartElement("MulticastIPAddress");
             if (MulticastIPAddress != null)
             {
                 foreach (IPAddress it in MulticastIPAddress)
                 {
-                    writer.WriteElementString("Value", Convert.ToString(it), 4);
+                    writer.WriteElementString("Value", Convert.ToString(it));
                 }
             }
             writer.WriteEndElement();
-            writer.WriteStartElement("IPOptions", 5);
+            writer.WriteStartElement("IPOptions");
             if (IPOptions != null)
             {
                 foreach (GXDLMSIp4SetupIpOption it in IPOptions)
                 {
-                    writer.WriteStartElement("IPOption", 5);
-                    writer.WriteElementString("Type", (int)it.Type, 5);
-                    writer.WriteElementString("Length", it.Length, 5);
-                    writer.WriteElementString("Data", GXDLMSTranslator.ToHex(it.Data), 5);
+                    writer.WriteStartElement("IPOption");
+                    writer.WriteElementString("Type", (int)it.Type);
+                    writer.WriteElementString("Length", it.Length);
+                    writer.WriteElementString("Data", GXDLMSTranslator.ToHex(it.Data));
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
-            writer.WriteElementString("SubnetMask", Convert.ToString(SubnetMask), 6);
-            writer.WriteElementString("GatewayIPAddress", Convert.ToString(GatewayIPAddress), 7);
-            writer.WriteElementString("UseDHCP", UseDHCP, 8);
-            writer.WriteElementString("PrimaryDNSAddress", Convert.ToString(PrimaryDNSAddress), 9);
-            writer.WriteElementString("SecondaryDNSAddress", Convert.ToString(SecondaryDNSAddress), 10);
+            writer.WriteElementString("SubnetMask", Convert.ToString(SubnetMask));
+            writer.WriteElementString("GatewayIPAddress", Convert.ToString(GatewayIPAddress));
+            writer.WriteElementString("UseDHCP", UseDHCP);
+            writer.WriteElementString("PrimaryDNSAddress", Convert.ToString(PrimaryDNSAddress));
+            writer.WriteElementString("SecondaryDNSAddress", Convert.ToString(SecondaryDNSAddress));
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

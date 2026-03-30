@@ -253,7 +253,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("AddressState", (int)AddressState, 2);
+            writer.WriteElementString("AddressState", (int)AddressState);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

@@ -42,65 +42,6 @@ using Gurux.DLMS.Internal;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// MIB variable initiator electrical phase.
-    /// </summary>
-    public enum InitiatorElectricalPhase
-    {
-        /// <summary>
-        /// Not defined.
-        /// </summary>
-        NotDefined = 0,
-        /// <summary>
-        /// Phase 1.
-        /// </summary>
-        Phase1,
-        /// <summary>
-        /// Phase 2.
-        /// </summary>
-        Phase2,
-        /// <summary>
-        /// Phase 3.
-        /// </summary>
-        Phase3
-    }
-
-    public enum DeltaElectricalPhase
-    {
-        /// <summary>
-        /// Not defined.
-        /// </summary>
-        NotDefined = 0,
-        /// <summary>
-        /// The server system is connected to the same phase as the client system.
-        /// </summary>
-        Same,
-        Degrees60,
-        Degrees120,
-        Degrees180,
-        DegreesMinus120,
-        DegreesMinus60
-    }
-
-    /// <summary>
-    /// Repeater enumerator values.
-    /// </summary>
-    public enum Repeater
-    {
-        /// <summary>
-        /// Newer repeater.
-        /// </summary>
-        Never = 0,
-        /// <summary>
-        /// Always repeater.
-        /// </summary>
-        Always,
-        /// <summary>
-        /// Dynamic repeater.
-        /// </summary>
-        Dynamic
-    }
-
-    /// <summary>
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSSFSKPhyMacSetUp
     /// </summary>
@@ -656,29 +597,29 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("InitiatorElectricalPhase", (int)InitiatorElectricalPhase, 2);
-            writer.WriteElementString("DeltaElectricalPhase", (int)DeltaElectricalPhase, 3);
-            writer.WriteElementString("MaxReceivingGain", MaxReceivingGain, 4);
-            writer.WriteElementString("MaxTransmittingGain", MaxTransmittingGain, 5);
-            writer.WriteElementString("SearchInitiatorThreshold", SearchInitiatorThreshold, 6);
-            writer.WriteElementString("MarkFrequency", MarkFrequency, 7);
-            writer.WriteElementString("SpaceFrequency", SpaceFrequency, 8);
-            writer.WriteElementString("MacAddress", MacAddress, 9);
-            writer.WriteStartElement("MacGroupAddresses", 10);
+            writer.WriteElementString("InitiatorElectricalPhase", (int)InitiatorElectricalPhase);
+            writer.WriteElementString("DeltaElectricalPhase", (int)DeltaElectricalPhase);
+            writer.WriteElementString("MaxReceivingGain", MaxReceivingGain);
+            writer.WriteElementString("MaxTransmittingGain", MaxTransmittingGain);
+            writer.WriteElementString("SearchInitiatorThreshold", SearchInitiatorThreshold);
+            writer.WriteElementString("MarkFrequency", MarkFrequency);
+            writer.WriteElementString("SpaceFrequency", SpaceFrequency);
+            writer.WriteElementString("MacAddress", MacAddress);
+            writer.WriteStartElement("MacGroupAddresses");
             if (MacGroupAddresses != null)
             {
                 foreach (UInt16 it in MacGroupAddresses)
                 {
-                    writer.WriteElementString("Value", it.ToString(), 10);
+                    writer.WriteElementString("Value", it.ToString());
                 }
             }
             writer.WriteEndElement();
-            writer.WriteElementString("Repeater", (int)Repeater, 11);
-            writer.WriteElementString("RepeaterStatus", RepeaterStatus, 12);
-            writer.WriteElementString("MinDeltaCredit", MinDeltaCredit, 13);
-            writer.WriteElementString("InitiatorMacAddress", InitiatorMacAddress, 14);
-            writer.WriteElementString("SynchronizationLocked", SynchronizationLocked, 15);
-            writer.WriteElementString("TransmissionSpeed", (int)TransmissionSpeed, 16);
+            writer.WriteElementString("Repeater", (int)Repeater);
+            writer.WriteElementString("RepeaterStatus", RepeaterStatus);
+            writer.WriteElementString("MinDeltaCredit", MinDeltaCredit);
+            writer.WriteElementString("InitiatorMacAddress", InitiatorMacAddress);
+            writer.WriteElementString("SynchronizationLocked", SynchronizationLocked);
+            writer.WriteElementString("TransmissionSpeed", (int)TransmissionSpeed);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

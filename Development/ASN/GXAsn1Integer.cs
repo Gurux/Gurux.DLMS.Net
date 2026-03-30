@@ -78,10 +78,6 @@ namespace Gurux.DLMS.ASN
         /// <param name="data">Integer. </param>
         public GXAsn1Integer(BigInteger data)
         {
-            if (data == null)
-            {
-                throw new ArgumentException("data");
-            }
             Value = data.ToByteArray();
             Array.Reverse(Value);
         }
@@ -129,7 +125,7 @@ namespace Gurux.DLMS.ASN
         }
 
         /// <returns>
-        /// Get integer value as int.
+        /// Get integer value as a big integer.
         /// </returns>
         public BigInteger ToBigInteger()
         {

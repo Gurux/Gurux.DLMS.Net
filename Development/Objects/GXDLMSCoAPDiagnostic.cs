@@ -370,29 +370,29 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Tx", MessagesCounter.Tx, 2);
-            writer.WriteElementString("Rx", MessagesCounter.Rx, 2);
-            writer.WriteElementString("TxResend", MessagesCounter.TxResend, 2);
-            writer.WriteElementString("TxReset", MessagesCounter.TxReset, 2);
-            writer.WriteElementString("RxReset", MessagesCounter.RxReset, 2);
-            writer.WriteElementString("TxAck", MessagesCounter.TxAck, 2);
-            writer.WriteElementString("RxAck", MessagesCounter.RxAck, 2);
-            writer.WriteElementString("RxDrop", MessagesCounter.RxDrop, 2);
-            writer.WriteElementString("TxNonPiggybacked", MessagesCounter.TxNonPiggybacked, 2);
-            writer.WriteElementString("MaxRtxExceeded", MessagesCounter.MaxRtxExceeded, 2);
-            writer.WriteElementString("RxRequests", RequestResponseCounter.RxRequests, 3);
-            writer.WriteElementString("TxRequests", RequestResponseCounter.TxRequests, 3);
-            writer.WriteElementString("RxResponse", RequestResponseCounter.RxResponse, 3);
-            writer.WriteElementString("TxResponse", RequestResponseCounter.TxResponse, 3);
-            writer.WriteElementString("TxClientError", RequestResponseCounter.TxClientError, 3);
-            writer.WriteElementString("RxClientError", RequestResponseCounter.RxClientError, 3);
-            writer.WriteElementString("TxServerError", RequestResponseCounter.TxServerError, 3);
-            writer.WriteElementString("RxServerError", RequestResponseCounter.RxServerError, 3);
-            writer.WriteElementString("TransferStarted", BtCounter.BlockWiseTransferStarted, 4);
-            writer.WriteElementString("TransferCompleted", BtCounter.BlockWiseTransferCompleted, 4);
-            writer.WriteElementString("TransferTimeout", BtCounter.BlockWiseTransferTimeout, 4);
-            writer.WriteElementString("AttributeId", CaptureTime.AttributeId, 5);
-            writer.WriteElementString("TimeStamp", CaptureTime.TimeStamp, 5);
+            writer.WriteElementString("Tx", MessagesCounter.Tx);
+            writer.WriteElementString("Rx", MessagesCounter.Rx);
+            writer.WriteElementString("TxResend", MessagesCounter.TxResend);
+            writer.WriteElementString("TxReset", MessagesCounter.TxReset);
+            writer.WriteElementString("RxReset", MessagesCounter.RxReset);
+            writer.WriteElementString("TxAck", MessagesCounter.TxAck);
+            writer.WriteElementString("RxAck", MessagesCounter.RxAck);
+            writer.WriteElementString("RxDrop", MessagesCounter.RxDrop);
+            writer.WriteElementString("TxNonPiggybacked", MessagesCounter.TxNonPiggybacked);
+            writer.WriteElementString("MaxRtxExceeded", MessagesCounter.MaxRtxExceeded);
+            writer.WriteElementString("RxRequests", RequestResponseCounter.RxRequests);
+            writer.WriteElementString("TxRequests", RequestResponseCounter.TxRequests);
+            writer.WriteElementString("RxResponse", RequestResponseCounter.RxResponse);
+            writer.WriteElementString("TxResponse", RequestResponseCounter.TxResponse);
+            writer.WriteElementString("TxClientError", RequestResponseCounter.TxClientError);
+            writer.WriteElementString("RxClientError", RequestResponseCounter.RxClientError);
+            writer.WriteElementString("TxServerError", RequestResponseCounter.TxServerError);
+            writer.WriteElementString("RxServerError", RequestResponseCounter.RxServerError);
+            writer.WriteElementString("TransferStarted", BtCounter.BlockWiseTransferStarted);
+            writer.WriteElementString("TransferCompleted", BtCounter.BlockWiseTransferCompleted);
+            writer.WriteElementString("TransferTimeout", BtCounter.BlockWiseTransferTimeout);
+            writer.WriteElementString("AttributeId", CaptureTime.AttributeId);
+            writer.WriteElementString("TimeStamp", CaptureTime.TimeStamp);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

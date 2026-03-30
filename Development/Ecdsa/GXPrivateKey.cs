@@ -200,6 +200,10 @@ namespace Gurux.DLMS.Ecdsa
             File.WriteAllText(path, ToPem());
         }
 
+        /// <summary>
+        /// ToDer returns the get private key as DER format.
+        /// </summary>
+        /// <returns></returns>
         public string ToDer()
         {
             GXAsn1Sequence d = new GXAsn1Sequence();

@@ -424,15 +424,15 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("TxDataPacketCount", TxDataPacketCount, 2);
-            writer.WriteElementString("RxDataPacketCount", RxDataPacketCount, 3);
-            writer.WriteElementString("TxCmdPacketCount", TxCmdPacketCount, 4);
-            writer.WriteElementString("RxCmdPacketCount", RxCmdPacketCount, 5);
-            writer.WriteElementString("CSMAFailCount", CSMAFailCount, 6);
-            writer.WriteElementString("CSMANoAckCount", CSMANoAckCount, 7);
-            writer.WriteElementString("BadCrcCount", BadCrcCount, 8);
-            writer.WriteElementString("TxDataBroadcastCount", TxDataBroadcastCount, 9);
-            writer.WriteElementString("RxDataBroadcastCount", RxDataBroadcastCount, 10);
+            writer.WriteElementString("TxDataPacketCount", TxDataPacketCount);
+            writer.WriteElementString("RxDataPacketCount", RxDataPacketCount);
+            writer.WriteElementString("TxCmdPacketCount", TxCmdPacketCount);
+            writer.WriteElementString("RxCmdPacketCount", RxCmdPacketCount);
+            writer.WriteElementString("CSMAFailCount", CSMAFailCount);
+            writer.WriteElementString("CSMANoAckCount", CSMANoAckCount);
+            writer.WriteElementString("BadCrcCount", BadCrcCount);
+            writer.WriteElementString("TxDataBroadcastCount", TxDataBroadcastCount);
+            writer.WriteElementString("RxDataBroadcastCount", RxDataBroadcastCount);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

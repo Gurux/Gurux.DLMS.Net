@@ -47,7 +47,7 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("0")]
         None = 0,
         /// <summary>
-        /// Unit is yer.
+        /// Unit is year.
         /// </summary>
         [XmlEnum("1")]
         Year = 1,

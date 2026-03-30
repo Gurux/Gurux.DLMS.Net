@@ -41,9 +41,17 @@ using Gurux.DLMS.Enums;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// Online help:
-    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSRegister
+    /// Represents a COSEM Register object that holds a value with an associated scaler and unit, as defined by the
+    /// DLMS/COSEM standard.
     /// </summary>
+    /// <remarks>The GXDLMSRegister class provides access to the value, scaler, and unit attributes of a COSEM
+    /// Register object. It supports reading and writing the register value, as well as resetting it to its default
+    /// state. This class is typically used in DLMS/COSEM client and server implementations to interact with
+    /// register-type data points.
+    /// <para/>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSRegister
+    /// </remarks>
     public class GXDLMSRegister : GXDLMSObject, IGXDLMSBase
     {
         protected int scaler;
@@ -214,136 +222,144 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         public override DataType GetDataType(int index)
         {
-            if (index == 1)
+            DataType dt;
+            switch (index)
             {
-                return DataType.OctetString;
+                case 1:
+                    dt = DataType.OctetString;
+                    break;
+                case 2:
+                    dt = base.GetDataType(index);
+                    if (dt == DataType.None && Value != null)
+                    {
+                        dt = GXCommon.GetDLMSDataType(Value.GetType());
+                    }
+                    break;
+                case 3:
+                    dt = DataType.Structure;
+                    break;
+                case 4 when this is GXDLMSExtendedRegister:
+                    dt = base.GetDataType(index);
+                    break;
+                default:
+                    throw new ArgumentException("GetDataType failed. Invalid attribute index.");
             }
-            if (index == 2)
-            {
-                DataType dt = base.GetDataType(index);
-                if (dt == DataType.None && Value != null)
-                {
-                    dt = GXCommon.GetDLMSDataType(Value.GetType());
-                }
-                return dt;
-            }
-            if (index == 3)
-            {
-                return DataType.Structure;
-            }
-            if (index == 4 && this is GXDLMSExtendedRegister)
-            {
-                return base.GetDataType(index);
-            }
-            throw new ArgumentException("GetDataType failed. Invalid attribute index.");
+            return dt;
         }
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
-            }
-            if (e.Index == 2)
-            {
-                //If client set new value.
-                if (!settings.IsServer && Scaler != 1 && Value != null)
-                {
-                    DataType dt = base.GetDataType(2);
-                    if (dt == DataType.None && Value != null)
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    //If client set new value.
+                    if (!settings.IsServer && Scaler != 1 && Value != null)
                     {
-                        dt = GXCommon.GetDLMSDataType(Value.GetType());
-                        //If user has set initial value.
-                        if (dt == DataType.String)
+                        DataType dt = base.GetDataType(2);
+                        if (dt == DataType.None && Value != null)
                         {
-                            dt = DataType.None;
+                            dt = GXCommon.GetDLMSDataType(Value.GetType());
+                            //If user has set initial value.
+                            if (dt == DataType.String)
+                            {
+                                dt = DataType.None;
+                            }
+                        }
+                        ret = Convert.ToDouble(Value) / Scaler;
+                        if (dt != DataType.None)
+                        {
+                            ret = Convert.ChangeType(ret, GXCommon.GetDataType(dt));
                         }
                     }
-                    object tmp;
-                    tmp = Convert.ToDouble(Value) / Scaler;
-                    if (dt != DataType.None)
+                    else
                     {
-                        tmp = Convert.ChangeType(tmp, GXCommon.GetDataType(dt));
+                        ret = Value;
                     }
-                    return tmp;
-                }
-                return Value;
+                    break;
+                case 3:
+                    e.ByteArray = true;
+                    GXByteBuffer data = new GXByteBuffer();
+                    data.SetUInt8((byte)DataType.Structure);
+                    data.SetUInt8(2);
+                    GXCommon.SetData(settings, data, DataType.Int8, scaler);
+                    GXCommon.SetData(settings, data, DataType.Enum, Unit);
+                    ret = data.Array();
+                    break;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
+                    break;
             }
-            if (e.Index == 3)
-            {
-                e.ByteArray = true;
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Structure);
-                data.SetUInt8(2);
-                GXCommon.SetData(settings, data, DataType.Int8, scaler);
-                GXCommon.SetData(settings, data, DataType.Enum, Unit);
-                return data.Array();
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                if (Scaler != 1 && e.Value != null && !e.User)
-                {
-                    try
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    if (Scaler != 1 && e.Value != null && !e.User)
                     {
-                        if (settings != null && settings.IsServer)
+                        try
                         {
+                            if (settings != null && settings.IsServer)
+                            {
+                                Value = e.Value;
+                            }
+                            else
+                            {
+                                Value = Convert.ToDouble(e.Value) * Scaler;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            //Sometimes scaler is set for wrong Object type.
                             Value = e.Value;
                         }
-                        else
-                        {
-                            Value = Convert.ToDouble(e.Value) * Scaler;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        //Sometimes scaler is set for wrong Object type.
-                        Value = e.Value;
-                    }
-                }
-                else
-                {
-                    Value = e.Value;
-                }
-            }
-            else if (e.Index == 3)
-            {
-                if (e.Value == null)
-                {
-                    Scaler = 1;
-                    Unit = Unit.None;
-                }
-                else
-                {
-                    List<object> arr;
-                    if (e.Value is List<object>)
-                    {
-                        arr = (List<object>)e.Value;
                     }
                     else
                     {
-                        arr = new List<object>((object[])e.Value);
+                        Value = e.Value;
                     }
-                    if (arr.Count != 2)
+                    break;
+                case 3:
                     {
-                        throw new Exception("SetValue failed. Invalid scaler unit value.");
+                        if (e.Value == null)
+                        {
+                            Scaler = 1;
+                            Unit = Unit.None;
+                        }
+                        else
+                        {
+                            List<object> arr;
+                            if (e.Value is List<object>)
+                            {
+                                arr = (List<object>)e.Value;
+                            }
+                            else
+                            {
+                                arr = new List<object>((object[])e.Value);
+                            }
+                            if (arr.Count != 2)
+                            {
+                                throw new Exception("SetValue failed. Invalid scaler unit value.");
+                            }
+                            scaler = Convert.ToInt32(arr[0]);
+                            Unit = (Unit)(Convert.ToInt32(arr[1]) & 0xFF);
+                        }
+
+                        break;
                     }
-                    scaler = Convert.ToInt32(arr[0]);
-                    Unit = (Unit)(Convert.ToInt32(arr[1]) & 0xFF);
-                }
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
         }
 
@@ -356,9 +372,9 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Unit", (int)Unit, 2);
-            writer.WriteElementString("Scaler", Scaler, 1, 3);
-            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2), 4);
+            writer.WriteElementString("Unit", (int)Unit);
+            writer.WriteElementString("Scaler", Scaler, 1);
+            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

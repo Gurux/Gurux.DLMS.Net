@@ -334,14 +334,14 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Mode", (int)Mode, 2);
-            writer.WriteElementString("Speed", (int)Speed, 3);
-            writer.WriteElementString("PrimaryAddresses", GXDLMSTranslator.ToHex(PrimaryAddresses), 4);
+            writer.WriteElementString("Mode", (int)Mode);
+            writer.WriteElementString("Speed", (int)Speed);
+            writer.WriteElementString("PrimaryAddresses", GXDLMSTranslator.ToHex(PrimaryAddresses));
             if (Tabis != null)
             {
                 byte[] tmp = new byte[Tabis.Length];
                 Buffer.BlockCopy(Tabis, 0, tmp, 0, Tabis.Length);
-                writer.WriteElementString("Tabis", GXDLMSTranslator.ToHex(tmp), 5);
+                writer.WriteElementString("Tabis", GXDLMSTranslator.ToHex(tmp));
             }
         }
 

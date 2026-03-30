@@ -277,9 +277,9 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("OutputState", OutputState, 2);
-            writer.WriteElementString("ControlState", (int)ControlState, 0, 3);
-            writer.WriteElementString("ControlMode", (int)ControlMode, 0, 4);
+            writer.WriteElementString("OutputState", OutputState);
+            writer.WriteElementString("ControlState", (int)ControlState);
+            writer.WriteElementString("ControlMode", (int)ControlMode);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

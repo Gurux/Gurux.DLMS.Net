@@ -239,8 +239,8 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Id", TableId, 2);
-            writer.WriteElementString("Buffer", GXCommon.ToHex(Buffer, true), 3);
+            writer.WriteElementString("Id", TableId);
+            writer.WriteElementString("Buffer", GXCommon.ToHex(Buffer, true));
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

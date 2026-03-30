@@ -34,7 +34,7 @@
 
 using System.Text;
 
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Objects
 {
     public class GXDLMSWeekProfile
     {

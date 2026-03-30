@@ -176,7 +176,6 @@ pip-log.txt
 # Mac crap
 .DS_Store
 *.nupkg
-*.XML
 *.db
 *.lock
 *.ide

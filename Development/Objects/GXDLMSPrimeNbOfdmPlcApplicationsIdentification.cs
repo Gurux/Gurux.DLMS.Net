@@ -241,9 +241,9 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("FirmwareVersion", FirmwareVersion, 2);
-            writer.WriteElementString("VendorId", VendorId, 3);
-            writer.WriteElementString("ProductId", ProductId, 4);
+            writer.WriteElementString("FirmwareVersion", FirmwareVersion);
+            writer.WriteElementString("VendorId", VendorId);
+            writer.WriteElementString("ProductId", ProductId);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

@@ -52,7 +52,9 @@ namespace Gurux.DLMS
         /// <param name="settings">DLMS settings.</param>
         /// <param name="server">DLMS server.</param>
         /// <param name="data">Received data.</param>
-        public static void HandleReadRequest(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, Command cipheredCommand)
+        public static void HandleReadRequest(GXDLMSSettings settings, GXDLMSServer server, 
+            GXByteBuffer data, GXByteBuffer replyData, 
+            GXDLMSTranslatorStructure xml, Command cipheredCommand)
         {
             //Return error if connection is not established.
             if (xml == null && (settings.Connected & ConnectionState.Dlms) == 0 && cipheredCommand == Command.None)
@@ -270,7 +272,7 @@ namespace Gurux.DLMS
                         value = GXCommon.ToHex(data.Data, false,
                                                data.Position, data.Size - data.Position);
                         xml.AppendLine(
-                            GXDLMS.DATA_TYPE_OFFSET + (int)di.Type,
+                            GXDLMS.DataTypeOffset + (int)di.Type,
                             "Value", value.ToString());
                     }
                     if (xml.OutputType == TranslatorOutputType.StandardXml)

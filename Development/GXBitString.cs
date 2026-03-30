@@ -215,7 +215,6 @@ namespace Gurux.DLMS
         /// <summary>
         /// Converts ASN1 bit-string to integer value.
         /// </summary>
-        /// <returns>The bit-string as an integer value.</returns>
         public int ToInteger()
         {
             UInt32 ret = 0;

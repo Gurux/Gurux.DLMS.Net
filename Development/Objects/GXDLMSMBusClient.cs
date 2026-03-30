@@ -41,40 +41,7 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
-{
-    /// <summary>
-    /// M-Bus data definition element.
-    /// </summary>
-    public class GXMBusClientData
-    {
-        /// <summary>
-        /// Data information block.
-        /// </summary>
-        public byte[] DataInformation
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Value information block.
-        /// </summary>
-        public byte[] ValueInformation
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Data.
-        /// </summary>
-        public object Data
-        {
-            get;
-            set;
-        }
-    }
-
+{  
     /// <summary>
     /// Use this class to setup M-Bus slave devices and to exchange data with them.
     /// Online help:
@@ -753,32 +720,32 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("MBusPortReference", MBusPortReference, 2);
-            writer.WriteStartElement("CaptureDefinition", 3);
+            writer.WriteElementString("MBusPortReference", MBusPortReference);
+            writer.WriteStartElement("CaptureDefinition");
             if (CaptureDefinition != null)
             {
                 foreach (KeyValuePair<string, string> it in CaptureDefinition)
                 {
-                    writer.WriteStartElement("Item", 3);
-                    writer.WriteElementString("Data", it.Key, 3);
-                    writer.WriteElementString("Value", it.Value, 3);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Data", it.Key);
+                    writer.WriteElementString("Value", it.Value);
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
-            writer.WriteElementString("CapturePeriod", CapturePeriod, 4);
-            writer.WriteElementString("PrimaryAddress", PrimaryAddress, 5);
-            writer.WriteElementString("IdentificationNumber", IdentificationNumber, 6);
-            writer.WriteElementString("ManufacturerID", ManufacturerID, 7);
-            writer.WriteElementString("DataHeaderVersion", DataHeaderVersion, 8);
-            writer.WriteElementString("DeviceType", (int)DeviceType, 9);
-            writer.WriteElementString("AccessNumber", AccessNumber, 10);
-            writer.WriteElementString("Status", Status, 11);
-            writer.WriteElementString("Alarm", Alarm, 12);
+            writer.WriteElementString("CapturePeriod", CapturePeriod);
+            writer.WriteElementString("PrimaryAddress", PrimaryAddress);
+            writer.WriteElementString("IdentificationNumber", IdentificationNumber);
+            writer.WriteElementString("ManufacturerID", ManufacturerID);
+            writer.WriteElementString("DataHeaderVersion", DataHeaderVersion);
+            writer.WriteElementString("DeviceType", (int)DeviceType);
+            writer.WriteElementString("AccessNumber", AccessNumber);
+            writer.WriteElementString("Status", Status);
+            writer.WriteElementString("Alarm", Alarm);
             if (Version > 0)
             {
-                writer.WriteElementString("Configuration", Configuration, 13);
-                writer.WriteElementString("EncryptionKeyStatus", (int)EncryptionKeyStatus, 14);
+                writer.WriteElementString("Configuration", Configuration);
+                writer.WriteElementString("EncryptionKeyStatus", (int)EncryptionKeyStatus);
             }
         }
 

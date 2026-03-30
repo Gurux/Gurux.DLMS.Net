@@ -898,6 +898,7 @@ namespace Gurux.DLMS.Objects
             {
                 int index2;
                 Nullable<DateTimeOffset> lastDate = null;
+                List<object> lastRow = null;
                 foreach (object tmp in (IEnumerable<object>)e.Value)
                 {
                     List<object> row = new List<object>();
@@ -928,11 +929,11 @@ namespace Gurux.DLMS.Objects
                             {
                                 type = DataType.None;
                             }
-                            if (row[pos] is byte[])
+                            if (row[pos] is byte[] value)
                             {
-                                if (type != DataType.None && row[pos] is byte[])
+                                if (type != DataType.None)
                                 {
-                                    row[pos] = GXDLMSClient.ChangeType(row[pos] as byte[], type, settings.UseUtc2NormalTime);
+                                    row[pos] = GXDLMSClient.ChangeType(value, type, settings.UseUtc2NormalTime);
                                     if (row[pos] is GXDateTime)
                                     {
                                         GXDateTime dt = (GXDateTime)row[pos];
@@ -973,52 +974,75 @@ namespace Gurux.DLMS.Objects
 
                             if (cols[pos].Key is GXDLMSRegister && index2 == 2)
                             {
-                                double scaler = (cols[pos].Key as GXDLMSRegister).Scaler;
-                                if (scaler != 1)
+                                if (row[pos] != null)
                                 {
-                                    try
+                                    double scaler = (cols[pos].Key as GXDLMSRegister).Scaler;
+                                    if (scaler != 1)
                                     {
-                                        row[pos] = Convert.ToDouble(row[pos]) * scaler;
-                                    }
-                                    catch
-                                    {
-                                        //Skip error
+                                        try
+                                        {
+                                            row[pos] = Convert.ToDouble(row[pos]) * scaler;
+                                        }
+                                        catch
+                                        {
+                                            //Skip error
+                                        }
                                     }
                                 }
-                            }
-                            else if (cols[pos].Key is GXDLMSDemandRegister && (index2 == 2 || index2 == 3))
-                            {
-                                double scaler = (cols[pos].Key as GXDLMSDemandRegister).Scaler;
-                                if (scaler != 1)
+                                else if (lastRow != null)
                                 {
-                                    try
+                                    row[pos] = lastRow[pos];
+                                }
+                            }
+                            else if (cols[pos].Key is GXDLMSDemandRegister &&
+                                (index2 == 2 || index2 == 3))
+                            {
+                                if (row[pos] != null)
+                                {
+                                    double scaler = (cols[pos].Key as GXDLMSDemandRegister).Scaler;
+                                    if (scaler != 1)
                                     {
-                                        row[pos] = Convert.ToDouble(row[pos]) * scaler;
+                                        try
+                                        {
+                                            row[pos] = Convert.ToDouble(row[pos]) * scaler;
+                                        }
+                                        catch
+                                        {
+                                            //Skip error
+                                        }
                                     }
-                                    catch
-                                    {
-                                        //Skip error
-                                    }
+                                }
+                                else if (lastRow != null)
+                                {
+                                    row[pos] = lastRow[pos];
                                 }
                             }
                             else if (cols[pos].Key is GXDLMSRegister && index2 == 3)
                             {
-                                try
+                                if (row[pos] != null)
                                 {
-                                    GXDLMSRegister r = new GXDLMSRegister();
-                                    ValueEventArgs v = new ValueEventArgs(r, 3, 0, null);
-                                    v.Value = row[pos];
-                                    (r as IGXDLMSBase).SetValue(null, v);
-                                    row[pos] = new object[] { r.Scaler, r.Unit };
+                                    try
+                                    {
+                                        GXDLMSRegister r = new GXDLMSRegister();
+                                        ValueEventArgs v = new ValueEventArgs(r, 3, 0, null);
+                                        v.Value = row[pos];
+                                        (r as IGXDLMSBase).SetValue(null, v);
+                                        row[pos] = new object[] { r.Scaler, r.Unit };
+                                    }
+                                    catch
+                                    {
+                                        //Skip error
+                                    }
                                 }
-                                catch
+                                else if (lastRow != null)
                                 {
-                                    //Skip error
+                                    row[pos] = lastRow[pos];
                                 }
                             }
                         }
                     }
                     Buffer.Add(row.ToArray());
+                    lastRow = row;
                 }
                 if (settings.IsServer)
                 {
@@ -1051,7 +1075,10 @@ namespace Gurux.DLMS.Objects
             return list;
         }
 
-        private static void SetCaptureObjects(GXDLMSProfileGeneric parent, GXDLMSSettings settings, List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list, IEnumerable<object> array)
+        private static void SetCaptureObjects(GXDLMSProfileGeneric parent,
+            GXDLMSSettings settings,
+            List<GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject>> list,
+            IEnumerable<object> array)
         {
             GXDLMSConverter c = null;
             try
@@ -1282,7 +1309,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteStartElement("Buffer", 2);
+            writer.WriteStartElement("Buffer");
             if (Buffer != null)
             {
                 GXDateTime lastdt = null;
@@ -1310,7 +1337,7 @@ namespace Gurux.DLMS.Objects
                 }
                 foreach (object[] row in Buffer)
                 {
-                    writer.WriteStartElement("Row", 2);
+                    writer.WriteStartElement("Row");
                     int pos = 0;
                     foreach (object it in row)
                     {
@@ -1328,46 +1355,46 @@ namespace Gurux.DLMS.Objects
                                 else if (lastdt != null)
                                 {
                                     lastdt = new GXDateTime(lastdt.Value.AddMinutes(add));
-                                    writer.WriteElementObject("Cell", lastdt, 2);
+                                    writer.WriteElementObject("Cell", lastdt);
                                     continue;
                                 }
                                 else
                                 {
-                                    writer.WriteElementObject("Cell", DateTime.MinValue, 2);
+                                    writer.WriteElementObject("Cell", DateTime.MinValue);
                                 }
                             }
                         }
-                        writer.WriteElementObject("Cell", it, 2);
+                        writer.WriteElementObject("Cell", it);
                     }
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
-            writer.WriteStartElement("CaptureObjects", 3);
+            writer.WriteStartElement("CaptureObjects");
             if (CaptureObjects != null)
             {
                 foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in CaptureObjects)
                 {
-                    writer.WriteStartElement("Item", 3);
-                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType, 3);
-                    writer.WriteElementString("LN", it.Key.LogicalName, 3);
-                    writer.WriteElementString("Attribute", it.Value.AttributeIndex, 3);
-                    writer.WriteElementString("Data", it.Value.DataIndex, 3);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType);
+                    writer.WriteElementString("LN", it.Key.LogicalName);
+                    writer.WriteElementString("Attribute", it.Value.AttributeIndex);
+                    writer.WriteElementString("Data", it.Value.DataIndex);
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
-            writer.WriteElementString("CapturePeriod", CapturePeriod, 4);
-            writer.WriteElementString("SortMethod", (int)SortMethod, 5);
-            writer.WriteStartElement("SortObject", 6);
+            writer.WriteElementString("CapturePeriod", CapturePeriod);
+            writer.WriteElementString("SortMethod", (int)SortMethod);
+            writer.WriteStartElement("SortObject");
             if (SortObject != null)
             {
-                writer.WriteElementString("ObjectType", (int)SortObject.ObjectType, 6);
-                writer.WriteElementString("LN", SortObject.LogicalName, 6);
+                writer.WriteElementString("ObjectType", (int)SortObject.ObjectType);
+                writer.WriteElementString("LN", SortObject.LogicalName);
             }
             writer.WriteEndElement();//SortObject
-            writer.WriteElementString("EntriesInUse", EntriesInUse, 7);
-            writer.WriteElementString("ProfileEntries", ProfileEntries, 8);
+            writer.WriteElementString("EntriesInUse", EntriesInUse);
+            writer.WriteElementString("ProfileEntries", ProfileEntries);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -654,18 +654,18 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteStartElement("Elements", 1);
+            writer.WriteStartElement("Elements");
             if (Elements != null)
             {
                 foreach (var it in Elements)
                 {
-                    writer.WriteStartElement("Item", 1);
+                    writer.WriteStartElement("Item");
                     //Some meters are returning time here, not date-time.
-                    writer.WriteElementString("Id", it.Id, 1);
-                    writer.WriteStartElement("Target", 1);
-                    writer.WriteElementString("Type", (UInt16)it.Element.Target.ObjectType, 1);
-                    writer.WriteElementString("LN", it.Element.Target.LogicalName, 1);
-                    writer.WriteElementString("Index", it.Element.AttributeIndex, 1);
+                    writer.WriteElementString("Id", it.Id);
+                    writer.WriteStartElement("Target");
+                    writer.WriteElementString("Type", (UInt16)it.Element.Target.ObjectType);
+                    writer.WriteElementString("LN", it.Element.Target.LogicalName);
+                    writer.WriteElementString("Index", it.Element.AttributeIndex);
                     writer.WriteEndElement();
                     writer.WriteEndElement();
                 }

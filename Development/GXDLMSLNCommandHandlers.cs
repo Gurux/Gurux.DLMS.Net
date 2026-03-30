@@ -567,7 +567,14 @@ namespace Gurux.DLMS
         /// Handle method request next data block command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        internal static void MethodRequestNextDataBlock(GXDLMSSettings settings, GXDLMSServer server, GXByteBuffer data, byte invokeID, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, bool streaming, Command cipheredCommand)
+        internal static void MethodRequestNextDataBlock(GXDLMSSettings settings, 
+            GXDLMSServer server, 
+            GXByteBuffer data, 
+            byte invokeID, 
+            GXByteBuffer replyData, 
+            GXDLMSTranslatorStructure xml, 
+            bool streaming, 
+            Command cipheredCommand)
         {
             GXByteBuffer bb = new GXByteBuffer();
             if (!streaming)
@@ -1066,7 +1073,9 @@ namespace Gurux.DLMS
         /// Handle get request next data block command.
         /// </summary>
         /// <param name="data">Received data.</param>
-        internal static void GetRequestNextDataBlock(GXDLMSSettings settings, byte invokeID, GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, bool streaming, Command cipheredCommand)
+        internal static void GetRequestNextDataBlock(GXDLMSSettings settings, 
+            byte invokeID, 
+            GXDLMSServer server, GXByteBuffer data, GXByteBuffer replyData, GXDLMSTranslatorStructure xml, bool streaming, Command cipheredCommand)
         {
             GXByteBuffer bb = new GXByteBuffer();
             if (!streaming)

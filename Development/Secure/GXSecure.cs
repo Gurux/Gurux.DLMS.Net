@@ -906,9 +906,7 @@ namespace Gurux.DLMS.Secure
                 {
                     InvocationCounter = invocationCounter,
                     SystemTitle = p.SystemTitle,
-                    SecuritySuite = p.SecuritySuite,
-                    BlockCipherKey = p.BlockCipherKey,
-                    AuthenticationKey = p.AuthenticationKey,
+                    SecuritySuite = p.SecuritySuite
                 };
                 if (p.BlockCipherKey == null)
                 {

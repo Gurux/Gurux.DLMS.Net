@@ -266,10 +266,10 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("CrcIncorrectCount", CrcIncorrectCount, 2);
-            writer.WriteElementString("CrcFailedCount", CrcFailedCount, 3);
-            writer.WriteElementString("TxDropCount", TxDropCount, 4);
-            writer.WriteElementString("RxDropCount", RxDropCount, 5);
+            writer.WriteElementString("CrcIncorrectCount", CrcIncorrectCount);
+            writer.WriteElementString("CrcFailedCount", CrcFailedCount);
+            writer.WriteElementString("TxDropCount", TxDropCount);
+            writer.WriteElementString("RxDropCount", RxDropCount);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

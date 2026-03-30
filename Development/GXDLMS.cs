@@ -61,7 +61,7 @@ namespace Gurux.DLMS
         }
 
         const byte CipheringHeaderSize = 7 + 12 + 3;
-        internal const int DATA_TYPE_OFFSET = 0xFF0000;
+        internal const int DataTypeOffset = 0xFF0000;
 
         /// <summary>
         /// Generates Invoke ID and priority.
@@ -368,7 +368,8 @@ namespace Gurux.DLMS
             byte[][] data;
             if (reply.MoreData == RequestTypes.GBT)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 0, null, null, 0xff, Command.None);
+                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 
+                    0, null, null, 0xff, Command.None);
                 p.GbtWindowSize = reply.GbtWindowSize;
                 p.blockNumberAck = reply.BlockNumber;
                 p.blockIndex = settings.BlockIndex;
@@ -1840,21 +1841,7 @@ namespace Gurux.DLMS
             int cnt = 0, cipherSize = 0;
             if (ciphering)
             {
-                cipherSize = CipheringHeaderSize;
-                /*
-                if (p.settings.Cipher.Security == Security.Encryption)
-                {
-                    cipherSize = 7;
-                }
-                else if (p.settings.Cipher.Security == Security.Authentication)
-                {
-                    cipherSize = 19;
-                }
-                else if (p.settings.Cipher.Security == Security.AuthenticationEncryption)
-                {
-                    cipherSize = 7;
-                }
-                 * */
+                cipherSize = CipheringHeaderSize;               
             }
             if (p.data != null)
             {
@@ -3117,10 +3104,12 @@ namespace Gurux.DLMS
         /// <param name="data">Reply information.</param>
         /// <param name="notify">Notify information.</param>
         static bool GetTcpData(GXDLMSSettings settings,
-                               GXByteBuffer buff, GXReplyData data, GXReplyData notify)
+                GXByteBuffer buff, 
+                GXReplyData data, 
+                GXReplyData notify)
         {
             // If whole frame is not received yet.
-            if (buff.Size - buff.Position < 8)
+            if (buff.Available < 8)
             {
                 data.IsComplete = false;
                 return true;
@@ -3788,7 +3777,6 @@ namespace Gurux.DLMS
                         }
                         data.PacketLength = buff.Position + len;
                         data.IsComplete = true;
-                        int index = data.Data.Position;
                         //Control field (C-Field)
                         byte tmp = buff.GetUInt8();
                         MBusCommand cmd = (MBusCommand)(tmp & 0xF);
@@ -4203,7 +4191,10 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        internal static bool CheckWrapperAddress(GXDLMSSettings settings, GXByteBuffer buff, GXReplyData data, GXReplyData notify)
+        internal static bool CheckWrapperAddress(GXDLMSSettings settings, 
+            GXByteBuffer buff, 
+            GXReplyData data, 
+            GXReplyData notify)
         {
             bool ret = true;
             int value;
@@ -4998,6 +4989,7 @@ namespace Gurux.DLMS
                         reply.Xml.AppendStartTag(Command.ReadResponse, SingleReadResponse.Data);
                         GXCommon.GetData(settings, reply.Data, di);
                         reply.Xml.AppendEndTag(Command.ReadResponse, SingleReadResponse.Data);
+                        reply.ReadPosition = reply.Data.Position;
                     }
                     else
                     {
@@ -5983,7 +5975,6 @@ namespace Gurux.DLMS
 
         private static void HandleAccessResponse(GXDLMSSettings settings, GXReplyData reply)
         {
-            int start = reply.Data.Position - 1;
             //Get invoke id.
             UInt32 invokeId = reply.Data.GetUInt32();
 

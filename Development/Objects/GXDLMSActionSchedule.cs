@@ -400,7 +400,12 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
             ObjectType ot = (ObjectType)reader.ReadElementContentAsInt("ObjectType");
-            string ln = reader.ReadElementContentAsString("LN");
+            string ln = reader.ReadElementContentAsString("TargetLN");
+            if (string.IsNullOrEmpty(ln))
+            {
+                //Old way.
+                ln = reader.ReadElementContentAsString("LN");
+            }
             if (ot != ObjectType.None && !string.IsNullOrEmpty(ln))
             {
                 Target = (GXDLMSScriptTable)reader.Objects.FindByLN(ot, ln);
@@ -429,17 +434,17 @@ namespace Gurux.DLMS.Objects
         {
             if (Target != null)
             {
-                writer.WriteElementString("ObjectType", (int)Target.ObjectType, 2);
-                writer.WriteElementString("LN", Target.LogicalName, 2);
+                writer.WriteElementString("ObjectType", (int)Target.ObjectType);
+                writer.WriteElementString("TargetLN", Target.LogicalName);
             }
-            writer.WriteElementString("ExecutedScriptSelector", ExecutedScriptSelector, 2);
-            writer.WriteElementString("Type", (int)Type, 3);
+            writer.WriteElementString("ExecutedScriptSelector", ExecutedScriptSelector);
+            writer.WriteElementString("Type", (int)Type);
             if (ExecutionTime != null)
             {
-                writer.WriteStartElement("ExecutionTime", 4);
+                writer.WriteStartElement("ExecutionTime");
                 foreach (GXDateTime it in ExecutionTime)
                 {
-                    writer.WriteElementString("Time", it, 0);
+                    writer.WriteElementString("Time", it);
                 }
                 writer.WriteEndElement();
             }

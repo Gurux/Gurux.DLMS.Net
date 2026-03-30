@@ -34,6 +34,7 @@
 using System;
 using System.Text;
 using System.Diagnostics;
+using Gurux.DLMS.Internal;
 
 namespace Gurux.DLMS
 {
@@ -42,7 +43,13 @@ namespace Gurux.DLMS
     /// </summary>
     public class GXByteBuffer
     {
+        /// <summary>
+        /// Byte buffer read position.
+        /// </summary>
         private int position;
+        /// <summary>
+        /// Byte buffer size.
+        /// </summary>
         private int size;
 
         /// <summary>
@@ -775,7 +782,7 @@ namespace Gurux.DLMS
                 }
                 return str;
             }
-            return Internal.GXCommon.ToHex(tmp, true);
+            return GXCommon.ToHex(tmp, true);
         }
 
         /// <summary>
@@ -1021,7 +1028,7 @@ namespace Gurux.DLMS
             }
             byte[] bytes = new byte[arr.Length];
             Get(bytes);
-            bool ret = Internal.GXCommon.Compare(bytes, arr);
+            bool ret = GXCommon.Compare(bytes, arr);
             if (!ret)
             {
                 this.Position -= arr.Length;
@@ -1035,7 +1042,7 @@ namespace Gurux.DLMS
         /// <param name="value"> The hex string to be added.</param>
         public void SetHexString(string value)
         {
-            Set(Internal.GXCommon.HexToBytes(value));
+            Set(GXCommon.HexToBytes(value));
         }
 
         /// <summary>
@@ -1045,7 +1052,7 @@ namespace Gurux.DLMS
         /// <param name="value"> The hex string to be added.</param>
         public void SetHexString(int index, string value)
         {
-            Set(index, Internal.GXCommon.HexToBytes(value));
+            Set(index, GXCommon.HexToBytes(value));
         }
 
         /// <summary>
@@ -1056,13 +1063,13 @@ namespace Gurux.DLMS
         /// <param name="count">Byte count.</param>
         public void SetHexString(string value, int index, int count)
         {
-            Set(Internal.GXCommon.HexToBytes(value), index, count);
+            Set(GXCommon.HexToBytes(value), index, count);
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            return Internal.GXCommon.ToHex(Data, true, 0, Size);
+            return GXCommon.ToHex(Data, true, 0, Size);
         }
 
 
@@ -1077,7 +1084,7 @@ namespace Gurux.DLMS
             {
                 return ASCIIEncoding.ASCII.GetString(Data, 0, Size);
             }
-            return Internal.GXCommon.ToHex(Data, true, 0, Size);
+            return GXCommon.ToHex(Data, true, 0, Size);
         }
 
         /// <summary>
@@ -1097,7 +1104,7 @@ namespace Gurux.DLMS
         /// <returns>Remaining data as hex string</returns>
         public string RemainingHexString(bool addSpace)
         {
-            return Internal.GXCommon.ToHex(Data, addSpace, position, size - position);
+            return GXCommon.ToHex(Data, addSpace, position, size - position);
         }
 
         /// <summary>
@@ -1108,7 +1115,7 @@ namespace Gurux.DLMS
         /// <returns>Data as hex string.</returns>
         public string ToHex(bool addSpace, int index)
         {
-            return Internal.GXCommon.ToHex(Data, addSpace, index, Size - index);
+            return GXCommon.ToHex(Data, addSpace, index, Size - index);
         }
 
         /// <summary>
@@ -1120,7 +1127,7 @@ namespace Gurux.DLMS
         /// <returns>Data as hex string.</returns>
         public string ToHex(bool addSpace, int index, int count)
         {
-            return Internal.GXCommon.ToHex(Data, addSpace, index, count);
+            return GXCommon.ToHex(Data, addSpace, index, count);
         }
     }
 }

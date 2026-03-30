@@ -40,6 +40,7 @@ using System.Diagnostics;
 using System.Net;
 using Gurux.DLMS.Objects;
 using System.Threading;
+using System.Reflection;
 
 namespace Gurux.DLMS.Internal
 {
@@ -463,11 +464,12 @@ namespace Gurux.DLMS.Internal
         ///<param name="data">Received data.</param>
         ///<param name="info"> Data info.</param>
         ///<returns>Parsed object.</returns>
-        public static object GetData(GXDLMSSettings settings, GXByteBuffer data, GXDataInfo info)
+        public static object GetData(GXDLMSSettings settings, 
+            GXByteBuffer data, GXDataInfo info)
         {
             object value = null;
             int startIndex = data.Position;
-            if (data.Position == data.Size)
+            if (data.Available == 0)
             {
                 info.Complete = false;
                 return null;
@@ -487,7 +489,7 @@ namespace Gurux.DLMS.Internal
                 }
                 return value;
             }
-            if (data.Position == data.Size)
+            if (data.Available == 0)
             {
                 info.Complete = false;
                 return null;
@@ -520,7 +522,7 @@ namespace Gurux.DLMS.Internal
                     value = GetOctetString(settings, data, info, knownType);
                     break;
                 case DataType.Bcd:
-                    value = GetBcd(data, info, knownType);
+                    value = GetBcd(data, info);
                     break;
                 case DataType.Int8:
                     value = GetInt8(data, info);
@@ -608,7 +610,7 @@ namespace Gurux.DLMS.Internal
             }
             if (info.xml != null)
             {
-                info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET | (int)info.Type, "Qty", info.xml.IntegerToHex(info.Count, 2));
+                info.xml.AppendStartTag(GXDLMS.DataTypeOffset | (int)info.Type, "Qty", info.xml.IntegerToHex(info.Count, 2));
             }
 
             int size = buff.Size - buff.Position;
@@ -655,7 +657,7 @@ namespace Gurux.DLMS.Internal
             }
             if (info.xml != null)
             {
-                info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)info.Type);
+                info.xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)info.Type);
             }
             info.Index = pos;
             if (settings != null && settings.Version == 8)
@@ -1295,15 +1297,15 @@ namespace Gurux.DLMS.Internal
                 }
                 else if (it is GXStructure)
                 {
-                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
+                    info.xml.AppendStartTag(GXDLMS.DataTypeOffset + (int)DataType.Structure, null, null);
                     AppendDataTypeAsXml((List<object>)it, info);
-                    info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
+                    info.xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.Structure);
                 }
                 else
                 {
-                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
+                    info.xml.AppendStartTag(GXDLMS.DataTypeOffset + (int)DataType.Array, null, null);
                     AppendDataTypeAsXml(((List<Object>)it), info);
-                    info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
+                    info.xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.Array);
                 }
             }
         }
@@ -1388,7 +1390,7 @@ namespace Gurux.DLMS.Internal
                 }
                 if (info.xml != null)
                 {
-                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray, null, null);
+                    info.xml.AppendStartTag(GXDLMS.DataTypeOffset + (int)DataType.CompactArray, null, null);
                     info.xml.AppendStartTag(TranslatorTags.ContentsDescription);
                     AppendDataTypeAsXml(cols, info);
                     info.xml.AppendEndTag(TranslatorTags.ContentsDescription);
@@ -1397,7 +1399,7 @@ namespace Gurux.DLMS.Internal
                         info.xml.AppendStartTag((int)TranslatorTags.ArrayContents, null, null, true);
                         info.xml.Append(buff.RemainingHexString(true));
                         info.xml.AppendEndTag(TranslatorTags.ArrayContents, true);
-                        info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
+                        info.xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.CompactArray);
                     }
                     else
                     {
@@ -1458,7 +1460,7 @@ namespace Gurux.DLMS.Internal
                 if (info.xml != null && info.xml.OutputType == TranslatorOutputType.SimpleXml)
                 {
                     info.xml.AppendEndTag(TranslatorTags.ArrayContents);
-                    info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
+                    info.xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.CompactArray);
                 }
                 return list;
             }
@@ -1466,16 +1468,16 @@ namespace Gurux.DLMS.Internal
             {
                 if (info.xml != null)
                 {
-                    info.xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray, null, null);
+                    info.xml.AppendStartTag(GXDLMS.DataTypeOffset + (int)DataType.CompactArray, null, null);
                     info.xml.AppendStartTag(TranslatorTags.ContentsDescription);
-                    info.xml.AppendEmptyTag(GXDLMS.DATA_TYPE_OFFSET + (int)dt);
+                    info.xml.AppendEmptyTag(GXDLMS.DataTypeOffset + (int)dt);
                     info.xml.AppendEndTag(TranslatorTags.ContentsDescription);
                     info.xml.AppendStartTag((int)TranslatorTags.ArrayContents, null, null, true);
                     if (info.xml.OutputType == TranslatorOutputType.StandardXml)
                     {
                         info.xml.Append(buff.RemainingHexString(true));
                         info.xml.AppendEndTag(TranslatorTags.ArrayContents, true);
-                        info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
+                        info.xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.CompactArray);
                     }
                 }
                 GetCompactArrayItem(null, buff, dt, list, len);
@@ -1498,7 +1500,7 @@ namespace Gurux.DLMS.Internal
                         info.xml.SetXmlLength(info.xml.GetXmlLength() - 1);
                     }
                     info.xml.AppendEndTag(TranslatorTags.ArrayContents, true);
-                    info.xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray);
+                    info.xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.CompactArray);
                 }
             }
             return list;
@@ -1600,7 +1602,7 @@ namespace Gurux.DLMS.Internal
         ///<returns>
         ///Parsed BCD value.
         ///</returns>
-        private static object GetBcd(GXByteBuffer buff, GXDataInfo info, bool knownType)
+        private static object GetBcd(GXByteBuffer buff, GXDataInfo info)
         {
             // If there is not enough data available.
             if (buff.Size - buff.Position < 1)
@@ -3043,48 +3045,48 @@ namespace Gurux.DLMS.Internal
             }
             else if (value is GXStructure)
             {
-                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
+                xml.AppendStartTag(GXDLMS.DataTypeOffset + (int)DataType.Structure, null, null);
                 foreach (object it in (List<object>)value)
                 {
                     DatatoXml(it, xml);
                 }
-                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
+                xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.Structure);
             }
             else if (value is GXArray)
             {
-                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
+                xml.AppendStartTag(GXDLMS.DataTypeOffset + (int)DataType.Array, null, null);
                 foreach (object it in (List<object>)value)
                 {
                     DatatoXml(it, xml);
                 }
-                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
+                xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.Array);
             }
             else if (value is IPAddress)
             {
-                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.OctetString, null, ((IPAddress)value).GetAddressBytes());
+                xml.AppendLine(GXDLMS.DataTypeOffset + (int)DataType.OctetString, null, ((IPAddress)value).GetAddressBytes());
             }
             else if (value is GXDLMSObjectCollection)
             {
-                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, null, null);
+                xml.AppendStartTag(GXDLMS.DataTypeOffset + (int)DataType.Array, null, null);
                 foreach (GXDLMSObject it in value as GXDLMSObjectCollection)
                 {
                     DatatoXml(it, xml);
                 }
-                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array);
+                xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.Array);
             }
             else if (value is GXDLMSObject)
             {
-                xml.AppendStartTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure, null, null);
+                xml.AppendStartTag(GXDLMS.DataTypeOffset + (int)DataType.Structure, null, null);
                 GXDLMSObject obj = value as GXDLMSObject;
-                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt16, null, obj.ObjectType);
-                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt8, null, obj.Version);
-                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.OctetString, null, obj.LogicalName);
-                xml.AppendEndTag(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure);
+                xml.AppendLine(GXDLMS.DataTypeOffset + (int)DataType.UInt16, null, obj.ObjectType);
+                xml.AppendLine(GXDLMS.DataTypeOffset + (int)DataType.UInt8, null, obj.Version);
+                xml.AppendLine(GXDLMS.DataTypeOffset + (int)DataType.OctetString, null, obj.LogicalName);
+                xml.AppendEndTag(GXDLMS.DataTypeOffset + (int)DataType.Structure);
             }
             else
             {
                 DataType dt = GetDLMSDataType(value.GetType());
-                xml.AppendLine(GXDLMS.DATA_TYPE_OFFSET + (int)dt, null, value);
+                xml.AppendLine(GXDLMS.DataTypeOffset + (int)dt, null, value);
             }
         }
 
@@ -3134,8 +3136,12 @@ namespace Gurux.DLMS.Internal
             if (!isIdis)
             {
                 sn = (st[3] << 8);
+                sn |= st[4];
             }
-            sn |= st[4];
+            else
+            {
+                sn = st[4] & 0xf;
+            }
             sn <<= 8;
             sn |= st[5];
             sn <<= 8;
@@ -3208,7 +3214,7 @@ namespace Gurux.DLMS.Internal
                 sb.Append(new string(new char[] { (char)st[0], (char)st[1], (char)st[2] }));
                 sb.Append(" ");
                 //Serial number;                
-                sb.Append(GetSerialNumber(st, false).ToString());
+                sb.Append(GetSerialNumber(st, true).ToString());
             }
             return sb.ToString();
         }
@@ -3237,18 +3243,17 @@ namespace Gurux.DLMS.Internal
         static string UNISystemTitleToString(byte[] st, bool addComments)
         {
             StringBuilder sb = new StringBuilder();
+            UInt16 m = (UInt16)(st[0] << 8 | st[1]);
             if (addComments)
             {
                 sb.AppendLine("UNI/TS system title:");
                 sb.Append("Manufacturer: ");
-                UInt16 m = (UInt16)(st[0] << 8 | st[1]);
                 sb.AppendLine(DecryptManufacturer(m));
                 sb.Append("Serial number: ");
                 sb.AppendLine(ToHex(new byte[] { st[7], st[6], st[5], st[4], st[3], st[2] }, false));
             }
             else
             {
-                UInt16 m = (UInt16)(st[0] << 8 | st[1]);
                 sb.Append(DecryptManufacturer(m));
                 sb.Append(ToHex(new byte[] { st[7], st[6], st[5], st[4], st[3], st[2] }, false));
             }

@@ -410,14 +410,14 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("DefaultMode", (int)DefaultMode, 2);
-            writer.WriteElementString("DefaultBaudrate", (int)DefaultBaudrate, 3);
-            writer.WriteElementString("ProposedBaudrate", (int)ProposedBaudrate, 4);
-            writer.WriteElementString("ResponseTime", (int)ResponseTime, 5);
-            writer.WriteElementString("DeviceAddress", DeviceAddress, 6);
-            writer.WriteElementString("Password1", Password1, 7);
-            writer.WriteElementString("Password2", Password2, 8);
-            writer.WriteElementString("Password5", Password5, 9);
+            writer.WriteElementString("DefaultMode", (int)DefaultMode);
+            writer.WriteElementString("DefaultBaudrate", (int)DefaultBaudrate);
+            writer.WriteElementString("ProposedBaudrate", (int)ProposedBaudrate);
+            writer.WriteElementString("ResponseTime", (int)ResponseTime);
+            writer.WriteElementString("DeviceAddress", DeviceAddress);
+            writer.WriteElementString("Password1", Password1);
+            writer.WriteElementString("Password2", Password2);
+            writer.WriteElementString("Password5", Password5);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

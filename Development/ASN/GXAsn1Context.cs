@@ -64,6 +64,7 @@ namespace Gurux.DLMS.ASN
             set;
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             if (Constructed)

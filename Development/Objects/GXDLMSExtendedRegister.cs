@@ -372,11 +372,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Unit", (int)Unit, 2);
-            writer.WriteElementString("Scaler", Scaler, 1, 2);
-            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2), 3);
-            writer.WriteElementObject("Status", Status, 4);
-            writer.WriteElementString("CaptureTime", CaptureTime, 5);
+            writer.WriteElementString("Unit", (int)Unit);
+            writer.WriteElementString("Scaler", Scaler, 1);
+            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
+            writer.WriteElementObject("Status", Status);
+            writer.WriteElementString("CaptureTime", CaptureTime);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

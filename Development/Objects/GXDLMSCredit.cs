@@ -41,33 +41,7 @@ using Gurux.DLMS.Objects.Enums;
 
 namespace Gurux.DLMS.Objects
 {
-    /// <summary>
-    /// Credit Type.
-    /// </summary>
-    public enum CreditType : byte
-    {
-        /// <summary>
-        /// Token credit.
-        /// </summary>
-        Token,
-        /// <summary>
-        /// Reserved credit.
-        /// </summary>
-        Reserved,
-        /// <summary>
-        /// Emergency credit.
-        /// </summary>
-        Emergency,
-        /// <summary>
-        /// TimeBased credit.
-        /// </summary>
-        TimeBased,
-        /// <summary>
-        /// Consumption based credit.
-        /// </summary>
-        ConsumptionBased
-    }
-
+   
     /// <summary>
     ///  Online help:<br/>
     ///  https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCredit
@@ -238,7 +212,9 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc>
         public override object[] GetValues()
         {
-            return new object[] { LogicalName, CurrentCreditAmount, Type, Priority, WarningThreshold, Limit, CreditConfiguration, Status, PresetCreditAmount, CreditAvailableThreshold, Period };
+            return new object[] { LogicalName, CurrentCreditAmount, Type, 
+                Priority, WarningThreshold, Limit, 
+                CreditConfiguration, Status, PresetCreditAmount, CreditAvailableThreshold, Period };
         }
 
         /// <summary>
@@ -548,16 +524,16 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("CurrentCreditAmount", CurrentCreditAmount, 2);
-            writer.WriteElementString("Type", (byte)Type, 3);
-            writer.WriteElementString("Priority", Priority, 4);
-            writer.WriteElementString("WarningThreshold", WarningThreshold, 5);
-            writer.WriteElementString("Limit", Limit, 6);
-            writer.WriteElementString("CreditConfiguration", (byte)CreditConfiguration, 7);
-            writer.WriteElementString("Status", (byte)Status, 8);
-            writer.WriteElementString("PresetCreditAmount", PresetCreditAmount, 9);
-            writer.WriteElementString("CreditAvailableThreshold", CreditAvailableThreshold, 10);
-            writer.WriteElementString("Period", Period, 11);
+            writer.WriteElementString("CurrentCreditAmount", CurrentCreditAmount);
+            writer.WriteElementString("Type", (byte)Type);
+            writer.WriteElementString("Priority", Priority);
+            writer.WriteElementString("WarningThreshold", WarningThreshold);
+            writer.WriteElementString("Limit", Limit);
+            writer.WriteElementString("CreditConfiguration", (byte)CreditConfiguration);
+            writer.WriteElementString("Status", (byte)Status);
+            writer.WriteElementString("PresetCreditAmount", PresetCreditAmount);
+            writer.WriteElementString("CreditAvailableThreshold", CreditAvailableThreshold);
+            writer.WriteElementString("Period", Period);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

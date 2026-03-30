@@ -367,14 +367,14 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("TransmitWindowSizeK", TransmitWindowSizeK, 2);
-            writer.WriteElementString("TransmitWindowSizeRW", TransmitWindowSizeRW, 3);
-            writer.WriteElementString("MaximumOctetsPdu", MaximumOctetsPdu, 4);
-            writer.WriteElementString("MaximumNumberTransmissions", MaximumNumberTransmissions, 5);
-            writer.WriteElementString("AcknowledgementTimer", AcknowledgementTimer, 6);
-            writer.WriteElementString("BitTimer", BitTimer, 7);
-            writer.WriteElementString("RejectTimer", RejectTimer, 8);
-            writer.WriteElementString("BusyStateTimer", BusyStateTimer, 8);
+            writer.WriteElementString("TransmitWindowSizeK", TransmitWindowSizeK);
+            writer.WriteElementString("TransmitWindowSizeRW", TransmitWindowSizeRW);
+            writer.WriteElementString("MaximumOctetsPdu", MaximumOctetsPdu);
+            writer.WriteElementString("MaximumNumberTransmissions", MaximumNumberTransmissions);
+            writer.WriteElementString("AcknowledgementTimer", AcknowledgementTimer);
+            writer.WriteElementString("BitTimer", BitTimer);
+            writer.WriteElementString("RejectTimer", RejectTimer);
+            writer.WriteElementString("BusyStateTimer", BusyStateTimer);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

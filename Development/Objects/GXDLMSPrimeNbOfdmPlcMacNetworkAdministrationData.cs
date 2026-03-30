@@ -647,16 +647,16 @@ namespace Gurux.DLMS.Objects
             Communications = LoadCommunications(reader);
         }
 
-        private void SaveMulticastEntries(GXXmlWriter writer, int index)
+        private void SaveMulticastEntries(GXXmlWriter writer)
         {
-            writer.WriteStartElement("MulticastEntries", index);
+            writer.WriteStartElement("MulticastEntries");
             if (MulticastEntries != null)
             {
                 foreach (GXMacMulticastEntry it in MulticastEntries)
                 {
-                    writer.WriteStartElement("Item", index);
-                    writer.WriteElementString("Id", it.Id, index);
-                    writer.WriteElementString("Members", it.Members, index);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Id", it.Id);
+                    writer.WriteElementString("Members", it.Members);
                     writer.WriteEndElement();
                 }
             }
@@ -664,76 +664,76 @@ namespace Gurux.DLMS.Objects
         }
 
 
-        private void SaveSwitchTable(GXXmlWriter writer, int index)
+        private void SaveSwitchTable(GXXmlWriter writer)
         {
-            writer.WriteStartElement("SwitchTable", index);
+            writer.WriteStartElement("SwitchTable");
             if (SwitchTable != null)
             {
                 foreach (Int16 it in SwitchTable)
                 {
-                    writer.WriteElementString("Item", it, index);
+                    writer.WriteElementString("Item", it);
                 }
             }
             writer.WriteEndElement();
         }
 
-        private void SaveDirectTable(GXXmlWriter writer, int index)
+        private void SaveDirectTable(GXXmlWriter writer)
         {
-            writer.WriteStartElement("DirectTable", index);
+            writer.WriteStartElement("DirectTable");
             if (DirectTable != null)
             {
                 foreach (GXMacDirectTable it in DirectTable)
                 {
-                    writer.WriteStartElement("Item", index);
-                    writer.WriteElementString("SourceSId", it.SourceSId, index);
-                    writer.WriteElementString("SourceLnId", it.SourceLnId, index);
-                    writer.WriteElementString("SourceLcId", it.SourceLcId, index);
-                    writer.WriteElementString("DestinationSId", it.DestinationSId, index);
-                    writer.WriteElementString("DestinationLnId", it.DestinationLnId, index);
-                    writer.WriteElementString("DestinationLcId", it.DestinationLcId, index);
-                    writer.WriteElementString("Did", GXCommon.ToHex(it.Did, false), index);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("SourceSId", it.SourceSId);
+                    writer.WriteElementString("SourceLnId", it.SourceLnId);
+                    writer.WriteElementString("SourceLcId", it.SourceLcId);
+                    writer.WriteElementString("DestinationSId", it.DestinationSId);
+                    writer.WriteElementString("DestinationLnId", it.DestinationLnId);
+                    writer.WriteElementString("DestinationLcId", it.DestinationLcId);
+                    writer.WriteElementString("Did", GXCommon.ToHex(it.Did, false));
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
         }
 
-        private void SaveAvailableSwitches(GXXmlWriter writer, int index)
+        private void SaveAvailableSwitches(GXXmlWriter writer)
         {
-            writer.WriteStartElement("AvailableSwitches", index);
+            writer.WriteStartElement("AvailableSwitches");
             if (AvailableSwitches != null)
             {
                 foreach (GXMacAvailableSwitch it in AvailableSwitches)
                 {
-                    writer.WriteStartElement("Item", index);
-                    writer.WriteElementString("Sna", GXCommon.ToHex(it.Sna, false), index);
-                    writer.WriteElementString("LsId", it.LsId, index);
-                    writer.WriteElementString("Level", it.Level, index);
-                    writer.WriteElementString("RxLevel", it.RxLevel, index);
-                    writer.WriteElementString("RxSnr", it.RxSnr, index);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Sna", GXCommon.ToHex(it.Sna, false));
+                    writer.WriteElementString("LsId", it.LsId);
+                    writer.WriteElementString("Level", it.Level);
+                    writer.WriteElementString("RxLevel", it.RxLevel);
+                    writer.WriteElementString("RxSnr", it.RxSnr);
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
         }
 
-        private void SaveCommunications(GXXmlWriter writer, int index)
+        private void SaveCommunications(GXXmlWriter writer)
         {
-            writer.WriteStartElement("Communications", index);
+            writer.WriteStartElement("Communications");
             if (Communications != null)
             {
                 foreach (GXMacPhyCommunication it in Communications)
                 {
-                    writer.WriteStartElement("Item", index);
-                    writer.WriteElementString("Eui", GXCommon.ToHex(it.Eui, false), index);
-                    writer.WriteElementString("TxPower", it.TxPower, index);
-                    writer.WriteElementString("TxCoding", it.TxCoding, index);
-                    writer.WriteElementString("RxCoding", it.RxCoding, index);
-                    writer.WriteElementString("RxLvl", it.RxLvl, index);
-                    writer.WriteElementString("Snr", it.Snr, index);
-                    writer.WriteElementString("TxPowerModified", it.TxPowerModified, index);
-                    writer.WriteElementString("TxCodingModified", it.TxCodingModified, index);
-                    writer.WriteElementString("RxCodingModified", it.RxCodingModified, index);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Eui", GXCommon.ToHex(it.Eui, false));
+                    writer.WriteElementString("TxPower", it.TxPower);
+                    writer.WriteElementString("TxCoding", it.TxCoding);
+                    writer.WriteElementString("RxCoding", it.RxCoding);
+                    writer.WriteElementString("RxLvl", it.RxLvl);
+                    writer.WriteElementString("Snr", it.Snr);
+                    writer.WriteElementString("TxPowerModified", it.TxPowerModified);
+                    writer.WriteElementString("TxCodingModified", it.TxCodingModified);
+                    writer.WriteElementString("RxCodingModified", it.RxCodingModified);
                     writer.WriteEndElement();
                 }
             }
@@ -742,11 +742,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            SaveMulticastEntries(writer, 2);
-            SaveSwitchTable(writer, 3);
-            SaveDirectTable(writer, 4);
-            SaveAvailableSwitches(writer, 5);
-            SaveCommunications(writer, 6);
+            SaveMulticastEntries(writer);
+            SaveSwitchTable(writer);
+            SaveDirectTable(writer);
+            SaveAvailableSwitches(writer);
+            SaveCommunications(writer);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

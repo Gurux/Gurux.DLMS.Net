@@ -86,7 +86,7 @@ namespace Gurux.DLMS
         /// Constructor.
         /// </summary>
         /// <param name="date">Date string.</param>
-        public GXDate(string date, System.Globalization.CultureInfo culture)
+        public GXDate(string date, CultureInfo culture)
             : base(date, culture)
         {
         }

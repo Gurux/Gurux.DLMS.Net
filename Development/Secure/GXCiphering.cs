@@ -38,7 +38,6 @@ using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using System;
 using System.Collections.Generic;
-using System.Runtime;
 
 namespace Gurux.DLMS.Secure
 {

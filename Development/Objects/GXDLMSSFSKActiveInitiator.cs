@@ -243,9 +243,9 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("SystemTitle", GXDLMSTranslator.ToHex(SystemTitle), 2);
-            writer.WriteElementString("MacAddress", MacAddress, 3);
-            writer.WriteElementString("LSapSelector", LSapSelector, 4);
+            writer.WriteElementString("SystemTitle", GXDLMSTranslator.ToHex(SystemTitle));
+            writer.WriteElementString("MacAddress", MacAddress);
+            writer.WriteElementString("LSapSelector", LSapSelector);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

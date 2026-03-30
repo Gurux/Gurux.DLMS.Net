@@ -73,7 +73,7 @@ namespace Gurux.DLMS.Objects
         public GXDLMSSpecialDaysTable(string ln, ushort sn)
         : base(ObjectType.SpecialDaysTable, ln, sn)
         {
-        }      
+        }
 
         /// <summary>
         /// Value of COSEM Data object.
@@ -342,13 +342,13 @@ namespace Gurux.DLMS.Objects
         {
             if (Entries != null)
             {
-                writer.WriteStartElement("Entries", 2);
+                writer.WriteStartElement("Entries");
                 foreach (GXDLMSSpecialDay it in Entries)
                 {
-                    writer.WriteStartElement("Entry", 0);
-                    writer.WriteElementString("Index", it.Index, 0);
-                    writer.WriteElementString("Date", it.Date, 0);
-                    writer.WriteElementString("DayId", it.DayId, 0);
+                    writer.WriteStartElement("Entry");
+                    writer.WriteElementString("Index", it.Index);
+                    writer.WriteElementString("Date", it.Date);
+                    writer.WriteElementString("DayId", it.DayId);
                     writer.WriteEndElement();//Entry
                 }
                 writer.WriteEndElement();//Entries

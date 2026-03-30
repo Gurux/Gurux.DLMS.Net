@@ -470,27 +470,27 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("IssuerId", MeterPan.IssuerId, 2);
-            writer.WriteElementString("DecoderReferenceNumber", MeterPan.DecoderReferenceNumber, 2);
-            writer.WriteElementString("PanCheckDigit", MeterPan.PanCheckDigit, 2);
-            writer.WriteElementString("Commodity", Commodity, 3);
-            writer.WriteStartElement("TokenCarrierTypes", 4);
+            writer.WriteElementString("IssuerId", MeterPan.IssuerId);
+            writer.WriteElementString("DecoderReferenceNumber", MeterPan.DecoderReferenceNumber);
+            writer.WriteElementString("PanCheckDigit", MeterPan.PanCheckDigit);
+            writer.WriteElementString("Commodity", Commodity);
+            writer.WriteStartElement("TokenCarrierTypes");
             if (TokenCarrierTypes != null)
             {
                 foreach (byte it in TokenCarrierTypes)
                 {
-                    writer.WriteElementString("Value", Convert.ToString(it), 4);
+                    writer.WriteElementString("Value", Convert.ToString(it));
                 }
             }
             writer.WriteEndElement();
-            writer.WriteElementString("EncryptionAlgorithm", EncryptionAlgorithm, 5);
-            writer.WriteElementString("SupplyGroupCode", SupplyGroupCode, 6);
-            writer.WriteElementString("TariffIndex", TariffIndex, 7);
-            writer.WriteElementString("KeyRevisionNumber", KeyRevisionNumber, 8);
-            writer.WriteElementString("KeyType", KeyType, 9);
-            writer.WriteElementString("KeyExpiryNumber", KeyExpiryNumber, 10);
-            writer.WriteElementString("KctSupported", KctSupported, 11);
-            writer.WriteElementString("StsCertificate", StsCertificate, 12);
+            writer.WriteElementString("EncryptionAlgorithm", EncryptionAlgorithm);
+            writer.WriteElementString("SupplyGroupCode", SupplyGroupCode);
+            writer.WriteElementString("TariffIndex", TariffIndex);
+            writer.WriteElementString("KeyRevisionNumber", KeyRevisionNumber);
+            writer.WriteElementString("KeyType", KeyType);
+            writer.WriteElementString("KeyExpiryNumber", KeyExpiryNumber);
+            writer.WriteElementString("KctSupported", KctSupported);
+            writer.WriteElementString("StsCertificate", StsCertificate);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

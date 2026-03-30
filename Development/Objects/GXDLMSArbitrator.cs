@@ -548,12 +548,12 @@ namespace Gurux.DLMS.Objects
         {
             if (Actions != null)
             {
-                writer.WriteStartElement("Actions", 2);
+                writer.WriteStartElement("Actions");
                 foreach (GXDLMSActionItem it in Actions)
                 {
-                    writer.WriteStartElement("Item", 2);
-                    writer.WriteElementString("LN", it.LogicalName, 2);
-                    writer.WriteElementString("ScriptSelector", it.ScriptSelector, 1);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("LN", it.LogicalName);
+                    writer.WriteElementString("ScriptSelector", it.ScriptSelector);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();//Actions
@@ -561,23 +561,23 @@ namespace Gurux.DLMS.Objects
 
             if (PermissionsTable != null)
             {
-                writer.WriteStartElement("PermissionTable", 3);
+                writer.WriteStartElement("PermissionTable");
                 foreach (string it in PermissionsTable)
                 {
-                    writer.WriteElementString("Item", it, 3);
+                    writer.WriteElementString("Item", it);
                 }
                 writer.WriteEndElement();//PermissionTable
             }
 
             if (WeightingsTable != null)
             {
-                writer.WriteStartElement("WeightingTable", 4);
+                writer.WriteStartElement("WeightingTable");
                 foreach (UInt16[] it in WeightingsTable)
                 {
-                    writer.WriteStartElement("Weightings", 4);
+                    writer.WriteStartElement("Weightings");
                     foreach (UInt16 it2 in it)
                     {
-                        writer.WriteElementString("Item", it2, 4);
+                        writer.WriteElementString("Item", it2);
                     }
                     writer.WriteEndElement();//Weightings
                 }
@@ -586,14 +586,14 @@ namespace Gurux.DLMS.Objects
 
             if (MostRecentRequestsTable != null)
             {
-                writer.WriteStartElement("MostRecentRequestsTable", 5);
+                writer.WriteStartElement("MostRecentRequestsTable");
                 foreach (string it in MostRecentRequestsTable)
                 {
-                    writer.WriteElementString("Item", it, 5);
+                    writer.WriteElementString("Item", it);
                 }
                 writer.WriteEndElement();//MostRecentRequestsTable
             }
-            writer.WriteElementString("LastOutcome", LastOutcome, 6);
+            writer.WriteElementString("LastOutcome", LastOutcome);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

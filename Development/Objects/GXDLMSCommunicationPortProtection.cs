@@ -42,9 +42,19 @@ using Gurux.DLMS.Objects.Enums;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
+    /// Represents a DLMS/COSEM Communication Port Protection object that manages access control and lockout mechanisms
+    /// for a communication port based on failed authentication attempts.
+    /// </summary>
+    /// <remarks>This class provides configuration and status information for communication port protection,
+    /// including lockout timing, allowed failed attempts, and the current protection status. It is typically used in
+    /// metering or device management scenarios to prevent unauthorized access by disabling the port after a
+    /// configurable number of failed attempts. The protection behavior can be customized using properties such as
+    /// ProtectionMode, AllowedFailedAttempts, and SteepnessFactor. The associated port is referenced via the Port
+    /// property.
+    /// <para/>
     /// Online help:
     /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSCommunicationPortProtection
-    /// </summary>
+    /// </remarks>
     public class GXDLMSCommunicationPortProtection : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
@@ -169,7 +179,7 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Resets FailedAttempts and current lockout time to zero.
+        /// Resets failed attempts and current lockout time to zero.
         /// Protection status is set to unlocked.
         /// </summary>
         /// <param name="client">DLMS client.</param>
@@ -453,22 +463,22 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("ProtectionMode", (int)ProtectionMode, 2);
-            writer.WriteElementString("AllowedFailedAttempts", AllowedFailedAttempts, 3);
-            writer.WriteElementString("InitialLockoutTime", InitialLockoutTime, 4);
-            writer.WriteElementString("SteepnessFactor", SteepnessFactor, 5);
-            writer.WriteElementString("MaxLockoutTime", MaxLockoutTime, 6);
+            writer.WriteElementString("ProtectionMode", (int)ProtectionMode);
+            writer.WriteElementString("AllowedFailedAttempts", AllowedFailedAttempts);
+            writer.WriteElementString("InitialLockoutTime", InitialLockoutTime);
+            writer.WriteElementString("SteepnessFactor", SteepnessFactor);
+            writer.WriteElementString("MaxLockoutTime", MaxLockoutTime);
             if (Port == null)
             {
-                writer.WriteElementString("Port", "", 7);
+                writer.WriteElementString("Port", "");
             }
             else
             {
-                writer.WriteElementString("Port", Port.LogicalName, 7);
+                writer.WriteElementString("Port", Port.LogicalName);
             }
-            writer.WriteElementString("ProtectionStatus", (int)ProtectionStatus, 8);
-            writer.WriteElementString("FailedAttempts", FailedAttempts, 9);
-            writer.WriteElementString("CumulativeFailedAttempts", CumulativeFailedAttempts, 10);
+            writer.WriteElementString("ProtectionStatus", (int)ProtectionStatus);
+            writer.WriteElementString("FailedAttempts", FailedAttempts);
+            writer.WriteElementString("CumulativeFailedAttempts", CumulativeFailedAttempts);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

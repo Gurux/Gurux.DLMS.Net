@@ -583,21 +583,21 @@ namespace Gurux.DLMS.Objects
         {
             if (list != null)
             {
-                writer.WriteStartElement(name, 10);
+                writer.WriteStartElement(name);
                 foreach (var it in list)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("ProtectionType", (byte)it.ProtectionType, 0);
-                    writer.WriteElementString("TransactionId", GXCommon.ToHex(it.TransactionId, false), 0);
-                    writer.WriteElementString("OriginatorSystemTitle", GXCommon.ToHex(it.OriginatorSystemTitle, false), 0);
-                    writer.WriteElementString("RecipientSystemTitle", GXCommon.ToHex(it.RecipientSystemTitle, false), 0);
-                    writer.WriteElementString("OtherInformation", GXCommon.ToHex(it.OtherInformation, false), 0);
-                    writer.WriteElementString("DataProtectionKeyType", (int)it.KeyInfo.DataProtectionKeyType, 0);
-                    writer.WriteElementString("IdentifiedKey", (int)it.KeyInfo.IdentifiedKey.KeyType, 0);
-                    writer.WriteElementString("WrappedKeyType", (int)it.KeyInfo.WrappedKey.KeyType, 0);
-                    writer.WriteElementString("WrappedKey", GXCommon.ToHex(it.KeyInfo.WrappedKey.Key, false), 0);
-                    writer.WriteElementString("WrappedKeyParameters", GXCommon.ToHex(it.KeyInfo.AgreedKey.Parameters, false), 0);
-                    writer.WriteElementString("AgreedKeyData", GXCommon.ToHex(it.KeyInfo.AgreedKey.Data, false), 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ProtectionType", (byte)it.ProtectionType);
+                    writer.WriteElementString("TransactionId", GXCommon.ToHex(it.TransactionId, false));
+                    writer.WriteElementString("OriginatorSystemTitle", GXCommon.ToHex(it.OriginatorSystemTitle, false));
+                    writer.WriteElementString("RecipientSystemTitle", GXCommon.ToHex(it.RecipientSystemTitle, false));
+                    writer.WriteElementString("OtherInformation", GXCommon.ToHex(it.OtherInformation, false));
+                    writer.WriteElementString("DataProtectionKeyType", (int)it.KeyInfo.DataProtectionKeyType);
+                    writer.WriteElementString("IdentifiedKey", (int)it.KeyInfo.IdentifiedKey.KeyType);
+                    writer.WriteElementString("WrappedKeyType", (int)it.KeyInfo.WrappedKey.KeyType);
+                    writer.WriteElementString("WrappedKey", GXCommon.ToHex(it.KeyInfo.WrappedKey.Key, false));
+                    writer.WriteElementString("WrappedKeyParameters", GXCommon.ToHex(it.KeyInfo.AgreedKey.Parameters, false));
+                    writer.WriteElementString("AgreedKeyData", GXCommon.ToHex(it.KeyInfo.AgreedKey.Data, false));
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
@@ -606,24 +606,24 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Buffer", GXDLMSTranslator.ToHex(Buffer), 2);
+            writer.WriteElementString("Buffer", GXDLMSTranslator.ToHex(Buffer));
             if (Objects != null)
             {
-                writer.WriteStartElement("Objects", 2);
+                writer.WriteStartElement("Objects");
                 foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in Objects)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType, 0);
-                    writer.WriteElementString("LN", it.Key.LogicalName, 0);
-                    writer.WriteElementString("AI", it.Value.AttributeIndex, 0);
-                    writer.WriteElementString("DI", it.Value.DataIndex, 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType);
+                    writer.WriteElementString("LN", it.Key.LogicalName);
+                    writer.WriteElementString("AI", it.Value.AttributeIndex);
+                    writer.WriteElementString("DI", it.Value.DataIndex);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
             SaveParameters(writer, GetParameters, "GetParameters");
             SaveParameters(writer, SetParameters, "SetParameters");
-            writer.WriteElementString("RequiredProtection", (int)RequiredProtection, 6);
+            writer.WriteElementString("RequiredProtection", (int)RequiredProtection);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

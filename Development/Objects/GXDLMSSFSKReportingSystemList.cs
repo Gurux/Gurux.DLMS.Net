@@ -223,10 +223,10 @@ namespace Gurux.DLMS.Objects
         {
             if (ReportingSystemList != null)
             {
-                writer.WriteStartElement("ReportingSystems", 2);
+                writer.WriteStartElement("ReportingSystems");
                 foreach (byte[] it in ReportingSystemList)
                 {
-                    writer.WriteElementString("Item", GXCommon.ToHex(it, false), 0);
+                    writer.WriteElementString("Item", GXCommon.ToHex(it, false));
                 }
                 writer.WriteEndElement();
             }

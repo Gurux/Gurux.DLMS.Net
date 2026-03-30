@@ -447,20 +447,20 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Activated", Activated, 2);
-            writer.WriteElementString("ServerAddress", ServerAddress, 3);
-            writer.WriteElementString("Port", Port, 4);
-            writer.WriteElementString("Authentication", (int)Authentication, 5);
-            writer.WriteStartElement("Keys", 6);
+            writer.WriteElementString("Activated", Activated);
+            writer.WriteElementString("ServerAddress", ServerAddress);
+            writer.WriteElementString("Port", Port);
+            writer.WriteElementString("Authentication", (int)Authentication);
+            writer.WriteStartElement("Keys");
             foreach (var it in Keys)
             {
-                writer.WriteStartElement("Item", 0);
-                writer.WriteElementString("ID", it.Key.ToString(), 0);
-                writer.WriteElementString("Key", GXCommon.ToHex(it.Value, false), 0);
+                writer.WriteStartElement("Item");
+                writer.WriteElementString("ID", it.Key.ToString());
+                writer.WriteElementString("Key", GXCommon.ToHex(it.Value, false));
                 writer.WriteEndElement();
             }
             writer.WriteEndElement();//Keys
-            writer.WriteElementString("ClientKey", GXCommon.ToHex(ClientKey, false), 7);
+            writer.WriteElementString("ClientKey", GXCommon.ToHex(ClientKey, false));
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

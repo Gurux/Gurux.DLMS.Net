@@ -997,7 +997,7 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Returns User list.
         /// </summary>
-        private GXByteBuffer GetUserList(GXDLMSSettings settings, ValueEventArgs e)
+        private GXByteBuffer GetUserList(GXDLMSSettings settings)
         {
             GXByteBuffer data = new GXByteBuffer();
             //Add count only for first time.
@@ -1163,7 +1163,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 10)
             {
-                return GetUserList(settings, e).Array();
+                return GetUserList(settings).Array();
             }
             if (e.Index == 11)
             {
@@ -1771,7 +1771,7 @@ namespace Gurux.DLMS.Objects
             //Save objects.
             if (ObjectList != null)
             {
-                writer.WriteStartElement("ObjectList", 2);
+                writer.WriteStartElement("ObjectList");
                 StringBuilder sb = new StringBuilder();
                 foreach (GXDLMSObject it in ObjectList)
                 {
@@ -1781,9 +1781,9 @@ namespace Gurux.DLMS.Objects
                     {
                         if (MultipleAssociationViews || it.ObjectType != ObjectType.AssociationLogicalName)
                         {
-                            writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString(), 0);
+                            writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString());
                             // Add LN
-                            writer.WriteElementString("LN", it.LogicalName, 0);
+                            writer.WriteElementString("LN", it.LogicalName);
                             if (!accessRights.ContainsKey(it))
                             {
                                 if (Version < 3)
@@ -1820,11 +1820,11 @@ namespace Gurux.DLMS.Objects
                                 }
                                 if (Version < 3)
                                 {
-                                    writer.WriteElementString("Access", sb.ToString(), 0);
+                                    writer.WriteElementString("Access", sb.ToString());
                                 }
                                 else
                                 {
-                                    writer.WriteElementString("Access3", sb.ToString(), 0);
+                                    writer.WriteElementString("Access3", sb.ToString());
                                 }
                             }
                             if (!methodAccessRights.ContainsKey(it))
@@ -1862,80 +1862,80 @@ namespace Gurux.DLMS.Objects
                                 }
                                 if (Version < 3)
                                 {
-                                    writer.WriteElementString("MethodAccess", sb.ToString(), 0);
+                                    writer.WriteElementString("MethodAccess", sb.ToString());
                                 }
                                 else
                                 {
-                                    writer.WriteElementString("MethodAccess3", sb.ToString(), 0);
+                                    writer.WriteElementString("MethodAccess3", sb.ToString());
                                 }
                             }
                             writer.WriteEndElement();
                         }
                     }
                 }
+                writer.WriteEndElement();
             }
-            writer.WriteEndElement();
-            writer.WriteElementString("ClientSAP", ClientSAP, 3);
-            writer.WriteElementString("ServerSAP", ServerSAP, 3);
-            writer.WriteStartElement("ApplicationContextName", 4);
+            writer.WriteElementString("ClientSAP", ClientSAP);
+            writer.WriteElementString("ServerSAP", ServerSAP);
+            writer.WriteStartElement("ApplicationContextName");
             if (ApplicationContextName != null)
             {
-                writer.WriteElementString("JointIsoCtt", ApplicationContextName.JointIsoCtt, 4);
-                writer.WriteElementString("Country", ApplicationContextName.Country, 4);
-                writer.WriteElementString("CountryName", ApplicationContextName.CountryName, 4);
-                writer.WriteElementString("IdentifiedOrganization", ApplicationContextName.IdentifiedOrganization, 4);
-                writer.WriteElementString("DlmsUA", ApplicationContextName.DlmsUA, 4);
-                writer.WriteElementString("ApplicationContext", ApplicationContextName.ApplicationContext, 4);
-                writer.WriteElementString("ContextId", (int)ApplicationContextName.ContextId, 4);
+                writer.WriteElementString("JointIsoCtt", ApplicationContextName.JointIsoCtt);
+                writer.WriteElementString("Country", ApplicationContextName.Country);
+                writer.WriteElementString("CountryName", ApplicationContextName.CountryName);
+                writer.WriteElementString("IdentifiedOrganization", ApplicationContextName.IdentifiedOrganization);
+                writer.WriteElementString("DlmsUA", ApplicationContextName.DlmsUA);
+                writer.WriteElementString("ApplicationContext", ApplicationContextName.ApplicationContext);
+                writer.WriteElementString("ContextId", (int)ApplicationContextName.ContextId);
             }
             writer.WriteEndElement();
-            writer.WriteStartElement("XDLMSContextInfo", 5);
+            writer.WriteStartElement("XDLMSContextInfo");
             if (XDLMSContextInfo != null)
             {
-                writer.WriteElementString("Conformance", (int)XDLMSContextInfo.Conformance, 5);
-                writer.WriteElementString("MaxReceivePduSize", XDLMSContextInfo.MaxReceivePduSize, 5);
-                writer.WriteElementString("MaxSendPduSize", XDLMSContextInfo.MaxSendPduSize, 5);
-                writer.WriteElementString("DlmsVersionNumber", XDLMSContextInfo.DlmsVersionNumber, 5);
-                writer.WriteElementString("QualityOfService", XDLMSContextInfo.QualityOfService, 5);
-                writer.WriteElementString("CypheringInfo", GXDLMSTranslator.ToHex(XDLMSContextInfo.CypheringInfo), 5);
+                writer.WriteElementString("Conformance", (int)XDLMSContextInfo.Conformance);
+                writer.WriteElementString("MaxReceivePduSize", XDLMSContextInfo.MaxReceivePduSize);
+                writer.WriteElementString("MaxSendPduSize", XDLMSContextInfo.MaxSendPduSize);
+                writer.WriteElementString("DlmsVersionNumber", XDLMSContextInfo.DlmsVersionNumber);
+                writer.WriteElementString("QualityOfService", XDLMSContextInfo.QualityOfService);
+                writer.WriteElementString("CypheringInfo", GXDLMSTranslator.ToHex(XDLMSContextInfo.CypheringInfo));
             }
             writer.WriteEndElement();
-            writer.WriteStartElement("AuthenticationMechanismName", 6);
+            writer.WriteStartElement("AuthenticationMechanismName");
             if (AuthenticationMechanismName != null)
             {
-                writer.WriteElementString("JointIsoCtt", AuthenticationMechanismName.JointIsoCtt, 6);
-                writer.WriteElementString("Country", AuthenticationMechanismName.Country, 6);
-                writer.WriteElementString("CountryName", AuthenticationMechanismName.CountryName, 6);
-                writer.WriteElementString("IdentifiedOrganization", AuthenticationMechanismName.IdentifiedOrganization, 6);
-                writer.WriteElementString("DlmsUA", AuthenticationMechanismName.DlmsUA, 6);
-                writer.WriteElementString("AuthenticationMechanismName", AuthenticationMechanismName.AuthenticationMechanismName, 6);
-                writer.WriteElementString("MechanismId", (int)AuthenticationMechanismName.MechanismId, 6);
+                writer.WriteElementString("JointIsoCtt", AuthenticationMechanismName.JointIsoCtt);
+                writer.WriteElementString("Country", AuthenticationMechanismName.Country);
+                writer.WriteElementString("CountryName", AuthenticationMechanismName.CountryName);
+                writer.WriteElementString("IdentifiedOrganization", AuthenticationMechanismName.IdentifiedOrganization);
+                writer.WriteElementString("DlmsUA", AuthenticationMechanismName.DlmsUA);
+                writer.WriteElementString("AuthenticationMechanismName", AuthenticationMechanismName.AuthenticationMechanismName);
+                writer.WriteElementString("MechanismId", (int)AuthenticationMechanismName.MechanismId);
             }
             writer.WriteEndElement();
-            writer.WriteElementString("Secret", GXDLMSTranslator.ToHex(Secret), 7);
-            writer.WriteElementString("AssociationStatus", (int)AssociationStatus, 8);
+            writer.WriteElementString("Secret", GXDLMSTranslator.ToHex(Secret));
+            writer.WriteElementString("AssociationStatus", (int)AssociationStatus);
             if (string.IsNullOrEmpty(SecuritySetupReference))
             {
-                writer.WriteElementString("SecuritySetupReference", "0.0.0.0.0.0", 9);
+                writer.WriteElementString("SecuritySetupReference", "0.0.0.0.0.0");
             }
             else
             {
-                writer.WriteElementString("SecuritySetupReference", SecuritySetupReference, 9);
+                writer.WriteElementString("SecuritySetupReference", SecuritySetupReference);
             }
             //Save users.
             if (UserList != null)
             {
-                writer.WriteStartElement("Users", 10);
+                writer.WriteStartElement("Users");
                 foreach (KeyValuePair<byte, string> it in UserList)
                 {
-                    writer.WriteStartElement("User", 10);
-                    writer.WriteElementString("Id", it.Key, 10);
-                    writer.WriteElementString("Name", it.Value, 10);
+                    writer.WriteStartElement("User");
+                    writer.WriteElementString("Id", it.Key);
+                    writer.WriteElementString("Name", it.Value);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("MultipleAssociationViews", MultipleAssociationViews, 0);
+            writer.WriteElementString("MultipleAssociationViews", MultipleAssociationViews);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

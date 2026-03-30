@@ -331,44 +331,42 @@ namespace Gurux.DLMS.Objects
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = CommunicationSpeed;
+                    break;
+                case 3:
+                    ret = WindowSizeTransmit;
+                    break;
+                case 4:
+                    ret = WindowSizeReceive;
+                    break;
+                case 5:
+                    ret = MaximumInfoLengthTransmit;
+                    break;
+                case 6:
+                    ret = MaximumInfoLengthReceive;
+                    break;
+                case 7:
+                    ret = InterCharachterTimeout;
+                    break;
+                case 8:
+                    ret = InactivityTimeout;
+                    break;
+                case 9:
+                    ret = DeviceAddress;
+                    break;
+                default:
+                    ret = null;
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    break;
             }
-            if (e.Index == 2)
-            {
-                return this.CommunicationSpeed;
-            }
-            if (e.Index == 3)
-            {
-                return this.WindowSizeTransmit;
-            }
-            if (e.Index == 4)
-            {
-                return this.WindowSizeReceive;
-            }
-            if (e.Index == 5)
-            {
-                return this.MaximumInfoLengthTransmit;
-            }
-            if (e.Index == 6)
-            {
-                return this.MaximumInfoLengthReceive;
-            }
-            if (e.Index == 7)
-            {
-                return InterCharachterTimeout;
-            }
-            if (e.Index == 8)
-            {
-                return InactivityTimeout;
-            }
-            if (e.Index == 9)
-            {
-                return DeviceAddress;
-            }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)

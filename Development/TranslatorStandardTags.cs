@@ -461,55 +461,55 @@ namespace Gurux.DLMS
 
         public static void GetDataTypeTags(SortedList<int, string> list)
         {
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.None,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.None,
                      "null-data");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Array,
                      "array");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Bcd, "bcd");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.BitString,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Bcd, "bcd");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.BitString,
                      "bit-string");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Boolean,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Boolean,
                      "boolean");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.CompactArray,
                      "compact-array");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Date, "date");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DateTime,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Date, "date");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DateTime,
                      "date-time");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Enum, "enum");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Float32,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Enum, "enum");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Float32,
                      "float32");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Float64,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Float64,
                      "float64,");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Int16, "long");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Int32,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Int16, "long");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Int32,
                      "double-long");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Int64,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Int64,
                      "long64");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Int8,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Int8,
                      "integer");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.OctetString,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.OctetString,
                      "octet-string");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.String,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.String,
                      "visible-string");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.StringUTF8,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.StringUTF8,
                      "utf8-string");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Structure,
                      "structure");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Time, "time");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt16,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Time, "time");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.UInt16,
                      "long-unsigned");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt32,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.UInt32,
                      "double-long-unsigned");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt64,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.UInt64,
                      "long64-unsigned");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt8,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.UInt8,
                      "unsigned");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt8, "integer-delta");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt16, "long-integer-delta");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt32, "double-long-integer-delta");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt8, "unsigned-delta");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt16, "long-unsigned-delta");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt32, "double-long-unsigned-delta");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaInt8, "integer-delta");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaInt16, "long-integer-delta");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaInt32, "double-long-integer-delta");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaUInt8, "unsigned-delta");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaUInt16, "long-unsigned-delta");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaUInt32, "double-long-unsigned-delta");
         }
 
         public static String ErrorCodeToString(ErrorCode value)
@@ -574,67 +574,67 @@ namespace Gurux.DLMS
         public static ErrorCode ValueOfErrorCode(String value)
         {
             ErrorCode v;
-            if ("scope-of-access-violated".CompareTo(value) == 0)
+            if (string.Compare("scope-of-access-violated", value, true) == 0)
             {
                 v = ErrorCode.AccessViolated;
             }
-            else if ("data-block-number-invalid".CompareTo(value) == 0)
+            else if (string.Compare("data-block-number-invalid", value, true) == 0)
             {
                 v = ErrorCode.DataBlockNumberInvalid;
             }
-            else if ("data-block-unavailable".CompareTo(value) == 0)
+            else if (string.Compare("data-block-unavailable", value, true) == 0)
             {
                 v = ErrorCode.DataBlockUnavailable;
             }
-            else if ("hardware-fault".CompareTo(value) == 0)
+            else if (string.Compare("hardware-fault", value, true) == 0)
             {
                 v = ErrorCode.HardwareFault;
             }
-            else if ("object-class-inconsistent".CompareTo(value) == 0)
+            else if (string.Compare("object-class-inconsistent", value, true) == 0)
             {
                 v = ErrorCode.InconsistentClass;
             }
-            else if ("long-Get-aborted".CompareTo(value) == 0)
+            else if (string.Compare("long-Get-aborted", value, true) == 0)
             {
                 v = ErrorCode.LongGetOrReadAborted;
             }
-            else if ("long-set-aborted".CompareTo(value) == 0)
+            else if (string.Compare("long-set-aborted", value, true) == 0)
             {
                 v = ErrorCode.LongSetOrWriteAborted;
             }
-            else if ("no-long-Get-in-progress".CompareTo(value) == 0)
+            else if (string.Compare("no-long-Get-in-progress", value, true) == 0)
             {
                 v = ErrorCode.NoLongGetOrReadInProgress;
             }
-            else if ("no-long-set-in-progress".CompareTo(value) == 0)
+            else if (string.Compare("no-long-set-in-progress", value, true) == 0)
             {
                 v = ErrorCode.NoLongSetOrWriteInProgress;
             }
-            else if ("success".CompareTo(value) == 0)
+            else if (string.Compare("success", value, true) == 0)
             {
                 v = ErrorCode.Ok;
             }
-            else if ("other-reason".CompareTo(value) == 0)
+            else if (string.Compare("other-reason", value, true) == 0)
             {
                 v = ErrorCode.OtherReason;
             }
-            else if ("read-write-denied".CompareTo(value) == 0)
+            else if (string.Compare("read-write-denied", value, true) == 0)
             {
                 v = ErrorCode.ReadWriteDenied;
             }
-            else if ("temporary-failure".CompareTo(value) == 0)
+            else if (string.Compare("temporary-failure", value, true) == 0)
             {
                 v = ErrorCode.TemporaryFailure;
             }
-            else if ("object-unavailable".CompareTo(value) == 0)
+            else if (string.Compare("object-unavailable", value, true) == 0)
             {
                 v = ErrorCode.UnavailableObject;
             }
-            else if ("object-undefined".CompareTo(value) == 0)
+            else if (string.Compare("object-undefined", value, true) == 0)
             {
                 v = ErrorCode.UndefinedObject;
             }
-            else if ("type-unmatched".CompareTo(value) == 0)
+            else if (string.Compare("type-unmatched", value, true) == 0)
             {
                 v = ErrorCode.UnmatchedType;
             }

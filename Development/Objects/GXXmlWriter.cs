@@ -162,16 +162,16 @@ namespace Gurux.DLMS.Objects
             writer.WriteStartDocument();
         }
 
-        public void WriteStartElement(string name, int index)
+        public void WriteStartElement(string name)
         {
             writer.WriteStartElement(name);
         }
-        public void WriteAttributeString(string name, string value, int index)
+        public void WriteAttributeString(string name, string value)
         {
             writer.WriteAttributeString(name, value);
         }
 
-        public void WriteElementString(string name, UInt64 value, int index)
+        public void WriteElementString(string name, UInt64 value)
         {
             if (!IgnoreDefaultValues || value != 0)
             {
@@ -179,12 +179,12 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        public void WriteElementString(string name, double value, int index)
+        public void WriteElementString(string name, double value)
         {
-            WriteElementString(name, value, 0, index);
+            WriteElementString(name, value, 0);
         }
 
-        public void WriteElementString(string name, double value, double defaultValue, int index)
+        public void WriteElementString(string name, double value, double defaultValue)
         {
             if (!IgnoreDefaultValues || value != defaultValue)
             {
@@ -192,7 +192,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        public void WriteElementString(string name, int value, int index)
+        public void WriteElementString(string name, int value)
         {
             if (!IgnoreDefaultValues || value != 0)
             {
@@ -200,7 +200,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        public void WriteElementString(string name, string value, int index)
+        public void WriteElementString(string name, string value)
         {
             if (!string.IsNullOrEmpty(value))
             {
@@ -217,7 +217,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        public void WriteElementString(string name, bool value, int index)
+        public void WriteElementString(string name, bool value)
         {
             if (!IgnoreDefaultValues || value)
             {
@@ -225,7 +225,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        public void WriteElementString(string name, GXDateTime value, int index)
+        public void WriteElementString(string name, GXDateTime value)
         {
             if (value != null && value != DateTime.MinValue)
             {
@@ -254,7 +254,7 @@ namespace Gurux.DLMS.Objects
                 {
                     if (tmp is byte[])
                     {
-                        WriteElementObject("Item", tmp, 0);
+                        WriteElementObject("Item", tmp);
                     }
                     else if (tmp is GXArray)
                     {
@@ -272,22 +272,22 @@ namespace Gurux.DLMS.Objects
                     }
                     else if (tmp is Enum)
                     {
-                        WriteElementObject("Item", Convert.ToInt32(tmp), 0);
+                        WriteElementObject("Item", Convert.ToInt32(tmp));
                     }
                     else
                     {
-                        WriteElementObject("Item", tmp, 0);
+                        WriteElementObject("Item", tmp);
                     }
                 }
             }
         }
 
-        public void WriteElementObject(string name, object value, int index)
+        public void WriteElementObject(string name, object value)
         {
             if (value != null || !IgnoreDefaultValues)
             {
                 DataType dt = GXDLMSConverter.GetDLMSDataType(value);
-                WriteElementObject(name, value, dt, DataType.None, index);
+                WriteElementObject(name, value, dt, DataType.None);
             }
         }
 
@@ -297,7 +297,7 @@ namespace Gurux.DLMS.Objects
         /// <param name="name">Object name.</param>
         /// <param name="value">Object value.</param>
         /// <param name="skipDefaultValue">Is default value serialized.</param>
-        public void WriteElementObject(string name, object value, DataType dt, DataType uiType, int index)
+        public void WriteElementObject(string name, object value, DataType dt, DataType uiType)
         {
             if (value != null)
             {

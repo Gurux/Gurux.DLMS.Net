@@ -516,19 +516,19 @@ namespace Gurux.DLMS.Objects
         {
             if (UdpReference != null)
             {
-                writer.WriteElementString("UdpReference", UdpReference.LogicalName, 2);
+                writer.WriteElementString("UdpReference", UdpReference.LogicalName);
             }
-            writer.WriteElementString("AckTimeout", AckTimeout, 3);
-            writer.WriteElementString("AckRandomFactor", AckRandomFactor, 4);
-            writer.WriteElementString("MaxRetransmit", MaxRetransmit, 5);
-            writer.WriteElementString("NStart", NStart, 6);
-            writer.WriteElementString("DelayAckTimeout", DelayAckTimeout, 7);
-            writer.WriteElementString("ExponentialBackOff", ExponentialBackOff, 8);
-            writer.WriteElementString("ProbingRate", ProbingRate, 9);
-            writer.WriteElementString("CoAPUriPath", CoAPUriPath, 10);
-            writer.WriteElementString("TransportMode", (int)TransportMode, 11);
-            writer.WriteElementObject("WrapperVersion", WrapperVersion, 12);
-            writer.WriteElementString("TokenLength", TokenLength, 13);
+            writer.WriteElementString("AckTimeout", AckTimeout);
+            writer.WriteElementString("AckRandomFactor", AckRandomFactor);
+            writer.WriteElementString("MaxRetransmit", MaxRetransmit);
+            writer.WriteElementString("NStart", NStart);
+            writer.WriteElementString("DelayAckTimeout", DelayAckTimeout);
+            writer.WriteElementString("ExponentialBackOff", ExponentialBackOff);
+            writer.WriteElementString("ProbingRate", ProbingRate);
+            writer.WriteElementString("CoAPUriPath", CoAPUriPath);
+            writer.WriteElementString("TransportMode", (int)TransportMode);
+            writer.WriteElementObject("WrapperVersion", WrapperVersion);
+            writer.WriteElementString("TokenLength", TokenLength);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

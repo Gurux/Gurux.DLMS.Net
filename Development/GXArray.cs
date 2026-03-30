@@ -46,18 +46,20 @@ namespace Gurux.DLMS
     /// </remarks>
     public class GXArray : List<object>
     {
+        /// <summary>
+        /// A string representation of the array.
+        /// </summary>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("{");
             foreach (object it in this)
             {
+                if (sb.Length != 1)
+                {
+                    sb.Append(", ");
+                }
                 sb.Append(Convert.ToString(it));
-                sb.Append(", ");
-            }
-            if (sb.Length != 1)
-            {
-                sb.Length -= 2;
             }
             sb.Append("}");
             return sb.ToString();

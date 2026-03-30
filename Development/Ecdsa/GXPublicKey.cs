@@ -283,6 +283,12 @@ namespace Gurux.DLMS.Ecdsa
             }
         }
 
+        /// <summary>
+        /// Returns a string that represents the current elliptic curve public key, including the scheme and public
+        /// coordinates.
+        /// </summary>
+        /// <returns>A string containing the name of the elliptic curve scheme and the public x and y coordinates.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if the elliptic curve scheme is not supported.</exception>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -307,6 +313,12 @@ namespace Gurux.DLMS.Ecdsa
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Determines whether the specified object is equal to the current GXPublicKey instance.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current GXPublicKey instance.</param>
+        /// <returns>true if the specified object is a GXPublicKey and has the same value as the current instance; otherwise,
+        /// false.</returns>
         public override bool Equals(object obj)
         {
             if (obj is GXPublicKey o)
@@ -316,6 +328,14 @@ namespace Gurux.DLMS.Ecdsa
             return false;
         }
 
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <remarks>Use this method when inserting instances of this type into hash-based collections
+        /// such as <see cref="System.Collections.Generic.Dictionary{TKey, TValue}"/> or <see
+        /// cref="System.Collections.Generic.HashSet{T}"/>. The hash code is based on the value of the underlying
+        /// <c>RawValue</c> property.</remarks>
+        /// <returns>A 32-bit signed integer hash code for the current object.</returns>
         public override int GetHashCode()
         {
             return RawValue.GetHashCode();

@@ -294,11 +294,11 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("MaximumOctetsACnPdu", MaximumOctetsACnPdu, 2);
-            writer.WriteElementString("MaximumTransmissions", MaximumTransmissions, 3);
-            writer.WriteElementString("AcknowledgementTime", AcknowledgementTime, 4);
-            writer.WriteElementString("ReceiveLifetime", ReceiveLifetime, 5);
-            writer.WriteElementString("TransmitLifetime", TransmitLifetime, 6);
+            writer.WriteElementString("MaximumOctetsACnPdu", MaximumOctetsACnPdu);
+            writer.WriteElementString("MaximumTransmissions", MaximumTransmissions);
+            writer.WriteElementString("AcknowledgementTime", AcknowledgementTime);
+            writer.WriteElementString("ReceiveLifetime", ReceiveLifetime);
+            writer.WriteElementString("TransmitLifetime", TransmitLifetime);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

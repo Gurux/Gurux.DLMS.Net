@@ -464,27 +464,27 @@ namespace Gurux.DLMS.Objects
         /// <inheritdoc />
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteStartElement("Activations", 0);
+            writer.WriteStartElement("Activations");
             foreach (var it in ActivationStatus)
             {
-                writer.WriteStartElement("Item", 0);
-                writer.WriteElementString("Name", it.Key, 0);
-                writer.WriteElementString("Status", it.Value, 0);
+                writer.WriteStartElement("Item");
+                writer.WriteElementString("Name", it.Key);
+                writer.WriteElementString("Status", it.Value);
                 writer.WriteEndElement();
             }
             writer.WriteEndElement();//Activations
 
-            writer.WriteStartElement("Functions", 0);
+            writer.WriteStartElement("Functions");
             foreach (var it in FunctionList)
             {
-                writer.WriteStartElement("Item", 0);
-                writer.WriteElementString("Name", it.Key, 0);
-                writer.WriteStartElement("Objects", 0);
+                writer.WriteStartElement("Item");
+                writer.WriteElementString("Name", it.Key);
+                writer.WriteStartElement("Objects");
                 foreach (var obj in it.Value)
                 {
-                    writer.WriteStartElement("Object", 0);
-                    writer.WriteElementString("ObjectType", (int)obj.ObjectType, 0);
-                    writer.WriteElementString("LN", obj.LogicalName, 0);
+                    writer.WriteStartElement("Object");
+                    writer.WriteElementString("ObjectType", (int)obj.ObjectType);
+                    writer.WriteElementString("LN", obj.LogicalName);
                     writer.WriteEndElement(); //Object
                 }
                 writer.WriteEndElement();//Objects

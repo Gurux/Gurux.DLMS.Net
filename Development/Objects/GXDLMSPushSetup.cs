@@ -797,6 +797,9 @@ namespace Gurux.DLMS.Objects
             return ret;
         }
 
+        /// <summary>
+        /// Deserializes attribute 2 and updates PushObjectList.
+        /// </summary>
         private void SetPushObject(GXDLMSSettings settings, ValueEventArgs e)
         {
             PushObjectList.Clear();
@@ -894,125 +897,136 @@ namespace Gurux.DLMS.Objects
         }
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            switch (e.Index)
             {
-                LogicalName = GXCommon.ToLogicalName(e.Value);
-            }
-            else if (e.Index == 2)
-            {
-                SetPushObject(settings, e);
-            }
-            else if (e.Index == 3)
-            {
-                List<object> tmp = null;
-                if (e.Value is List<object>)
-                {
-                    tmp = (List<object>)e.Value;
-                }
-                else
-                {
-                    tmp = new List<object>((object[])e.Value);
-                }
-                if (tmp != null)
-                {
-                    Service = (ServiceType)Convert.ToInt32(tmp[0]);
-                    //LN can be used with HDLC
-                    if (Service == ServiceType.Hdlc && ((byte[])tmp[1]).Length == 6 && ((byte[])tmp[1])[5] == 0xFF)
+                case 1:
+                    LogicalName = GXCommon.ToLogicalName(e.Value);
+                    break;
+                case 2:
+                    SetPushObject(settings, e);
+                    break;
+                case 3:
                     {
-                        Destination = GXCommon.ToLogicalName((byte[])tmp[1]);
-                    }
-                    else
-                    {
-                        object str = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.String, settings.UseUtc2NormalTime);
-                        if (str is string)
+                        List<object> tmp = null;
+                        if (e.Value is List<object>)
                         {
-                            Destination = (string)str;
+                            tmp = (List<object>)e.Value;
                         }
                         else
                         {
-                            Destination = GXCommon.ToHex((byte[])tmp[1], true);
+                            tmp = new List<object>((object[])e.Value);
+                        }
+                        if (tmp != null)
+                        {
+                            Service = (ServiceType)Convert.ToInt32(tmp[0]);
+                            //LN can be used with HDLC
+                            if (Service == ServiceType.Hdlc && ((byte[])tmp[1]).Length == 6 && ((byte[])tmp[1])[5] == 0xFF)
+                            {
+                                Destination = GXCommon.ToLogicalName((byte[])tmp[1]);
+                            }
+                            else
+                            {
+                                object str = GXDLMSClient.ChangeType((byte[])tmp[1], DataType.String, settings.UseUtc2NormalTime);
+                                if (str is string)
+                                {
+                                    Destination = (string)str;
+                                }
+                                else
+                                {
+                                    Destination = GXCommon.ToHex((byte[])tmp[1], true);
+                                }
+                            }
+                            Message = (MessageType)Convert.ToInt32(tmp[2]);
+                        }
+
+                        break;
+                    }
+
+                case 4:
+                    {
+                        CommunicationWindow.Clear();
+                        if (e.Value is List<object>)
+                        {
+                            foreach (List<object> it in e.Value as List<object>)
+                            {
+                                GXDateTime start = GXDLMSClient.ChangeType((byte[])it[0], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
+                                GXDateTime end = GXDLMSClient.ChangeType((byte[])it[1], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
+                                CommunicationWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
+                            }
+                        }
+
+                        break;
+                    }
+
+                case 5:
+                    RandomisationStartInterval = (ushort)e.Value;
+                    break;
+                case 6:
+                    NumberOfRetries = (byte)e.Value;
+                    break;
+                case 7:
+                    {
+                        if (Version < 2)
+                        {
+                            RepetitionDelay = (ushort)e.Value;
+                        }
+                        else
+                        {
+                            if (e.Value is GXStructure s)
+                            {
+                                RepetitionDelay2.Min = (ushort)s[0];
+                                RepetitionDelay2.Exponent = (ushort)s[1];
+                                RepetitionDelay2.Max = (ushort)s[2];
+                            }
+                        }
+
+                        break;
+                    }
+
+                default:
+                    if (Version > 0 && e.Index == 8)
+                    {
+                        PortReference = null;
+                        if (e.Value is byte[] bv)
+                        {
+                            string ln = GXCommon.ToLogicalName(bv);
+                            PortReference = settings.Objects.FindByLN(ObjectType.None, ln);
                         }
                     }
-                    Message = (MessageType)Convert.ToInt32(tmp[2]);
-                }
-            }
-            else if (e.Index == 4)
-            {
-                CommunicationWindow.Clear();
-                if (e.Value is List<object>)
-                {
-                    foreach (List<object> it in e.Value as List<object>)
+                    else if (Version > 0 && e.Index == 9)
                     {
-                        GXDateTime start = GXDLMSClient.ChangeType((byte[])it[0], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
-                        GXDateTime end = GXDLMSClient.ChangeType((byte[])it[1], DataType.DateTime, settings.UseUtc2NormalTime) as GXDateTime;
-                        CommunicationWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(start, end));
+                        PushClientSAP = (sbyte)e.Value;
                     }
-                }
-            }
-            else if (e.Index == 5)
-            {
-                RandomisationStartInterval = (UInt16)e.Value;
-            }
-            else if (e.Index == 6)
-            {
-                NumberOfRetries = (byte)e.Value;
-            }
-            else if (e.Index == 7)
-            {
-                if (Version < 2)
-                {
-                    RepetitionDelay = (UInt16)e.Value;
-                }
-                else
-                {
-                    if (e.Value is GXStructure s)
+                    else if (Version > 0 && e.Index == 10)
                     {
-                        RepetitionDelay2.Min = (UInt16)s[0];
-                        RepetitionDelay2.Exponent = (UInt16)s[1];
-                        RepetitionDelay2.Max = (UInt16)s[2];
+                        GetPushProtectionParameters(e);
                     }
-                }
-            }
-            else if (Version > 0 && e.Index == 8)
-            {
-                PortReference = null;
-                if (e.Value is byte[] bv)
-                {
-                    string ln = GXCommon.ToLogicalName(bv);
-                    PortReference = settings.Objects.FindByLN(ObjectType.None, ln);
-                }
-            }
-            else if (Version > 0 && e.Index == 9)
-            {
-                PushClientSAP = (sbyte)e.Value;
-            }
-            else if (Version > 0 && e.Index == 10)
-            {
-                GetPushProtectionParameters(e);
-            }
-            else if (Version > 1 && e.Index == 11)
-            {
-                PushOperationMethod = (PushOperationMethod)Convert.ToInt32(e.Value);
-            }
-            else if (Version > 1 && e.Index == 12)
-            {
-                if (e.Value is GXStructure s)
-                {
-                    ConfirmationParameters.StartDate = (GXDateTime)s[0];
-                    ConfirmationParameters.Interval = Convert.ToUInt32(s[1]);
-                }
-                else
-                {
-                    e.Error = ErrorCode.ReadWriteDenied;
-                }
-            }
-            else if (Version > 1 && e.Index == 13)
-            {
-                LastConfirmationDateTime = (GXDateTime)e.Value;
-            }
-            else
-            {
-                e.Error = ErrorCode.ReadWriteDenied;
+                    else if (Version > 1 && e.Index == 11)
+                    {
+                        PushOperationMethod = (PushOperationMethod)Convert.ToInt32(e.Value);
+                    }
+                    else if (Version > 1 && e.Index == 12)
+                    {
+                        if (e.Value is GXStructure s)
+                        {
+                            ConfirmationParameters.StartDate = (GXDateTime)s[0];
+                            ConfirmationParameters.Interval = Convert.ToUInt32(s[1]);
+                        }
+                        else
+                        {
+                            e.Error = ErrorCode.ReadWriteDenied;
+                        }
+                    }
+                    else if (Version > 1 && e.Index == 13)
+                    {
+                        LastConfirmationDateTime = (GXDateTime)e.Value;
+                    }
+                    else
+                    {
+                        e.Error = ErrorCode.ReadWriteDenied;
+                    }
+
+                    break;
             }
         }
 
@@ -1117,81 +1131,81 @@ namespace Gurux.DLMS.Objects
         {
             if (PushObjectList != null)
             {
-                writer.WriteStartElement("ObjectList", 2);
+                writer.WriteStartElement("ObjectList");
                 foreach (GXKeyValuePair<GXDLMSObject, GXDLMSCaptureObject> it in PushObjectList)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType, 0);
-                    writer.WriteElementString("LN", it.Key.LogicalName, 0);
-                    writer.WriteElementString("AI", it.Value.AttributeIndex, 0);
-                    writer.WriteElementString("DI", it.Value.DataIndex, 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ObjectType", (int)it.Key.ObjectType);
+                    writer.WriteElementString("LN", it.Key.LogicalName);
+                    writer.WriteElementString("AI", it.Value.AttributeIndex);
+                    writer.WriteElementString("DI", it.Value.DataIndex);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("Service", (int)Service, 3);
-            writer.WriteElementString("Destination", Destination, 3);
-            writer.WriteElementString("Message", (int)Message, 3);
+            writer.WriteElementString("Service", (int)Service);
+            writer.WriteElementString("Destination", Destination);
+            writer.WriteElementString("Message", (int)Message);
             if (CommunicationWindow != null)
             {
-                writer.WriteStartElement("CommunicationWindow", 4);
+                writer.WriteStartElement("CommunicationWindow");
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in CommunicationWindow)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("Start", it.Key, 0);
-                    writer.WriteElementString("End", it.Value, 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Start", it.Key);
+                    writer.WriteElementString("End", it.Value);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
             }
-            writer.WriteElementString("RandomisationStartInterval", RandomisationStartInterval, 5);
-            writer.WriteElementString("NumberOfRetries", NumberOfRetries, 6);
+            writer.WriteElementString("RandomisationStartInterval", RandomisationStartInterval);
+            writer.WriteElementString("NumberOfRetries", NumberOfRetries);
             if (Version < 2)
             {
-                writer.WriteElementString("RepetitionDelay", RepetitionDelay, 7);
+                writer.WriteElementString("RepetitionDelay", RepetitionDelay);
             }
             else
             {
-                writer.WriteStartElement("RepetitionDelay", 7);
-                writer.WriteElementString("Min", RepetitionDelay2.Min, 0);
-                writer.WriteElementString("Exponent", RepetitionDelay2.Exponent, 0);
-                writer.WriteElementString("Max", RepetitionDelay2.Max, 0);
+                writer.WriteStartElement("RepetitionDelay");
+                writer.WriteElementString("Min", RepetitionDelay2.Min);
+                writer.WriteElementString("Exponent", RepetitionDelay2.Exponent);
+                writer.WriteElementString("Max", RepetitionDelay2.Max);
                 writer.WriteEndElement();
             }
             if (Version > 0)
             {
                 if (PortReference != null)
                 {
-                    writer.WriteElementString("PortReference", PortReference.LogicalName, 8);
+                    writer.WriteElementString("PortReference", PortReference.LogicalName);
                 }
-                writer.WriteElementString("PushClientSAP", PushClientSAP, 9);
+                writer.WriteElementString("PushClientSAP", PushClientSAP);
                 if (PushProtectionParameters != null)
                 {
-                    writer.WriteStartElement("PushProtectionParameters", 10);
+                    writer.WriteStartElement("PushProtectionParameters");
                     foreach (var it in PushProtectionParameters)
                     {
-                        writer.WriteStartElement("Item", 0);
-                        writer.WriteElementString("ProtectionType", (byte)it.ProtectionType, 0);
-                        writer.WriteElementString("TransactionId", GXCommon.ToHex(it.TransactionId, false), 0);
-                        writer.WriteElementString("OriginatorSystemTitle", GXCommon.ToHex(it.OriginatorSystemTitle, false), 0);
-                        writer.WriteElementString("RecipientSystemTitle", GXCommon.ToHex(it.RecipientSystemTitle, false), 0);
-                        writer.WriteElementString("OtherInformation", GXCommon.ToHex(it.OtherInformation, false), 0);
-                        writer.WriteElementString("DataProtectionKeyType", (int)it.KeyInfo.DataProtectionKeyType, 0);
-                        writer.WriteElementString("IdentifiedKey", (int)it.KeyInfo.IdentifiedKey.KeyType, 0);
-                        writer.WriteElementString("WrappedKeyType", (int)it.KeyInfo.WrappedKey.KeyType, 0);
-                        writer.WriteElementString("WrappedKey", GXCommon.ToHex(it.KeyInfo.WrappedKey.Key, false), 0);
-                        writer.WriteElementString("WrappedKeyParameters", GXCommon.ToHex(it.KeyInfo.AgreedKey.Parameters, false), 0);
-                        writer.WriteElementString("AgreedKeyData", GXCommon.ToHex(it.KeyInfo.AgreedKey.Data, false), 0);
+                        writer.WriteStartElement("Item");
+                        writer.WriteElementString("ProtectionType", (byte)it.ProtectionType);
+                        writer.WriteElementString("TransactionId", GXCommon.ToHex(it.TransactionId, false));
+                        writer.WriteElementString("OriginatorSystemTitle", GXCommon.ToHex(it.OriginatorSystemTitle, false));
+                        writer.WriteElementString("RecipientSystemTitle", GXCommon.ToHex(it.RecipientSystemTitle, false));
+                        writer.WriteElementString("OtherInformation", GXCommon.ToHex(it.OtherInformation, false));
+                        writer.WriteElementString("DataProtectionKeyType", (int)it.KeyInfo.DataProtectionKeyType);
+                        writer.WriteElementString("IdentifiedKey", (int)it.KeyInfo.IdentifiedKey.KeyType);
+                        writer.WriteElementString("WrappedKeyType", (int)it.KeyInfo.WrappedKey.KeyType);
+                        writer.WriteElementString("WrappedKey", GXCommon.ToHex(it.KeyInfo.WrappedKey.Key, false));
+                        writer.WriteElementString("WrappedKeyParameters", GXCommon.ToHex(it.KeyInfo.AgreedKey.Parameters, false));
+                        writer.WriteElementString("AgreedKeyData", GXCommon.ToHex(it.KeyInfo.AgreedKey.Data, false));
                         writer.WriteEndElement();
                     }
                     writer.WriteEndElement();
                 }
                 if (Version > 1)
                 {
-                    writer.WriteElementString("PushOperationMethod", (int)PushOperationMethod, 11);
-                    writer.WriteElementString("ConfirmationParametersStartDate", ConfirmationParameters.StartDate, 12);
-                    writer.WriteElementString("ConfirmationParametersInterval", ConfirmationParameters.Interval, 12);
-                    writer.WriteElementString("LastConfirmationDateTime", LastConfirmationDateTime, 13);
+                    writer.WriteElementString("PushOperationMethod", (int)PushOperationMethod);
+                    writer.WriteElementString("ConfirmationParametersStartDate", ConfirmationParameters.StartDate);
+                    writer.WriteElementString("ConfirmationParametersInterval", ConfirmationParameters.Interval);
+                    writer.WriteElementString("LastConfirmationDateTime", LastConfirmationDateTime);
                 }
             }
         }

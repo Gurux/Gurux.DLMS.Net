@@ -253,71 +253,76 @@ namespace Gurux.DLMS.Objects
 
         object IGXDLMSBase.GetValue(GXDLMSSettings settings, ValueEventArgs e)
         {
-            if (e.Index == 1)
+            object ret;
+            switch (e.Index)
             {
-                return GXCommon.LogicalNameToBytes(LogicalName);
-            }
-            if (e.Index == 2)
-            {
-                return (byte)Mode;
-            }
-            if (e.Index == 3)
-            {
-                return Repetitions;
-            }
-            if (e.Index == 4)
-            {
-                return RepetitionDelay;
-            }
-            if (e.Index == 5)
-            {
-                int cnt = CallingWindow.Count;
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                //Add count
-                GXCommon.SetObjectCount(cnt, data);
-                if (cnt != 0)
-                {
-                    foreach (var it in CallingWindow)
+                case 1:
+                    ret = GXCommon.LogicalNameToBytes(LogicalName);
+                    break;
+                case 2:
+                    ret = (byte)Mode;
+                    break;
+                case 3:
+                    ret = Repetitions;
+                    break;
+                case 4:
+                    ret = RepetitionDelay;
+                    break;
+                case 5:
                     {
-                        data.SetUInt8((byte)DataType.Structure);
-                        data.SetUInt8((byte)2); //Count
-                        GXCommon.SetData(settings, data, DataType.OctetString, it.Key); //start_time
-                        GXCommon.SetData(settings, data, DataType.OctetString, it.Value); //end_time
-                    }
-                }
-                return data.Array();
-            }
-            if (e.Index == 6)
-            {
-                GXByteBuffer data = new GXByteBuffer();
-                data.SetUInt8((byte)DataType.Array);
-                if (Destinations == null)
-                {
-                    //Add count
-                    GXCommon.SetObjectCount(0, data);
-                }
-                else
-                {
-                    int cnt = Destinations.Length;
-                    //Add count
-                    GXCommon.SetObjectCount(cnt, data);
-                    foreach (string it in Destinations)
-                    {
-                        if (DestinationsAsString)
+                        int cnt = CallingWindow.Count;
+                        GXByteBuffer data = new GXByteBuffer();
+                        data.SetUInt8((byte)DataType.Array);
+                        //Add count
+                        GXCommon.SetObjectCount(cnt, data);
+                        if (cnt != 0)
                         {
-                            GXCommon.SetData(settings, data, DataType.String, it); //destination
+                            foreach (var it in CallingWindow)
+                            {
+                                data.SetUInt8((byte)DataType.Structure);
+                                data.SetUInt8(2); //Count
+                                GXCommon.SetData(settings, data, DataType.OctetString, it.Key); //start_time
+                                GXCommon.SetData(settings, data, DataType.OctetString, it.Value); //end_time
+                            }
+                        }
+                        ret = data.Array();
+                        break;
+                    }
+                case 6:
+                    {
+                        GXByteBuffer data = new GXByteBuffer();
+                        data.SetUInt8((byte)DataType.Array);
+                        if (Destinations == null)
+                        {
+                            //Add count
+                            GXCommon.SetObjectCount(0, data);
                         }
                         else
                         {
-                            GXCommon.SetData(settings, data, DataType.OctetString, ASCIIEncoding.ASCII.GetBytes(it)); //destination
+                            int cnt = Destinations.Length;
+                            //Add count
+                            GXCommon.SetObjectCount(cnt, data);
+                            foreach (string it in Destinations)
+                            {
+                                if (DestinationsAsString)
+                                {
+                                    GXCommon.SetData(settings, data, DataType.String, it); //destination
+                                }
+                                else
+                                {
+                                    GXCommon.SetData(settings, data, DataType.OctetString, Encoding.ASCII.GetBytes(it)); //destination
+                                }
+                            }
                         }
+                        ret = data.Array();
+                        break;
                     }
-                }
-                return data.Array();
+                default:
+                    e.Error = ErrorCode.ReadWriteDenied;
+                    ret = null;
+                    break;
             }
-            e.Error = ErrorCode.ReadWriteDenied;
-            return null;
+            return ret;
         }
 
         void IGXDLMSBase.SetValue(GXDLMSSettings settings, ValueEventArgs e)
@@ -440,25 +445,25 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("Mode", (int)Mode, 2);
-            writer.WriteElementString("Repetitions", Repetitions, 3);
-            writer.WriteElementString("RepetitionDelay", RepetitionDelay, 4);
-            writer.WriteStartElement("CallingWindow", 5);
+            writer.WriteElementString("Mode", (int)Mode);
+            writer.WriteElementString("Repetitions", Repetitions);
+            writer.WriteElementString("RepetitionDelay", RepetitionDelay);
+            writer.WriteStartElement("CallingWindow");
             if (CallingWindow != null)
             {
                 foreach (KeyValuePair<GXDateTime, GXDateTime> it in CallingWindow)
                 {
-                    writer.WriteStartElement("Item", 5);
+                    writer.WriteStartElement("Item");
                     //Some meters are returning time here, not date-time.
-                    writer.WriteElementString("Start", new GXDateTime(it.Key), 5);
-                    writer.WriteElementString("End", new GXDateTime(it.Value), 5);
+                    writer.WriteElementString("Start", new GXDateTime(it.Key));
+                    writer.WriteElementString("End", new GXDateTime(it.Value));
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
             if (Destinations != null)
             {
-                writer.WriteElementString("Destinations", string.Join(";", Destinations), 6);
+                writer.WriteElementString("Destinations", string.Join(";", Destinations));
             }
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

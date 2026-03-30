@@ -334,8 +334,8 @@ namespace Gurux.DLMS.Objects
         /// <param name="list">List of Global key types and keys.</param>
         /// <returns>Generated action.</returns>
         public byte[][] GlobalKeyTransfer(
-            GXDLMSClient client, 
-            byte[] kek, 
+            GXDLMSClient client,
+            byte[] kek,
             List<KeyValuePair<GlobalKeyType, byte[]>> list)
         {
             if (list == null || list.Count == 0)
@@ -810,7 +810,7 @@ namespace Gurux.DLMS.Objects
                     case 3:
                         return InvokeKeyAgreement(settings, e);
                     case 4:
-                        GenerateKeyPair(settings, e);
+                        GenerateKeyPair(e);
                         break;
 #if !WINDOWS_UWP
                     case 5:
@@ -820,9 +820,9 @@ namespace Gurux.DLMS.Objects
                         ImportCertificate(settings, e);
                         break;
                     case 7:
-                        return ExportCertificate(settings, e);
+                        return ExportCertificate(e);
                     case 8:
-                        RemoveCertificate(settings, e);
+                        RemoveCertificate(e);
                         break;
                     default:
                         e.Error = ErrorCode.InconsistentClass;
@@ -837,7 +837,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        private void RemoveCertificate(GXDLMSSettings settings, ValueEventArgs e)
+        private void RemoveCertificate(ValueEventArgs e)
         {
             List<Object> tmp = (List<object>)e.Parameters;
             byte type = Convert.ToByte(tmp[0]);
@@ -896,7 +896,7 @@ namespace Gurux.DLMS.Objects
             System.Diagnostics.Debug.WriteLine("New certificate imported: " + cert.SerialNumber);
         }
 
-        private byte[] ExportCertificate(GXDLMSSettings settings, ValueEventArgs e)
+        private byte[] ExportCertificate(ValueEventArgs e)
         {
             List<Object> tmp = (List<Object>)e.Parameters;
             byte type = Convert.ToByte(tmp[0]);
@@ -919,7 +919,7 @@ namespace Gurux.DLMS.Objects
                     {
                         issuer = ASCIIEncoding.ASCII.GetString((byte[])tmp[1]);
                     }
-                    GXAsn1Integer sn = (GXAsn1Integer) GXAsn1Converter.FromByteArray((byte[])tmp[0]);
+                    GXAsn1Integer sn = (GXAsn1Integer)GXAsn1Converter.FromByteArray((byte[])tmp[0]);
                     cert = ServerCertificates.FindBySerial(sn.ToBigInteger(), issuer);
                 }
                 if (cert == null)
@@ -935,7 +935,7 @@ namespace Gurux.DLMS.Objects
             return null;
         }
 
-        private void GenerateKeyPair(GXDLMSSettings settings, ValueEventArgs e)
+        private void GenerateKeyPair(ValueEventArgs e)
         {
             if (SecuritySuite == SecuritySuite.Suite0)
             {
@@ -995,7 +995,7 @@ namespace Gurux.DLMS.Objects
             }
             return null;
         }
-        
+
 #endif //!WINDOWS_UWP
 
         private void KeyTransfer(GXDLMSSettings settings, ValueEventArgs e)
@@ -1095,8 +1095,7 @@ namespace Gurux.DLMS.Objects
                             settings.Cipher.BlockCipherKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
                             break;
                         case GlobalKeyType.BroadcastEncryption:
-                            //Invalid type
-                            e.Error = ErrorCode.ReadWriteDenied;
+                            settings.Cipher.BroadcastBlockCipherKey = GXDLMSSecureClient.Decrypt(settings.Kek, data);
                             break;
                         case GlobalKeyType.Authentication:
                             //if settings.Cipher is null non secure server is used.
@@ -1252,7 +1251,7 @@ namespace Gurux.DLMS.Objects
         /// Get sertificates as byte buffer.
         /// </summary>
         /// <returns></returns>
-        private byte[] GetSertificates(GXDLMSSettings settings)
+        private byte[] GetSertificates()
         {
             GXByteBuffer bb = new GXByteBuffer();
             bb.SetUInt8((byte)DataType.Array);
@@ -1296,7 +1295,7 @@ namespace Gurux.DLMS.Objects
                 GXAsn1Sequence reqInfo = (GXAsn1Sequence)seq[0];
                 byte[] tmp = GXAsn1Converter.ToByteArray(reqInfo[1]);
                 bb.SetUInt8(DataType.OctetString);
-                bb.SetUInt8((byte) tmp.Length);
+                bb.SetUInt8((byte)tmp.Length);
                 bb.Set(tmp);
                 //Get issuer.
                 tmp = GXAsn1Converter.ToByteArray(reqInfo[3]);
@@ -1315,7 +1314,6 @@ namespace Gurux.DLMS.Objects
                     foreach (GXAsn1Sequence s in (GXAsn1Sequence)((GXAsn1Context)reqInfo[7])[0])
                     {
                         GXAsn1ObjectIdentifier id = (GXAsn1ObjectIdentifier)s[0];
-                        object value = s[1];
                         X509CertificateType t = X509CertificateTypeConverter.FromString(id.ToString());
                         if (t == X509CertificateType.SubjectAlternativeName)
                         {
@@ -1355,7 +1353,7 @@ namespace Gurux.DLMS.Objects
             }
             if (e.Index == 6)
             {
-                return GetSertificates(settings);
+                return GetSertificates();
             }
             e.Error = ErrorCode.ReadWriteDenied;
             return null;
@@ -1392,7 +1390,7 @@ namespace Gurux.DLMS.Objects
                     info.Type = (CertificateType)Convert.ToInt32(it[1]);
                     try
                     {
-                        GXAsn1Integer value = (GXAsn1Integer) GXAsn1Converter.FromByteArray((byte[])it[2]);
+                        GXAsn1Integer value = (GXAsn1Integer)GXAsn1Converter.FromByteArray((byte[])it[2]);
                         Array.Reverse(value.Value);
                         info.SerialNumber = new BigInteger(value.Value);
                     }
@@ -1469,7 +1467,7 @@ namespace Gurux.DLMS.Objects
         void IGXDLMSBase.Load(GXXmlReader reader)
         {
             SecurityPolicy = (SecurityPolicy)reader.ReadElementContentAsInt("SecurityPolicy");
-            //This is old functionality.It can be removed in some point.
+            //Old functionality. This will be removed. 
             reader.ReadElementContentAsInt("SecurityPolicy0");
             SecuritySuite = (SecuritySuite)reader.ReadElementContentAsInt("SecuritySuite");
             if (SecuritySuite != SecuritySuite.Suite0 && Version == 0)
@@ -1576,22 +1574,22 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("SecurityPolicy", (byte)SecurityPolicy, 2);
-            writer.WriteElementString("SecuritySuite", (int)SecuritySuite, 3);
-            writer.WriteElementString("ClientSystemTitle", GXDLMSTranslator.ToHex(ClientSystemTitle), 4);
-            writer.WriteElementString("ServerSystemTitle", GXDLMSTranslator.ToHex(ServerSystemTitle), 5);
+            writer.WriteElementString("SecurityPolicy", (byte)SecurityPolicy);
+            writer.WriteElementString("SecuritySuite", (int)SecuritySuite);
+            writer.WriteElementString("ClientSystemTitle", GXDLMSTranslator.ToHex(ClientSystemTitle));
+            writer.WriteElementString("ServerSystemTitle", GXDLMSTranslator.ToHex(ServerSystemTitle));
             if (Certificates != null)
             {
-                writer.WriteStartElement("Certificates", 6);
+                writer.WriteStartElement("Certificates");
                 foreach (GXDLMSCertificateInfo it in Certificates)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("Entity", (int)it.Entity, 0);
-                    writer.WriteElementString("Type", (int)it.Type, 0);
-                    writer.WriteElementString("SerialNumber", it.SerialNumber.ToString(), 0);
-                    writer.WriteElementString("Issuer", it.Issuer, 0);
-                    writer.WriteElementString("Subject", it.Subject, 0);
-                    writer.WriteElementString("SubjectAltName", it.SubjectAltName, 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Entity", (int)it.Entity);
+                    writer.WriteElementString("Type", (int)it.Type);
+                    writer.WriteElementString("SerialNumber", it.SerialNumber.ToString());
+                    writer.WriteElementString("Issuer", it.Issuer);
+                    writer.WriteElementString("Subject", it.Subject);
+                    writer.WriteElementString("SubjectAltName", it.SubjectAltName);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
@@ -1599,42 +1597,42 @@ namespace Gurux.DLMS.Objects
             if (SigningKey != null)
             {
                 GXPkcs8 kp = new GXPkcs8(SigningKey.Value);
-                writer.WriteElementString("SigningKey", kp.ToDer(), 0);
+                writer.WriteElementString("SigningKey", kp.ToDer());
             }
             if (KeyAgreementKey != null)
             {
                 GXPkcs8 kp = new GXPkcs8(KeyAgreementKey.Value);
-                writer.WriteElementString("KeyAgreement", kp.ToDer(), 0);
+                writer.WriteElementString("KeyAgreement", kp.ToDer());
             }
             if (TlsKey != null)
             {
                 GXPkcs8 kp = new GXPkcs8(TlsKey.Value);
-                writer.WriteElementString("TLS", kp.ToDer(), 0);
+                writer.WriteElementString("TLS", kp.ToDer());
             }
             if (ServerCertificates.Count != 0)
             {
-                writer.WriteStartElement("ServerCertificates", 0);
+                writer.WriteStartElement("ServerCertificates");
                 foreach (GXx509Certificate it in ServerCertificates)
                 {
-                    writer.WriteElementString("Cert", it.ToDer(), 0);
+                    writer.WriteElementString("Cert", it.ToDer());
                 }
                 writer.WriteEndElement();
             }
             if (Guek != null)
             {
-                writer.WriteElementString("Guek", GXCommon.ToHex(Guek, false), 0);
+                writer.WriteElementString("Guek", GXCommon.ToHex(Guek, false));
             }
             if (Gbek != null)
             {
-                writer.WriteElementString("Gbek", GXCommon.ToHex(Gbek, false), 0);
+                writer.WriteElementString("Gbek", GXCommon.ToHex(Gbek, false));
             }
             if (Gak != null)
             {
-                writer.WriteElementString("Gak", GXCommon.ToHex(Gak, false), 0);
+                writer.WriteElementString("Gak", GXCommon.ToHex(Gak, false));
             }
             if (Kek != null)
             {
-                writer.WriteElementString("Kek", GXCommon.ToHex(Kek, false), 0);
+                writer.WriteElementString("Kek", GXCommon.ToHex(Kek, false));
             }
         }
 

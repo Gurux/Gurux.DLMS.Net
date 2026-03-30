@@ -40,6 +40,9 @@ namespace Gurux.DLMS.ASN
 {
     public class GXAsn1ObjectIdentifier
     {
+        /// <summary>
+        /// Gets the unique identifier for the associated object.
+        /// </summary>
         public string ObjectIdentifier
         {
             get;

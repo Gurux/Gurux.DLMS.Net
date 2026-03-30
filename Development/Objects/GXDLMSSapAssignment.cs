@@ -315,12 +315,12 @@ namespace Gurux.DLMS.Objects
         {
             if (SapAssignmentList != null)
             {
-                writer.WriteStartElement("SapAssignmentList", 2);
+                writer.WriteStartElement("SapAssignmentList");
                 foreach (KeyValuePair<UInt16, string> it in SapAssignmentList)
                 {
-                    writer.WriteStartElement("Item", 0);
-                    writer.WriteElementString("SAP", it.Key, 0);
-                    writer.WriteElementString("LDN", it.Value, 0);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("SAP", it.Key);
+                    writer.WriteElementString("LDN", it.Value);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();

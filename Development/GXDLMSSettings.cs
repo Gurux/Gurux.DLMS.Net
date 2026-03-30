@@ -407,7 +407,7 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Copy settings.
+        /// Copies all settings to target.
         /// </summary>
         /// <param name="target"></param>
         internal void CopyTo(GXDLMSSettings target)

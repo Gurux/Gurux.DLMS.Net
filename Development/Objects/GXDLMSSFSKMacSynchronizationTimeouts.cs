@@ -275,10 +275,10 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("SearchInitiatorTimeout", SearchInitiatorTimeout, 2);
-            writer.WriteElementString("SynchronizationConfirmationTimeout", SynchronizationConfirmationTimeout, 3);
-            writer.WriteElementString("TimeOutNotAddressed", TimeOutNotAddressed, 4);
-            writer.WriteElementString("TimeOutFrameNotOK", TimeOutFrameNotOK, 5);
+            writer.WriteElementString("SearchInitiatorTimeout", SearchInitiatorTimeout);
+            writer.WriteElementString("SynchronizationConfirmationTimeout", SynchronizationConfirmationTimeout);
+            writer.WriteElementString("TimeOutNotAddressed", TimeOutNotAddressed);
+            writer.WriteElementString("TimeOutFrameNotOK", TimeOutFrameNotOK);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

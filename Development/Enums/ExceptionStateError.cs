@@ -41,8 +41,14 @@ namespace Gurux.DLMS.Enums
     /// </summary>
     public enum ExceptionStateError
     {
+        /// <summary>
+        /// Service is not allowed.
+        /// </summary>
         [XmlEnum("1")]
         ServiceNotAllowed = 1,
+        /// <summary>
+        /// The service is unknown.
+        /// </summary>
         [XmlEnum("2")]
         ServiceUnknown = 2
     }

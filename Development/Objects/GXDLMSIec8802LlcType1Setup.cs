@@ -193,7 +193,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("MaximumOctetsUiPdu", MaximumOctetsUiPdu, 2);
+            writer.WriteElementString("MaximumOctetsUiPdu", MaximumOctetsUiPdu);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

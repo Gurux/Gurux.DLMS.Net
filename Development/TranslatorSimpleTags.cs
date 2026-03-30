@@ -342,50 +342,50 @@ namespace Gurux.DLMS
 
         public static void GetDataTypeTags(SortedList<int, string> list)
         {
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.None, "None");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Array, "Array");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Bcd, "Bcd");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.BitString,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.None, "None");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Array, "Array");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Bcd, "Bcd");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.BitString,
                      "BitString");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Boolean,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Boolean,
                      "Boolean");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.CompactArray,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.CompactArray,
                      "CompactArray");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Date, "Date");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DateTime,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Date, "Date");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DateTime,
                      "DateTime");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Enum, "Enum");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Float32,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Enum, "Enum");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Float32,
                      "Float32");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Float64,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Float64,
                      "Float64");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Int16, "Int16");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Int32, "Int32");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Int64, "Int64");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Int8, "Int8");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.OctetString,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Int16, "Int16");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Int32, "Int32");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Int64, "Int64");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Int8, "Int8");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.OctetString,
                      "OctetString");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.String,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.String,
                      "String");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.StringUTF8,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.StringUTF8,
                      "StringUTF8");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Structure,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Structure,
                      "Structure");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.Time, "Time");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt16,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.Time, "Time");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.UInt16,
                      "UInt16");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt32,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.UInt32,
                      "UInt32");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt64,
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.UInt64,
                      "UInt64");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.UInt8, "UInt8");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.UInt8, "UInt8");
 
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt8, "Delta-Int8");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt16, "Delta-Int16");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaInt32, "Delta-Int32");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt8, "Delta-UInt8");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt16, "Delta-UInt16");
-            list.Add(GXDLMS.DATA_TYPE_OFFSET + (int)DataType.DeltaUInt32, "Delta-UInt32");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaInt8, "Delta-Int8");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaInt16, "Delta-Int16");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaInt32, "Delta-Int32");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaUInt8, "Delta-UInt8");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaUInt16, "Delta-UInt16");
+            list.Add(GXDLMS.DataTypeOffset + (int)DataType.DeltaUInt32, "Delta-UInt32");
         }
 
         public static String ErrorCodeToString(ErrorCode value)
@@ -696,7 +696,7 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="value">Service error simple XML tag.</param>
         /// <returns>Service error enumeration value.</returns>
-        internal static ServiceError GetServiceError(String value)
+        internal static ServiceError GetServiceErrorByName(String value)
         {
             foreach (var it in GetServiceErrors())
             {
@@ -708,7 +708,7 @@ namespace Gurux.DLMS
             throw new ArgumentException();
         }
 
-        private static int GetApplicationReference(String value)
+        private static int GetApplicationReferenceByName(String value)
         {
             int ret = -1;
             foreach (var it in GetApplicationReference())
@@ -726,7 +726,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        private static int GetHardwareResource(String value)
+        private static int GetHardwareResourceByName(String value)
         {
             int ret = -1;
             foreach (var it in GetHardwareResource())
@@ -744,7 +744,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        private static int GetVdeStateError(String value)
+        private static int GetVdeStateErrorByName(String value)
         {
             int ret = -1;
             foreach (var it in GetVdeStateError())
@@ -762,7 +762,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        private static int GetService(String value)
+        private static int GetServiceByName(String value)
         {
             int ret = -1;
             foreach (var it in GetService())
@@ -780,7 +780,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        private static int GetDefinition(String value)
+        private static int GetDefinitionByName(String value)
         {
             int ret = -1;
             foreach (var it in GetDefinition())
@@ -798,7 +798,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        private static int GetAccess(String value)
+        private static int GetAccessByName(String value)
         {
             int ret = -1;
             foreach (var it in GetAccess())
@@ -816,7 +816,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        public static int GetInitiate(String value)
+        public static int GetInitiateByName(String value)
         {
             int ret = -1;
             foreach (var it in GetInitiate())
@@ -834,7 +834,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        private static int GetLoadDataSet(String value)
+        private static int GetLoadDataSetByName(String value)
         {
             int ret = -1;
             foreach (var it in GetLoadDataSet())
@@ -852,7 +852,7 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        private static int GetTask(String value)
+        private static int GetTaskByName(String value)
         {
             int ret = -1;
             foreach (var it in GetTask())
@@ -876,37 +876,37 @@ namespace Gurux.DLMS
             switch (serviceError)
             {
                 case ServiceError.ApplicationReference:
-                    ret = GetApplicationReference(value);
+                    ret = GetApplicationReferenceByName(value);
                     break;
                 case ServiceError.HardwareResource:
-                    ret = GetHardwareResource(value);
+                    ret = GetHardwareResourceByName(value);
                     break;
                 case ServiceError.VdeStateError:
-                    ret = GetVdeStateError(value);
+                    ret = GetVdeStateErrorByName(value);
                     break;
                 case ServiceError.Service:
-                    ret = GetService(value);
+                    ret = GetServiceByName(value);
                     break;
                 case ServiceError.Definition:
-                    ret = GetDefinition(value);
+                    ret = GetDefinitionByName(value);
                     break;
                 case ServiceError.Access:
-                    ret = GetAccess(value);
+                    ret = GetAccessByName(value);
                     break;
                 case ServiceError.Initiate:
-                    ret = GetInitiate(value);
+                    ret = GetInitiateByName(value);
                     break;
                 case ServiceError.LoadDataSet:
-                    ret = GetLoadDataSet(value);
+                    ret = GetLoadDataSetByName(value);
                     break;
                 case ServiceError.Task:
-                    ret = GetTask(value);
+                    ret = GetTaskByName(value);
                     break;
                 case ServiceError.OtherError:
                     ret = int.Parse(value);
                     break;
                 default:
-                    break;
+                    throw new ArgumentOutOfRangeException(); 
             }
             return (byte)ret;
         }

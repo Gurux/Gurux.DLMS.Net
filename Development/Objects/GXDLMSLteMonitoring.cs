@@ -198,8 +198,6 @@ namespace Gurux.DLMS.Objects
                     break;
                 case 2:
                     buff.SetUInt8(DataType.Structure);
-                    GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3402);
-                    GXCommon.SetData(settings, buff, DataType.UInt16, NetworkParameters.T3412);
                     if (Version == 0)
                     {
                         GXCommon.SetObjectCount(5, buff);
@@ -318,19 +316,19 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("T3402", NetworkParameters.T3402, 2);
-            writer.WriteElementString("T3412", NetworkParameters.T3412, 2);
-            writer.WriteElementString("T3412ext2", NetworkParameters.T3412ext2, 2);
-            writer.WriteElementString("T3324", NetworkParameters.T3324, 2);
-            writer.WriteElementString("TeDRX", NetworkParameters.TeDRX, 2);
-            writer.WriteElementString("TPTW", NetworkParameters.TPTW, 2);
-            writer.WriteElementString("QRxlevMin", NetworkParameters.QRxlevMin, 2);
-            writer.WriteElementString("QRxlevMinCE", NetworkParameters.QRxlevMinCE, 2);
-            writer.WriteElementString("QRxLevMinCE1", NetworkParameters.QRxLevMinCE1, 2);
-            writer.WriteElementString("SignalQuality", QualityOfService.SignalQuality, 2);
-            writer.WriteElementString("SignalLevel", QualityOfService.SignalLevel, 2);
-            writer.WriteElementString("SignalToNoiseRatio", QualityOfService.SignalToNoiseRatio, 2);
-            writer.WriteElementString("CoverageEnhancement", (int)QualityOfService.CoverageEnhancement, 2);
+            writer.WriteElementString("T3402", NetworkParameters.T3402);
+            writer.WriteElementString("T3412", NetworkParameters.T3412);
+            writer.WriteElementString("T3412ext2", NetworkParameters.T3412ext2);
+            writer.WriteElementString("T3324", NetworkParameters.T3324);
+            writer.WriteElementString("TeDRX", NetworkParameters.TeDRX);
+            writer.WriteElementString("TPTW", NetworkParameters.TPTW);
+            writer.WriteElementString("QRxlevMin", NetworkParameters.QRxlevMin);
+            writer.WriteElementString("QRxlevMinCE", NetworkParameters.QRxlevMinCE);
+            writer.WriteElementString("QRxLevMinCE1", NetworkParameters.QRxLevMinCE1);
+            writer.WriteElementString("SignalQuality", QualityOfService.SignalQuality);
+            writer.WriteElementString("SignalLevel", QualityOfService.SignalLevel);
+            writer.WriteElementString("SignalToNoiseRatio", QualityOfService.SignalToNoiseRatio);
+            writer.WriteElementString("CoverageEnhancement", (int)QualityOfService.CoverageEnhancement);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

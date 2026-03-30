@@ -501,9 +501,6 @@ namespace Gurux.DLMS.Enums
         [XmlEnum("26")]
         UtilityTables = 26,
 
-        [XmlEnum("115")]
-        Token = 115,
-
         /// <summary>
         /// S-FSK Phy MAC Setup
         /// </summary>

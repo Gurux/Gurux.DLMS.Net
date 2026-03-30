@@ -33,7 +33,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using Gurux.DLMS.Enums;
 using System.Globalization;
 

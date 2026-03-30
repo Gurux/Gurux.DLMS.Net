@@ -442,23 +442,23 @@ namespace Gurux.DLMS.Objects
         {
             if (Entries != null)
             {
-                writer.WriteStartElement("Entries", 2);
+                writer.WriteStartElement("Entries");
                 foreach (GXScheduleEntry it in Entries)
                 {
-                    writer.WriteStartElement("Item", 2);
-                    writer.WriteElementString("Index", it.Index, 2);
-                    writer.WriteElementString("Enable", it.Enable, 2);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Index", it.Index);
+                    writer.WriteElementString("Enable", it.Enable);
                     if (it.Script != null)
                     {
-                        writer.WriteElementString("LogicalName", it.Script.LogicalName, 2);
+                        writer.WriteElementString("LogicalName", it.Script.LogicalName);
                     }
-                    writer.WriteElementString("ScriptSelector", it.ScriptSelector, 2);
-                    writer.WriteElementString("SwitchTime", it.SwitchTime, 2);
-                    writer.WriteElementString("ValidityWindow", it.ValidityWindow, 2);
-                    writer.WriteElementString("ExecWeekdays", (int)it.ExecWeekdays, 2);
-                    writer.WriteElementString("ExecSpecDays", it.ExecSpecDays, 2);
-                    writer.WriteElementString("BeginDate", it.BeginDate, 2);
-                    writer.WriteElementString("EndDate", it.EndDate, 2);
+                    writer.WriteElementString("ScriptSelector", it.ScriptSelector);
+                    writer.WriteElementString("SwitchTime", it.SwitchTime);
+                    writer.WriteElementString("ValidityWindow", it.ValidityWindow);
+                    writer.WriteElementString("ExecWeekdays", (int)it.ExecWeekdays);
+                    writer.WriteElementString("ExecSpecDays", it.ExecSpecDays);
+                    writer.WriteElementString("BeginDate", it.BeginDate);
+                    writer.WriteElementString("EndDate", it.EndDate);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();//Entries

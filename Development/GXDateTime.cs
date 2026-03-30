@@ -1295,7 +1295,6 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="addSpace">Add space between bytes.</param>
         /// <param name="useMeterTimeZone">Date-Time values are shown using meter's time zone and it's not localized to use PC time.</param>
-        /// <returns></returns>
         public string ToHex(bool addSpace, bool useMeterTimeZone)
         {
             GXByteBuffer buff = new GXByteBuffer();

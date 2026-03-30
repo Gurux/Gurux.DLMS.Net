@@ -138,7 +138,7 @@ namespace Gurux.DLMS.Secure
         }
 
         /// <summary>
-        /// Frame counter. Invocation counter.
+        /// Invocation counter.
         /// </summary>
         UInt32 InvocationCounter
         {

@@ -311,7 +311,7 @@ namespace Gurux.DLMS
                     it.Description = it.Description.Replace("U(", "V(");
                 }
             }
-            //Update data type from DLMecS standard.
+            //Update data type from DLMS standard.
             if (standard != Standard.DLMS)
             {
                 GXStandardObisCode d = list[list.Length - 1];
@@ -1123,7 +1123,6 @@ namespace Gurux.DLMS
         {
             return GXCommon.LogicalNameToBytes(value);
         }
-
 
         static public object ChangeType(object value, DataType type, CultureInfo cultureInfo)
         {

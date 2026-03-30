@@ -201,7 +201,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("MacAddress", MacAddress, 2);
+            writer.WriteElementString("MacAddress", MacAddress);
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -49,7 +49,7 @@ namespace Gurux.DLMS.Objects
     public delegate void ObjectChangeEventHandler(GXDLMSObject sender, bool Dirty, int attributeIndex, object value);
 
     /// <summary>
-    /// GXDLMSObject provides an interface to DLMS registers.
+    /// GXDLMSObject provides an base class for DLMS COSEM objects.
     /// </summary>
     public class GXDLMSObject
     {
@@ -87,7 +87,7 @@ namespace Gurux.DLMS.Objects
                 (access == AccessMode.AuthenticatedReadWrite) ||
                 (GetAccess3(index) & AccessMode3.Read) != 0;
         }
-       
+
         SortedDictionary<int, GXStatusInfo> Status = new SortedDictionary<int, GXStatusInfo>();
 
         public event ObjectChangeEventHandler OnChange;
@@ -628,8 +628,8 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Set Method attribute access.
         /// </summary>
-        /// <param name="index"></param>
-        /// <param name="access"></param>
+        /// <param name="index">Method Attribute index.</param>
+        /// <param name="access">Method access mode.</param>
         public void SetMethodAccess(int index, MethodAccessMode access)
         {
             if (access > MethodAccessMode.AuthenticatedAccess)
@@ -701,9 +701,8 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Returns attributes as an array.
+        /// Returns an array containing the COSEM object's attribute values.
         /// </summary>
-        /// <returns>Collection of COSEM object values.</returns>
         public virtual object[] GetValues()
         {
             throw new NotImplementedException("GetValues");
@@ -728,6 +727,11 @@ namespace Gurux.DLMS.Objects
             return att;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="type"></param>
         public void SetDataType(int index, DataType type)
         {
             GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
@@ -828,10 +832,10 @@ namespace Gurux.DLMS.Objects
         }
 
         /// <summary>
-        /// Returns is Method attribute read only.
-        /// </summary>-
-        /// <param name="index">Method Attribute index.</param>
-        /// <returns>Is attribute read only.</returns>
+        /// Returns the access selector value.
+        /// </summary>
+        /// <param name="index">Method attribute index.</param>
+        /// <returns>Access selector value.</returns>
         public byte GetAccessSelector(int index)
         {
             GXDLMSAttributeSettings att = GetAttribute(index, Attributes);
@@ -841,8 +845,8 @@ namespace Gurux.DLMS.Objects
         /// <summary>
         /// Set Method attribute access.
         /// </summary>
-        /// <param name="index"></param>
-        /// <param name="access"></param>
+        /// <param name="index">Method attribute index.</param>
+        /// <param name="value">Access selector value.</param>
         public void SetAccessSelector(int index, byte value)
         {
             GXDLMSAttributeSettings att = GetAttribute(index, Attributes);

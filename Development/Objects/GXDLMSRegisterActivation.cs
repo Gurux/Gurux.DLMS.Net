@@ -462,34 +462,34 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteStartElement("RegisterAssignment", 2);
+            writer.WriteStartElement("RegisterAssignment");
             if (RegisterAssignment != null)
             {
                 foreach (GXDLMSObjectDefinition it in RegisterAssignment)
                 {
-                    writer.WriteStartElement("Item", 2);
-                    writer.WriteElementString("ObjectType", (int)it.ObjectType, 2);
-                    writer.WriteElementString("LN", it.LogicalName, 2);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("ObjectType", (int)it.ObjectType);
+                    writer.WriteElementString("LN", it.LogicalName);
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
-            writer.WriteStartElement("MaskList", 3);
+            writer.WriteStartElement("MaskList");
             if (MaskList != null)
             {
                 foreach (KeyValuePair<byte[], byte[]> it in MaskList)
                 {
-                    writer.WriteStartElement("Item", 3);
-                    writer.WriteElementString("Mask", GXDLMSTranslator.ToHex(it.Key), 3);
-                    writer.WriteElementString("Index", GXDLMSTranslator.ToHex(it.Value).Replace(" ", ";"), 3);
+                    writer.WriteStartElement("Item");
+                    writer.WriteElementString("Mask", GXDLMSTranslator.ToHex(it.Key));
+                    writer.WriteElementString("Index", GXDLMSTranslator.ToHex(it.Value).Replace(" ", ";"));
                     writer.WriteEndElement();
                 }
             }
             writer.WriteEndElement();
             if (ActiveMask != null)
             {
-                writer.WriteElementString("ActiveMask", GXDLMSTranslator.ToHex(ActiveMask), 4);
-            }           
+                writer.WriteElementString("ActiveMask", GXDLMSTranslator.ToHex(ActiveMask));
+            }
         }
 
         void IGXDLMSBase.PostLoad(GXXmlReader reader)

@@ -554,7 +554,7 @@ namespace Gurux.DLMS.Objects
                 {
                     writer.WriteStartDocument();
                 }
-                writer.WriteStartElement("Objects", 0);
+                writer.WriteStartElement("Objects");
                 foreach (GXDLMSObject it in this)
                 {
                     if (it is IGXDLMSBase)
@@ -563,12 +563,12 @@ namespace Gurux.DLMS.Objects
                         {
                             if (settings == null || !settings.Old)
                             {
-                                writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString(), 0);
+                                writer.WriteStartElement("GXDLMS" + it.ObjectType.ToString());
                             }
                             else
                             {
-                                writer.WriteStartElement("Object", 0);
-                                writer.WriteAttributeString("Type", ((int)it.ObjectType).ToString(), 0);
+                                writer.WriteStartElement("Object");
+                                writer.WriteAttributeString("Type", ((int)it.ObjectType).ToString());
                             }
                         }
                         if (index == 0)
@@ -576,14 +576,14 @@ namespace Gurux.DLMS.Objects
                             // Add SN
                             if (it.ShortName != 0)
                             {
-                                writer.WriteElementString("SN", it.ShortName, 0);
+                                writer.WriteElementString("SN", it.ShortName);
                             }
                             // Add LN
-                            writer.WriteElementString("LN", it.LogicalName, 0);
+                            writer.WriteElementString("LN", it.LogicalName);
                             // Add Version
                             if (it.Version != 0)
                             {
-                                writer.WriteElementString("Version", it.Version, 0);
+                                writer.WriteElementString("Version", it.Version);
                                 if (it is GXDLMSAssociationLogicalName)
                                 {
                                     lnVersion = it.Version;
@@ -592,7 +592,7 @@ namespace Gurux.DLMS.Objects
                             // Add description if given.
                             if (!ignoreDescription && !string.IsNullOrEmpty(it.Description))
                             {
-                                writer.WriteElementString("Description", it.Description, 0);
+                                writer.WriteElementString("Description", it.Description);
                             }
                             //Add access rights.
                             if (lnVersion < 3)
@@ -602,13 +602,13 @@ namespace Gurux.DLMS.Objects
                                 {
                                     sb.Append(((int)it.GetAccess(pos)).ToString());
                                 }
-                                writer.WriteElementString("Access", sb.ToString(), 0);
+                                writer.WriteElementString("Access", sb.ToString());
                                 sb.Length = 0;
                                 for (int pos = 1; pos != (it as IGXDLMSBase).GetMethodCount() + 1; ++pos)
                                 {
                                     sb.Append(((int)it.GetMethodAccess(pos)).ToString());
                                 }
-                                writer.WriteElementString("MethodAccess", sb.ToString(), 0);
+                                writer.WriteElementString("MethodAccess", sb.ToString());
                             }
                             else
                             {
@@ -620,7 +620,7 @@ namespace Gurux.DLMS.Objects
                                     value = 0x8000 | (int)it.GetAccess3(pos);
                                     sb.Append(value.ToString("X"));
                                 }
-                                writer.WriteElementString("Access3", sb.ToString(), 0);
+                                writer.WriteElementString("Access3", sb.ToString());
                                 sb.Length = 0;
                                 for (int pos = 1; pos != (it as IGXDLMSBase).GetMethodCount() + 1; ++pos)
                                 {
@@ -628,7 +628,7 @@ namespace Gurux.DLMS.Objects
                                     value = 0x8000 | (int)it.GetMethodAccess3(pos);
                                     sb.Append(value.ToString("X"));
                                 }
-                                writer.WriteElementString("MethodAccess3", sb.ToString(), 0);
+                                writer.WriteElementString("MethodAccess3", sb.ToString());
                             }
                         }
                         if (settings == null || settings.Values)

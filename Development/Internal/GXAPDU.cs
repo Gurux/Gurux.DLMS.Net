@@ -194,7 +194,7 @@ namespace Gurux.DLMS.Internal
         /// <param name="settings">DLMS settings.</param>
         /// <param name="cipher"></param>
         /// <param name="data"></param>
-        private static void GetInitiateRequest(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data)
+        private static void GetInitiateRequest(GXDLMSSettings settings, GXByteBuffer data)
         {
             // Tag for xDLMS-Initiate request
             data.SetUInt8((byte)Command.InitiateRequest);
@@ -258,7 +258,7 @@ namespace Gurux.DLMS.Internal
                 //Coding the choice for user-information (Octet STRING, universal)
                 data.SetUInt8(BerType.OctetString);
                 GXByteBuffer tmp = new GXByteBuffer();
-                GetInitiateRequest(settings, cipher, tmp);
+                GetInitiateRequest(settings, tmp);
                 //Length
                 GXCommon.SetObjectCount(tmp.Size, data);
                 data.Set(tmp);
@@ -280,7 +280,7 @@ namespace Gurux.DLMS.Internal
                 else
                 {
                     GXByteBuffer value = new GXByteBuffer();
-                    GetInitiateRequest(settings, cipher, value);
+                    GetInitiateRequest(settings, value);
                     AesGcmParameter p = new AesGcmParameter(
                         (byte)Command.GloInitiateRequest,
                         settings,
@@ -951,7 +951,8 @@ namespace Gurux.DLMS.Internal
         private static void UpdateAuthentication(GXDLMSSettings settings,
                 GXByteBuffer buff)
         {
-            byte len = buff.GetUInt8();
+            //Length of the authentication block.
+            buff.GetUInt8();
             if (buff.GetUInt8() != 0x60)
             {
                 throw new Exception("Invalid tag.");
@@ -1532,9 +1533,9 @@ namespace Gurux.DLMS.Internal
                                 return ExceptionServiceError.InvocationCounterError;
                             }
                         }
-                        catch (GXDLMSConfirmedServiceError ex)
+                        catch (GXDLMSConfirmedServiceError)
                         {
-                            throw ex;
+                            throw;
                         }
                         catch (GXDLMSExceptionResponse ex)
                         {

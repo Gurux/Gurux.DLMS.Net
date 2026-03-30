@@ -3040,7 +3040,7 @@ namespace Gurux.DLMS
                         {
                             if (childNode.NodeType == XmlNodeType.Element)
                             {
-                                s.attributeDescriptor.SetUInt8((byte)TranslatorSimpleTags.GetInitiate(GetValue(childNode, s)));
+                                s.attributeDescriptor.SetUInt8((byte)TranslatorSimpleTags.GetInitiateByName(GetValue(childNode, s)));
                             }
                         }
                         return false;
@@ -3099,7 +3099,7 @@ namespace Gurux.DLMS
                 s.template = true;
                 return preData;
             }
-            switch ((DataType)(tag - GXDLMS.DATA_TYPE_OFFSET))
+            switch ((DataType)(tag - GXDLMS.DataTypeOffset))
             {
                 case DataType.Array:
                     s.data.SetUInt8(DataType.Array);
@@ -3284,7 +3284,7 @@ namespace Gurux.DLMS
             if (s.requestType != 0xFF)
             {
                 preData = UpdateDataType(node, s,
-                                         (int)DataType.DateTime + GXDLMS.DATA_TYPE_OFFSET);
+                                         (int)DataType.DateTime + GXDLMS.DataTypeOffset);
             }
             else
             {
@@ -3358,9 +3358,9 @@ namespace Gurux.DLMS
                     return;
                 }
             }
-            else if (tag >= GXDLMS.DATA_TYPE_OFFSET)
+            else if (tag >= GXDLMS.DataTypeOffset)
             {
-                if (tag == (int)DataType.DateTime + GXDLMS.DATA_TYPE_OFFSET ||
+                if (tag == (int)DataType.DateTime + GXDLMS.DataTypeOffset ||
                    (s.command == Command.EventNotification && s.attributeDescriptor.Size == 0))
                 {
                     preData = UpdateDateTime(node, s, preData);
@@ -3407,7 +3407,7 @@ namespace Gurux.DLMS
                         }
                         else
                         {
-                            ServiceError se = TranslatorSimpleTags.GetServiceError(str);
+                            ServiceError se = TranslatorSimpleTags.GetServiceErrorByName(str);
                             s.attributeDescriptor.SetUInt8(se);
                             s.attributeDescriptor.SetUInt8(TranslatorSimpleTags.GetError(se, GetValue(node, s)));
                         }
@@ -4056,7 +4056,7 @@ namespace Gurux.DLMS
                     }
                 }
                 int tag = s.tags[str];
-                byte type = (byte)(tag - GXDLMS.DATA_TYPE_OFFSET);
+                byte type = (byte)(tag - GXDLMS.DataTypeOffset);
                 if (type == (byte)DataType.Structure || type == (byte)DataType.Array)
                 {
                     s.data.SetUInt8(type);

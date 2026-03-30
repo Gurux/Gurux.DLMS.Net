@@ -41,9 +41,16 @@ using Gurux.DLMS.Internal;
 namespace Gurux.DLMS.Objects
 {
     /// <summary>
-    /// Online help:
-    /// https://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSData
+    /// Represents a COSEM Data object that holds a value and provides access to its logical name and data attributes.
     /// </summary>
+    /// <remarks>The GXDLMSData class is used to model a COSEM Data object as defined in the DLMS/COSEM
+    /// specification. It allows reading and writing of the data value and supports both logical name (LN) and short
+    /// name (SN) referencing. This class is typically used in DLMS/COSEM server or client implementations to represent
+    /// simple data points, such as configuration parameters or measurement values.
+    /// <para/>
+    /// Online help:
+    /// http://www.gurux.fi/Gurux.DLMS.Objects.GXDLMSData
+    /// </remarks>
     public class GXDLMSData : GXDLMSObject, IGXDLMSBase
     {
         /// <summary>
@@ -223,7 +230,7 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2), 2);
+            writer.WriteElementObject("Value", Value, GetDataType(2), GetUIDataType(2));
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {

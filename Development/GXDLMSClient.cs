@@ -32,71 +32,110 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Enums;
+using Gurux.DLMS.Internal;
+using Gurux.DLMS.ManufacturerSettings;
+using Gurux.DLMS.Objects;
+using Gurux.DLMS.Secure;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.ComponentModel;
-using Gurux.DLMS.Internal;
-using Gurux.DLMS.Objects;
-using Gurux.DLMS.ManufacturerSettings;
-using Gurux.DLMS.Secure;
-using Gurux.DLMS.Enums;
-using Gurux.DLMS.Ecdsa;
-using System.Runtime;
+using System.Text;
+using System.Xml.Linq;
 
 namespace Gurux.DLMS
 {
     /// <summary>
-    /// GXDLMS implements methods to communicate with DLMS/COSEM metering devices.
+    /// GXDLMSClient implements methods to communicate with DLMS/COSEM metering devices.
     /// </summary>
+    /// <remarks>
+    /// This class provides a complete implementation of the DLMS/COSEM protocol client,
+    /// supporting both Logical Name (LN) and Short Name (SN) referencing modes.
+    /// It handles connection establishment, data exchange, security, and disconnection
+    /// with smart meters and other DLMS-compliant devices.
+    /// </remarks>
     public class GXDLMSClient
     {
         /// <summary>
-        /// Manufacturer ID.
+        /// Manufacturer ID (FLAG ID).
         /// </summary>
         /// <remarks>
-        /// Manufacturer ID (FLAG ID) is used for manufacturer depending functionality.
+        /// Three-character manufacturer identifier used for manufacturer-specific functionality.
+        /// This ID is standardized and assigned by the DLMS User Association.
         /// </remarks>
         private string manufacturerId;
 
+        /// <summary>
+        /// Translator for converting DLMS PDUs to/from XML format.
+        /// </summary>
         protected GXDLMSTranslator translator;
+
         /// <summary>
-        /// Initialize challenge that is restored after the connection is closed.
+        /// Initial challenge value that is restored after the connection is closed.
         /// </summary>
+        /// <remarks>
+        /// Used for High Level Security (HLS) authentication. The challenge is a random
+        /// value used in the authentication process.
+        /// </remarks>
         private byte[] InitializeChallenge;
+
         /// <summary>
-        /// Initialize PDU size that is restored after the connection is closed.
+        /// Initial PDU size that is restored after the connection is closed.
         /// </summary>
+        /// <remarks>
+        /// Stores the maximum PDU size negotiated during connection establishment.
+        /// </remarks>
         private UInt16 InitializePduSize;
 
         /// <summary>
-        /// Initialize Max HDLC transmission size that is restored after the connection is closed.
+        /// Initial maximum HDLC transmission window size that is restored after the connection is closed.
         /// </summary>
+        /// <remarks>
+        /// Defines the maximum information field size for transmitting HDLC frames.
+        /// </remarks>
         private UInt16 InitializeMaxInfoTX;
 
         /// <summary>
-        /// Initialize Max HDLC receive size that is restored after the connection is closed.
+        /// Initial maximum HDLC receive window size that is restored after the connection is closed.
         /// </summary>
+        /// <remarks>
+        /// Defines the maximum information field size for receiving HDLC frames.
+        /// </remarks>
         private UInt16 InitializeMaxInfoRX;
 
         /// <summary>
-        /// Initialize max HDLC window size in transmission that is restored after the connection is closed.
+        /// Initial maximum HDLC window size in transmission that is restored after the connection is closed.
         /// </summary>
+        /// <remarks>
+        /// Specifies the number of frames that can be transmitted before an acknowledgment is required.
+        /// </remarks>
         private byte InitializeWindowSizeTX;
 
         /// <summary>
-        /// Initialize max HDLC window size in receive that is restored after the connection is closed.
+        /// Initial maximum HDLC window size in receive that is restored after the connection is closed.
         /// </summary>
+        /// <remarks>
+        /// Specifies the number of frames that can be received before an acknowledgment must be sent.
+        /// </remarks>
         private byte InitializeWindowSizeRX;
 
         /// <summary>
-        /// XML client don't throw exceptions. It serializes them as a default. Set value to true, if exceptions are thrown.
+        /// Controls whether XML client throws exceptions or serializes them as default.
         /// </summary>
+        /// <remarks>
+        /// When set to true, exceptions are thrown normally. When false (default), 
+        /// exceptions are serialized to XML format for XML-based clients.
+        /// Useful for debugging and protocol analysis.
+        /// </remarks>
         protected bool throwExceptions;
 
         /// <summary>
-        /// DLMS settings.
+        /// Gets the DLMS settings object containing all communication parameters.
         /// </summary>
+        /// <value>
+        /// The settings object that maintains the state and configuration of the DLMS connection.
+        /// </value>
         public GXDLMSSettings Settings
         {
             get;
@@ -104,10 +143,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Manufacturer ID.
+        /// Gets or sets the manufacturer ID (FLAG ID).
         /// </summary>
+        /// <value>
+        /// A three-character string representing the manufacturer identifier.
+        /// </value>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown when the value is not null/empty and is not exactly 3 characters long.
+        /// </exception>
         /// <remarks>
-        /// Manufacturer ID (FLAG ID) is used for manucaturer depending functionality.
+        /// The manufacturer ID is used for manufacturer-specific functionality and must be
+        /// exactly 3 characters. This identifier is standardized by the DLMS User Association.
         /// </remarks>
         public string ManufacturerId
         {
@@ -125,46 +171,79 @@ namespace Gurux.DLMS
             }
         }
 
-
+        /// <summary>
+        /// Dictionary of available COSEM object types.
+        /// </summary>
+        /// <remarks>
+        /// Maps ObjectType enumeration values to their corresponding .NET Type implementations.
+        /// Used internally for creating instances of DLMS objects.
+        /// </remarks>
         private static Dictionary<ObjectType, Type> AvailableObjectTypes = new Dictionary<ObjectType, Type>();
 
         /// <summary>
-        /// Static Constructor. This is called only once. Get available COSEM objects.
+        /// Static constructor. Initializes available COSEM object types.
         /// </summary>
+        /// <remarks>
+        /// This is called only once when the class is first loaded. It populates the
+        /// AvailableObjectTypes dictionary with all supported COSEM object implementations.
+        /// </remarks>
         static GXDLMSClient()
         {
             GXDLMS.GetAvailableObjects(AvailableObjectTypes);
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="GXDLMSClient"/> class.
         /// </summary>
+        /// <remarks>
+        /// Creates a client with default settings using Logical Name referencing.
+        /// </remarks>
         public GXDLMSClient() : this(false)
         {
         }
 
         /// <summary>
-        /// Constructor
+        /// Initializes a new instance of the <see cref="GXDLMSClient"/> class.
         /// </summary>
-        /// <param name="useLogicalNameReferencing">Is Logical or short name referencing used.</param>
-        /// <param name="clientAddress">Client address. Default is 16 (0x10)</param>
-        /// <param name="serverAddress">Server ID. Default is 1.</param>
-        /// <param name="authentication">Authentication type. Default is None</param>
-        /// <param name="password">Password if authentication is used.</param>
-        /// <param name="interfaceType">Interface type. Default is general.</param>
+        /// <param name="useLogicalNameReferencing">
+        /// If true, uses Logical Name (LN) referencing; otherwise uses Short Name (SN) referencing.
+        /// </param>
+        /// <remarks>
+        /// Creates a client with the following default settings:
+        /// - Client address: 16 (0x10)
+        /// - Server address: 1
+        /// - Authentication: None
+        /// - Interface type: HDLC
+        /// </remarks>
         public GXDLMSClient(bool useLogicalNameReferencing) : this(useLogicalNameReferencing, 16, 1, Authentication.None, null, InterfaceType.HDLC)
         {
         }
 
         /// <summary>
-        /// Constructor
+        /// Initializes a new instance of the <see cref="GXDLMSClient"/> class with full configuration.
         /// </summary>
-        /// <param name="useLogicalNameReferencing">Is Logical or short name referencing used.</param>
-        /// <param name="clientAddress">Client address. Default is 16 (0x10)</param>
-        /// <param name="serverAddress">Server ID. Default is 1.</param>
-        /// <param name="authentication">Authentication type. Default is None</param>
-        /// <param name="password">Password if authentication is used.</param>
-        /// <param name="interfaceType">Interface type. Default is general.</param>
+        /// <param name="useLogicalNameReferencing">
+        /// If true, uses Logical Name (LN) referencing; otherwise uses Short Name (SN) referencing.
+        /// </param>
+        /// <param name="clientAddress">
+        /// The client address. Default is 16 (0x10). Valid range depends on addressing mode.
+        /// </param>
+        /// <param name="serverAddress">
+        /// The server address (meter address). Default is 1.
+        /// </param>
+        /// <param name="authentication">
+        /// The authentication type to use. Default is None.
+        /// </param>
+        /// <param name="password">
+        /// The password if authentication is used. For HLS, this is the shared secret.
+        /// </param>
+        /// <param name="interfaceType">
+        /// The communication interface type (HDLC, WRAPPER, etc.). Default is HDLC.
+        /// </param>
+        /// <remarks>
+        /// This constructor allows full customization of the client configuration.
+        /// The password is converted to ASCII bytes if provided as a string.
+        /// </remarks>
         public GXDLMSClient(bool useLogicalNameReferencing,
                             int clientAddress, int serverAddress, Authentication authentication,
                             string password, InterfaceType interfaceType)
@@ -184,8 +263,13 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Notify generated PDU.
+        /// Occurs when a PDU is generated for transmission.
         /// </summary>
+        /// <remarks>
+        /// This event is raised whenever a Protocol Data Unit (PDU) is created,
+        /// allowing inspection or logging of the generated data before transmission.
+        /// Useful for debugging and protocol analysis.
+        /// </remarks>
         public event PduEventHandler OnPdu
         {
             add
@@ -199,10 +283,13 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// This event is called when meter implemenets manufacturer spesific object.
+        /// Occurs when a manufacturer-specific object is encountered.
         /// </summary>
         /// <remarks>
-        /// The manufacturer spesific object must implement GXDLMSObject and IGXDLMSBase.
+        /// This event is raised when the client encounters an object that is not part of
+        /// the standard DLMS/COSEM specification. The event handler should create an instance
+        /// of a custom object that implements both GXDLMSObject and IGXDLMSBase interfaces.
+        /// This allows support for proprietary meter functionality.
         /// </remarks>
         public event ObjectCreateEventHandler OnCustomObject
         {
@@ -217,8 +304,13 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// This event is called when meter implemenets custom non DLMS PDU.
+        /// Occurs when a custom non-DLMS PDU is encountered.
         /// </summary>
+        /// <remarks>
+        /// This event is raised when the client receives or sends a PDU that doesn't follow
+        /// the standard DLMS protocol format. This allows handling of proprietary protocols
+        /// or extensions.
+        /// </remarks>
         public event CustomPduEventHandler OnCustomPdu
         {
             add
@@ -232,21 +324,29 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Copy client settings.
+        /// Copies all client settings to another client instance.
         /// </summary>
-        /// <param name="target"></param>
+        /// <param name="target">The target client to copy settings to.</param>
+        /// <remarks>
+        /// This method performs a deep copy of all configuration settings including
+        /// authentication, addresses, security parameters, and object collections.
+        /// Useful when creating multiple clients with similar configurations.
+        /// </remarks>
         public void CopyTo(GXDLMSClient target)
         {
             Settings.CopyTo(target.Settings);
         }
 
-
         /// <summary>
-        /// List of available custom obis codes.
+        /// Gets or sets the collection of custom OBIS codes.
         /// </summary>
+        /// <value>
+        /// A collection of custom OBIS code definitions, or null if not used.
+        /// </value>
         /// <remarks>
-        /// This list is used when Association view is read from the meter and description of the object is needed.
-        /// If collection is not set description of object is empty.
+        /// This collection is used when reading the Association View from the meter
+        /// to provide descriptions for objects. Custom OBIS codes can define manufacturer-specific
+        /// or non-standard objects. If not set, descriptions for custom objects will be empty.
         /// </remarks>
         public GXObisCodeCollection CustomObisCodes
         {
@@ -255,8 +355,19 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Client address.
+        /// Gets or sets the client address.
         /// </summary>
+        /// <value>
+        /// The logical or physical client address used in communication.
+        /// </value>
+        /// <remarks>
+        /// The client address identifies this client to the server (meter).
+        /// The valid range and format depend on the addressing mode:
+        /// - One-byte addressing: 0-127
+        /// - Two-byte addressing: 0-16383
+        /// - Four-byte addressing: logical and physical address combination
+        /// Default value is typically 16 (0x10) for public clients.
+        /// </remarks>
         public int ClientAddress
         {
             get
@@ -270,10 +381,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Standard says that Time zone is from normal time to UTC in minutes.
-        /// If meter is configured to use UTC time (UTC to normal time) set this to true.
-        /// Example. Italy, Saudi Arabia and India standards are using UTC time zone, not DLMS standard time zone.
+        /// Gets or sets a value indicating whether to use UTC to normal time conversion.
         /// </summary>
+        /// <value>
+        /// true if the meter uses UTC time zone (UTC to normal time); otherwise, false (normal time to UTC).
+        /// </value>
+        /// <remarks>
+        /// The DLMS standard specifies that time zone is from normal time to UTC in minutes.
+        /// However, some meters (e.g., Italy, Saudi Arabia, India) use UTC time zone instead.
+        /// Set this to true for meters that are configured to use UTC time zone.
+        /// This affects how date/time values are interpreted and converted.
+        /// </remarks>
         public bool UseUtc2NormalTime
         {
             get
@@ -287,11 +405,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Expected Invocation (Frame) counter value.
+        /// Gets or sets the expected invocation (frame) counter value.
         /// </summary>
+        /// <value>
+        /// The expected invocation counter value. Set to 0 to disable validation.
+        /// </value>
         /// <remarks>
-        /// If this value is set ciphered PDUs that are using smaller invocation counter values are rejected.
-        /// Invocation counter value is not validate if value is zero.
+        /// When using ciphered communication, the invocation counter ensures replay protection.
+        /// If this value is set to a non-zero value, any received ciphered PDU with an
+        /// invocation counter lower than this value will be rejected. Setting to 0 disables
+        /// this validation. The counter automatically increments with each secured message.
         /// </remarks>
         public UInt64 ExpectedInvocationCounter
         {
@@ -306,8 +429,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Some meters expect that Invocation Counter is increased for GMAC Authentication when connection is established.
+        /// Gets or sets a value indicating whether to increase invocation counter for GMAC authentication.
         /// </summary>
+        /// <value>
+        /// true to increase the invocation counter when establishing connection with GMAC authentication;
+        /// otherwise, false.
+        /// </value>
+        /// <remarks>
+        /// Some meters expect that the invocation counter is increased when using GMAC (Galois Message
+        /// Authentication Code) authentication during connection establishment. This behavior varies
+        /// by manufacturer. Set this property based on the specific meter requirements.
+        /// </remarks>
         public bool IncreaseInvocationCounterForGMacAuthentication
         {
             get
@@ -321,8 +453,17 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Skipped date time fields. This value can be used if meter can't handle deviation or status.
+        /// Gets or sets the date/time fields to skip during serialization.
         /// </summary>
+        /// <value>
+        /// A combination of <see cref="DateTimeSkips"/> flags indicating which fields to skip.
+        /// </value>
+        /// <remarks>
+        /// Some meters cannot handle certain date/time fields such as deviation or status.
+        /// Use this property to skip problematic fields during date/time value encoding.
+        /// Common scenarios include meters that don't support daylight saving time deviation
+        /// or clock status flags.
+        /// </remarks>
         public DateTimeSkips DateTimeSkips
         {
             get
@@ -335,12 +476,15 @@ namespace Gurux.DLMS
             }
         }
 
-
         /// <summary>
-        /// Standard says that Time zone is from normal time to UTC in minutes.
-        /// If meter is configured to use UTC time (UTC to normal time) set this to true.
-        /// Example. Italy, Saudi Arabia and India standards are using UTC time zone, not DLMS standard time zone.
+        /// Gets or sets a value indicating whether to use UTC to normal time conversion.
         /// </summary>
+        /// <value>
+        /// true if the meter uses UTC time zone; otherwise, false.
+        /// </value>
+        /// <remarks>
+        /// This property is deprecated. Use <see cref="UseUtc2NormalTime"/> instead.
+        /// </remarks>
         [Obsolete("Use UseUtc2NormalTime instead.")]
         public bool UtcTimeZone
         {
@@ -355,8 +499,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Used standard.
+        /// Gets or sets the DLMS standard version being used.
         /// </summary>
+        /// <value>
+        /// The DLMS standard (e.g., DLMS, India, Italy, SaudiArabia).
+        /// </value>
+        /// <remarks>
+        /// Different countries and regions may have specific variations or extensions
+        /// to the base DLMS/COSEM standard. This property allows the client to adapt
+        /// to these variations, particularly for date/time handling and specific OBIS codes.
+        /// </remarks>
         public Standard Standard
         {
             get
@@ -370,10 +522,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Force that data is always sent as blocks.
+        /// Gets or sets a value indicating whether to force data to always be sent as blocks.
         /// </summary>
+        /// <value>
+        /// true to force all data transmission in blocks; otherwise, false.
+        /// </value>
         /// <remarks>
-        /// Some meters can handle only blocks. This property is used to force send all data in blocks.
+        /// Some meters can only handle data in block transfer mode, even for small amounts of data.
+        /// Setting this property to true forces the client to use block transfer for all data,
+        /// regardless of size. This is useful for testing or working with meters that have
+        /// strict requirements.
         /// </remarks>
         public bool ForceToBlocks
         {
@@ -388,8 +546,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Quality of service.
+        /// Gets or sets the quality of service parameter.
         /// </summary>
+        /// <value>
+        /// The quality of service value (0-255). Default is 0.
+        /// </value>
+        /// <remarks>
+        /// Quality of Service (QoS) is used in some communication protocols to
+        /// prioritize traffic or specify delivery requirements. The meaning and
+        /// usage depend on the specific protocol and meter implementation.
+        /// </remarks>
         [DefaultValue(0)]
         public byte QualityOfService
         {
@@ -404,10 +570,18 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// User id is the identifier of the user.
+        /// Gets or sets the user identifier.
         /// </summary>
+        /// <value>
+        /// The user ID (0-255), or -1 if not used. Default is -1.
+        /// </value>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown when the value is less than -1 or greater than 255.
+        /// </exception>
         /// <remarks>
-        /// This value is used if user list on Association LN is used.
+        /// The user ID is used when the Association LN object has a user list configured.
+        /// It identifies which user (authentication context) is being used for the connection.
+        /// Value -1 indicates that user ID is not used.
         /// </remarks>
         [DefaultValue(-1)]
         public int UserId
@@ -427,8 +601,16 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Server address.
+        /// Gets or sets the server (meter) address.
         /// </summary>
+        /// <value>
+        /// The logical or physical server address.
+        /// </value>
+        /// <remarks>
+        /// The server address identifies the target device (meter) in communication.
+        /// The format depends on the addressing mode and can include logical and
+        /// physical address components. Default is typically 1 for single-meter scenarios.
+        /// </remarks>
         public int ServerAddress
         {
             get
@@ -442,8 +624,19 @@ namespace Gurux.DLMS
         }
 
         /// <summary>
-        /// Size of server address.
+        /// Gets or sets the size of the server address in bytes.
         /// </summary>
+        /// <value>
+        /// The number of bytes used for the server address (1, 2, or 4).
+        /// </value>
+        /// <remarks>
+        /// This property defines how many bytes are used to encode the server address
+        /// in the HDLC frame. Common values:
+        /// - 1 byte: Simple addressing (0-127)
+        /// - 2 bytes: Extended addressing (0-16383)
+        /// - 4 bytes: Full logical and physical addressing
+        /// The value is typically auto-detected based on the addressing mode.
+        /// </remarks>
         public byte ServerAddressSize
         {
             get
@@ -1345,11 +1538,15 @@ namespace Gurux.DLMS
         /// <summary>
         /// If protected release is used release is including a ciphered xDLMS Initiate request.
         /// </summary>
+        /// <remarks>
+        /// New DLMS Conformance Tests tests expect protected release.
+        /// It's not optional anymore.
+        /// </remarks>
         public bool UseProtectedRelease
         {
             get;
             set;
-        }
+        } = true;
 
         /// <summary>
         /// Generates a request to release the connection.
@@ -1378,7 +1575,7 @@ namespace Gurux.DLMS
                 return null;
             }
             GXByteBuffer buff = new GXByteBuffer();
-            if (!UseProtectedRelease)
+            if (!UseProtectedRelease || Settings.Cipher.Security == Security.None)
             {
                 buff.SetUInt8(3);
                 buff.SetUInt8(0x80);
@@ -1449,7 +1646,6 @@ namespace Gurux.DLMS
                 {
                     throw new ArgumentException("Invalid release response.");
                 }
-                UInt16 pduSize = Settings.MaxPduSize;
                 GXAPDU.ParsePDU2(Settings, Settings.Cipher, value, null);
                 if (InitializePduSize != Settings.MaxPduSize)
                 {
@@ -1557,7 +1753,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        GXDLMSObjectCollection ParseSNObjects(GXByteBuffer buff, bool onlyKnownObjects, bool ignoreInactiveObjects)
+        private GXDLMSObjectCollection ParseSNObjects(GXByteBuffer buff, bool onlyKnownObjects, bool ignoreInactiveObjects)
         {
             //Get array tag.
             byte size = buff.GetUInt8();
@@ -1576,16 +1772,7 @@ namespace Gurux.DLMS
                 {
                     break;
                 }
-                object tmp = GXCommon.GetData(Settings, buff, info);
-                List<object> objects;
-                if (tmp is List<object>)
-                {
-                    objects = (List<object>)tmp;
-                }
-                else
-                {
-                    objects = new List<object>((object[])tmp);
-                }
+                GXArray objects = (GXArray)GXCommon.GetData(Settings, buff, info);
                 info.Clear();
                 if (objects.Count != 4)
                 {
@@ -1890,7 +2077,7 @@ namespace Gurux.DLMS
         /// <summary>
         /// Reserved for internal use.
         /// </summary>
-        GXDLMSObjectCollection ParseLNObjects(
+        private GXDLMSObjectCollection ParseLNObjects(
         GXByteBuffer buff,
         bool onlyKnownObjects,
         bool ignoreInactiveObjects)
@@ -1912,16 +2099,7 @@ namespace Gurux.DLMS
             while (buff.Position != buff.Size && cnt != objectCnt)
             {
                 info.Clear();
-                object tmp = GXCommon.GetData(Settings, buff, info);
-                List<object> objects;
-                if (tmp is List<object>)
-                {
-                    objects = (List<object>)tmp;
-                }
-                else
-                {
-                    objects = new List<object>((object[])tmp);
-                }
+                GXStructure objects = (GXStructure)GXCommon.GetData(Settings, buff, info);
                 if (objects.Count != 4)
                 {
                     throw new GXDLMSException("Invalid structure format.");
@@ -1942,16 +2120,7 @@ namespace Gurux.DLMS
             while (buff.Position != buff.Size && cnt != objectCnt)
             {
                 info.Clear();
-                object tmp = GXCommon.GetData(Settings, buff, info);
-                List<object> objects;
-                if (tmp is List<object>)
-                {
-                    objects = (List<object>)tmp;
-                }
-                else
-                {
-                    objects = new List<object>((object[])tmp);
-                }
+                GXStructure objects = (GXStructure)GXCommon.GetData(Settings, buff, info);
                 if (objects.Count != 4)
                 {
                     throw new GXDLMSException("Invalid structure format.");
@@ -3452,15 +3621,7 @@ namespace Gurux.DLMS
                 //Object type.
                 bb.SetUInt16((ushort)it.Target.ObjectType);
                 //LN
-                String[] items = it.Target.LogicalName.Split('.');
-                if (items.Length != 6)
-                {
-                    throw new ArgumentException("Invalid Logical Name.");
-                }
-                foreach (String it2 in items)
-                {
-                    bb.SetUInt8(byte.Parse(it2));
-                }
+                bb.Set(GXCommon.LogicalNameToBytes(it.Target.LogicalName));
                 // Attribute ID.
                 bb.SetUInt8(it.Index);
                 int m = (int)it.Target.GetAccess3(it.Index);

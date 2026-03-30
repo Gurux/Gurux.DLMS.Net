@@ -320,12 +320,12 @@ namespace Gurux.DLMS.Objects
 
         void IGXDLMSBase.Save(GXXmlWriter writer)
         {
-            writer.WriteElementString("TxDataPktCount", TxDataPktCount, 2);
-            writer.WriteElementString("RxDataPktCount", RxDataPktCount, 3);
-            writer.WriteElementString("TxCtrlPktCount", TxCtrlPktCount, 4);
-            writer.WriteElementString("RxCtrlPktCount", RxCtrlPktCount, 5);
-            writer.WriteElementString("CsmaFailCount", CsmaFailCount, 6);
-            writer.WriteElementString("CsmaChBusyCount", CsmaChBusyCount, 7);
+            writer.WriteElementString("TxDataPktCount", TxDataPktCount);
+            writer.WriteElementString("RxDataPktCount", RxDataPktCount);
+            writer.WriteElementString("TxCtrlPktCount", TxCtrlPktCount);
+            writer.WriteElementString("RxCtrlPktCount", RxCtrlPktCount);
+            writer.WriteElementString("CsmaFailCount", CsmaFailCount);
+            writer.WriteElementString("CsmaChBusyCount", CsmaChBusyCount);
         }
         void IGXDLMSBase.PostLoad(GXXmlReader reader)
         {
