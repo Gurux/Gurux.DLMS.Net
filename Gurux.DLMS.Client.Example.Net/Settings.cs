@@ -68,7 +68,7 @@ namespace Gurux.DLMS.Client.Example
         public static int GetParameters(string[] args, Settings settings)
         {
             GXSerial serial;
-            //Has user give the custom serial port settings or are the default values used in mode E.
+            //Has the user provided custom serial port settings, or are the default values used to Mode E.
             bool modeEDefaultValues = true;
             string[] tmp;
             List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:L:q:b:R:ux:O:");
@@ -540,8 +540,8 @@ namespace Gurux.DLMS.Client.Example
             Console.WriteLine("GuruxDlmsSample reads data from the DLMS/COSEM device.");
             Console.WriteLine("GuruxDlmsSample -h [Meter IP Address] -p [Meter Port No] -c 16 -s 1 -r SN");
             Console.WriteLine(" -h \t host name or IP address.");
-            Console.WriteLine(" -p \t port number or name (Example: 1000).");
-            Console.WriteLine(" -u \t UDP is used.");
+            Console.WriteLine(" -p \t port number (Example: 1000).");
+            Console.WriteLine(" -u \t UDP is used as a transport protocol.");
             Console.WriteLine(" -q \t MQTT topic.");
             Console.WriteLine(" -S [COM1:9600:8None1]\t serial port.");
             Console.WriteLine(" -a \t Authentication (None, Low, High).");

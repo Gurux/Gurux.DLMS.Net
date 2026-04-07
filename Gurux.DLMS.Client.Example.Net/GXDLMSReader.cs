@@ -1564,9 +1564,7 @@ namespace Gurux.DLMS.Reader
             {
                 while (reply.IsMoreData &&
                     (Client.ConnectionState != ConnectionState.None ||
-                    Client.PreEstablishedConnection) ||
-                    //If the meter is returing Receiver Ready.
-                    (reply.Error == 0 && reply.Data.Size == 0))
+                    Client.PreEstablishedConnection))
                 {
                     if (reply.IsStreaming())
                     {
