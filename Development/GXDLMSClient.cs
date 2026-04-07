@@ -1772,7 +1772,7 @@ namespace Gurux.DLMS
                 {
                     break;
                 }
-                GXArray objects = (GXArray)GXCommon.GetData(Settings, buff, info);
+                GXStructure objects = (GXStructure)GXCommon.GetData(Settings, buff, info);
                 info.Clear();
                 if (objects.Count != 4)
                 {
