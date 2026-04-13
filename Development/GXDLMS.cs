@@ -192,6 +192,7 @@ namespace Gurux.DLMS
                 availableObjectTypes.Add(ObjectType.CoAPSetup, typeof(GXDLMSCoAPSetup));
                 availableObjectTypes.Add(ObjectType.CoAPDiagnostic, typeof(GXDLMSCoAPDiagnostic));
                 availableObjectTypes.Add(ObjectType.IEC6205541Attributes, typeof(GXDLMSIEC6205541Attributes));
+                availableObjectTypes.Add(ObjectType.StatusMapping, typeof(GXDLMSStatusMapping));
                 //Italian standard uses this.
                 availableObjectTypes.Add(ObjectType.TariffPlan, typeof(GXDLMSTariffPlan));
             }
@@ -368,7 +369,7 @@ namespace Gurux.DLMS
             byte[][] data;
             if (reply.MoreData == RequestTypes.GBT)
             {
-                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer, 
+                GXDLMSLNParameters p = new GXDLMSLNParameters(settings, 0, Command.GeneralBlockTransfer,
                     0, null, null, 0xff, Command.None);
                 p.GbtWindowSize = reply.GbtWindowSize;
                 p.blockNumberAck = reply.BlockNumber;
@@ -1841,7 +1842,7 @@ namespace Gurux.DLMS
             int cnt = 0, cipherSize = 0;
             if (ciphering)
             {
-                cipherSize = CipheringHeaderSize;               
+                cipherSize = CipheringHeaderSize;
             }
             if (p.data != null)
             {
@@ -3104,8 +3105,8 @@ namespace Gurux.DLMS
         /// <param name="data">Reply information.</param>
         /// <param name="notify">Notify information.</param>
         static bool GetTcpData(GXDLMSSettings settings,
-                GXByteBuffer buff, 
-                GXReplyData data, 
+                GXByteBuffer buff,
+                GXReplyData data,
                 GXReplyData notify)
         {
             // If whole frame is not received yet.
@@ -4191,9 +4192,9 @@ namespace Gurux.DLMS
             return ret;
         }
 
-        internal static bool CheckWrapperAddress(GXDLMSSettings settings, 
-            GXByteBuffer buff, 
-            GXReplyData data, 
+        internal static bool CheckWrapperAddress(GXDLMSSettings settings,
+            GXByteBuffer buff,
+            GXReplyData data,
             GXReplyData notify)
         {
             bool ret = true;

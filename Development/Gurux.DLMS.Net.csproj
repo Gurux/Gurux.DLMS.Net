@@ -1,81 +1,82 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <RootNamespace>Gurux.DLMS</RootNamespace>
-    <AssemblyName>Gurux.DLMS</AssemblyName>
-    <Company>Gurux Ltd</Company>
-    <Authors>Gurux Ltd</Authors>
-    <Copyright>Copyright (c) 1998-2025 Gurux Ltd. All rights reserved.</Copyright>
-    <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
-    <Description>Gurux DLMS library for C#</Description>
-    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
-    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <TargetFrameworks>net60-windows;net60;net48;net472;net46;net462;netcoreapp3.1;netstandard2.1;netstandard2.0</TargetFrameworks>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
-    <PackageTags>DLMS AMR, AMI IOT</PackageTags>
-    <PackageId>Gurux.DLMS</PackageId>
-    <PackageIcon>Gurux.DLMS.png</PackageIcon>
-    <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
-    <ApplicationIcon>Gurux.DLMS.ico</ApplicationIcon>
-  </PropertyGroup>
-  <PropertyGroup>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0-windows'">
-    <TargetFramework>net60-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
-  </PropertyGroup>
+    <PropertyGroup>
+        <RootNamespace>Gurux.DLMS</RootNamespace>
+        <AssemblyName>Gurux.DLMS</AssemblyName>
+        <Company>Gurux Ltd</Company>
+        <Authors>Gurux Ltd</Authors>
+        <Copyright>Copyright (c) 1998-2026 Gurux Ltd. All rights reserved.</Copyright>
+        <PackageProjectUrl>https://www.gurux.fi</PackageProjectUrl>
+        <Description>Gurux DLMS library for C#</Description>
+        <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">0.0.1-local</Version>
+        <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <TargetFrameworks>net10.0;net9.0;net6.0-windows;net6.0;net48;net472;net46;net462;netcoreapp3.1;netstandard2.1;netstandard2.0</TargetFrameworks>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <RepositoryUrl>https://github.com/gurux/gurux.dlms.net</RepositoryUrl>
+        <PackageTags>DLMS AMR, AMI IOT</PackageTags>
+        <PackageId>Gurux.DLMS</PackageId>
+        <PackageIcon>Gurux.DLMS.png</PackageIcon>
+        <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
+        <ApplicationIcon>Gurux.DLMS.ico</ApplicationIcon>
+    </PropertyGroup>
+    <PropertyGroup>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0-windows'">
+        <UseWindowsForms>true</UseWindowsForms>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <Compile Remove="UWP\**" />
+        <EmbeddedResource Remove="Gurux.DLMS.Net.Android\**" />
+        <EmbeddedResource Remove="UWP\**" />
+        <None Remove="UWP\**" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Gurux.DLMS.Net.Android\**" />
-    <Compile Remove="UWP\**" />
-    <EmbeddedResource Remove="Gurux.DLMS.Net.Android\**" />
-    <EmbeddedResource Remove="UWP\**" />
-    <None Remove="Gurux.DLMS.Net.Android\**" />
-    <None Remove="UWP\**" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0' or '$(TargetFramework)' == 'net9.0' or  '$(TargetFramework)' == 'net6.0-windows' or '$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'netcoreapp3.1' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1'">
+        <Compile Remove="IGXDataConcentrator.cs" />
+        <Compile Remove="ManufacturerSettings\GXVersionUIEditor.cs" />
+        <Compile Remove="ManufacturerSettings\GXVersionUIEditor.Designer.cs" />
+        <Compile Remove="ManufacturerSettings\GXXmlEditor.cs" />
+        <Compile Remove="ManufacturerSettings\GXXmlEditor.Designer.cs" />
+        <Compile Remove="ManufacturerSettings\GXXmlUIEditor.cs" />
+        <Compile Remove="ManufacturerSettings\GXXmlUIEditor.Designer.cs" />
+    </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net60-windows' or '$(TargetFramework)' == 'net60' or '$(TargetFramework)' == 'netcoreapp3.1' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1'">
-     <Compile Remove="IGXDataConcentrator.cs" />
-     <Compile Remove="ManufacturerSettings\GXVersionUIEditor.cs" />
-     <Compile Remove="ManufacturerSettings\GXVersionUIEditor.Designer.cs" />
-     <Compile Remove="ManufacturerSettings\GXXmlEditor.cs" />
-     <Compile Remove="ManufacturerSettings\GXXmlEditor.Designer.cs" />
-     <Compile Remove="ManufacturerSettings\GXXmlUIEditor.cs" />
-     <Compile Remove="ManufacturerSettings\GXXmlUIEditor.Designer.cs" />
-  </ItemGroup>
-
- <ItemGroup>
-    <Reference Condition="'$(TargetFramework)' == 'net48'" Include="System.Windows.Forms" />
-    <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Windows.Forms" />
-    <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Windows.Forms" />
-    <Reference Condition="'$(TargetFramework)' == 'net462'" Include="System.Windows.Forms" />
-    <Reference Condition="'$(TargetFramework)' == 'net60-windows'" Include="System.Windows.Forms" />
-  </ItemGroup>
-<ItemGroup>
-    <Reference Condition="'$(TargetFramework)' == 'net48'" Include="System.Drawing.Design" />
-    <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Drawing.Design" />
-    <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Drawing.Design" />
-    <Reference Condition="'$(TargetFramework)' == 'net462'" Include="System.Drawing.Design" />
-    <Reference Condition="'$(TargetFramework)' == 'net60-windows'" Include="System.Drawing.Design" />
-   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Gurux.DLMS.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+    <ItemGroup>
+        <Reference Condition="'$(TargetFramework)' == 'net10.0-windows'" Include="System.Windows.Forms" />
+        <Reference Condition="'$(TargetFramework)' == 'net9.0-windows'" Include="System.Windows.Forms" />
+        <Reference Condition="'$(TargetFramework)' == 'net48'" Include="System.Windows.Forms" />
+        <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Windows.Forms" />
+        <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Windows.Forms" />
+        <Reference Condition="'$(TargetFramework)' == 'net462'" Include="System.Windows.Forms" />
+        <Reference Condition="'$(TargetFramework)' == 'net6.0-windows'" Include="System.Windows.Forms" />
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Condition="'$(TargetFramework)' == 'net10.0-windows'" Include="System.Drawing.Design" />
+        <Reference Condition="'$(TargetFramework)' == 'net9.0-windows'" Include="System.Drawing.Design" />
+        <Reference Condition="'$(TargetFramework)' == 'net48'" Include="System.Drawing.Design" />
+        <Reference Condition="'$(TargetFramework)' == 'net472'" Include="System.Drawing.Design" />
+        <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Drawing.Design" />
+        <Reference Condition="'$(TargetFramework)' == 'net462'" Include="System.Drawing.Design" />
+        <Reference Condition="'$(TargetFramework)' == 'net6.0-windows'" Include="System.Drawing.Design" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="..\Gurux.DLMS.png" Pack="true" PackagePath="\" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Update="Properties\Resources.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Resources.resx</DependentUpon>
+        </Compile>
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Update="Properties\Resources.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+    </ItemGroup>
 </Project>

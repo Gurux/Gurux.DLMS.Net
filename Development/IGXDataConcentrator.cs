@@ -177,7 +177,7 @@ namespace Gurux.DLMS
         /// <param name="devices">Devices to add.</param>
         GXDLMSMeterBase[] AddDevices(GXDLMSMeterBase[] devices);
 
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1 && !NET6_0
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1 && !NET6_0 && !NET9_0 && !NET10_0
         /// <summary>
         /// Add a new device.
         /// </summary>
@@ -288,8 +288,8 @@ namespace Gurux.DLMS
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1
+#if !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1 && !NET6_0
         System.Windows.Forms.Form[] CustomPages(object target, object communication);
-#endif// !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1
+#endif// !__MOBILE__ && !WINDOWS_UWP && !NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1 && !NET6_0
     }
 }

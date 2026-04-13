@@ -2348,7 +2348,7 @@ namespace Gurux.DLMS
             }
             if (type == DataType.OctetString)
             {
-                return value;
+                return value.Array();
             }
             if (type == DataType.String && !value.IsAsciiString())
             {
