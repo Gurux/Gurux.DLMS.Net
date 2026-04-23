@@ -1368,90 +1368,126 @@ namespace Gurux.DLMS
                             //Check frame.
                             CheckFrame(data.FrameId, xml);
                             xml.AppendLine("<FrameType Value=\"" + data.FrameId.ToString("X") + "\" />");
-
-                        }
-                        if (data.Data.Size == 0)
-                        {
-                            if ((data.FrameId & 1) != 0 && data.Command == Command.None)
+                            if (data.FrameId == 0x97 && data.Data.Size > 2)
                             {
-                                if (!CompletePdu)
+                                //Control field copy
+                                byte cfc = data.Data.GetUInt8();
+                                //N(S) / N(R)
+                                byte sequenceNumber = data.Data.GetUInt8();
+                                //FRMR reject reason.
+                                FrmrRejectReason rejectReason = (FrmrRejectReason)data.Data.GetUInt8();
+                                xml.AppendComment("Control field copy: " + cfc.ToString("X2"));
+                                xml.AppendComment("Sequence number: " + sequenceNumber.ToString("X2"));
+                                if ((rejectReason & FrmrRejectReason.InvalidControlField) != 0)
                                 {
-                                    xml.AppendLine("<Command Value=\"NextFrame\" />");
+                                    xml.AppendComment("Invalid control field");
                                 }
-                                multipleFrames = true;
-                            }
-                            else
-                            {
-                                msg.Command = data.Command;
-                                xml.AppendStartTag(data.Command);
-                                xml.AppendEndTag(data.Command);
+                                if ((rejectReason & FrmrRejectReason.InvalidFrameState) != 0)
+                                {
+                                    xml.AppendComment("Invalid frame state");
+                                }
+                                if ((rejectReason & FrmrRejectReason.InformationTooLong) != 0)
+                                {
+                                    xml.AppendComment("Information too long.");
+                                }
+                                if ((rejectReason & FrmrRejectReason.InvalidNr) != 0)
+                                {
+                                    xml.AppendComment(string.Format("Invalid N(R). Expected: {0}, actual: {1}",
+                                            sequenceNumber.ToString("X2"), cfc.ToString("X2")));
+                                }
+                                int extra = (int)rejectReason;
+                                extra &= ~0xF;
+                                if (extra != 0)
+                                {
+                                    xml.AppendComment("Vendor specific error: " + extra.ToString("X2"));
+                                }
                             }
                         }
                         else
                         {
-                            if (multipleFrames || (data.MoreData & Enums.RequestTypes.Frame) != 0)
+                            if (data.Data.Size == 0)
                             {
-                                if (CompletePdu)
+                                if ((data.FrameId & 1) != 0 && data.Command == Command.None)
                                 {
-                                    pduFrames.Set(data.Data.Data);
-                                    if (data.MoreData == RequestTypes.None)
+                                    if (!CompletePdu)
                                     {
-                                        xml.AppendLine(PduToXml(pduFrames, true, true, msg));
-                                        pduFrames.Clear();
+                                        xml.AppendLine("<Command Value=\"NextFrame\" />");
                                     }
+                                    multipleFrames = true;
                                 }
                                 else
                                 {
-                                    xml.AppendLine("<NextFrame Value=\"" + GXCommon.ToHex(data.Data.Data, false, data.Data.Position, data.Data.Size - data.Data.Position) + "\" />");
-                                }
-                                if (data.MoreData != RequestTypes.DataBlock)
-                                {
-                                    multipleFrames = false;
+                                    msg.Command = data.Command;
+                                    xml.AppendStartTag(data.Command);
+                                    xml.AppendEndTag(data.Command);
                                 }
                             }
                             else
                             {
-                                if (!PduOnly)
+                                if (multipleFrames || (data.MoreData & Enums.RequestTypes.Frame) != 0)
                                 {
-                                    xml.AppendLine("<PDU>");
-                                }
-                                if (pduFrames.Size != 0)
-                                {
-                                    pduFrames.Set(data.Data.Data);
-                                    xml.AppendLine(PduToXml(pduFrames, true, true, msg));
-                                    pduFrames.Clear();
-                                }
-                                else
-                                {
-                                    if (data.Command == Command.Snrm || data.Command == Command.Ua)
+                                    if (CompletePdu)
                                     {
-                                        xml.AppendStartTag(data.Command);
-                                        PduToXml(xml, data.Data, true, true, true, msg);
-                                        xml.AppendEndTag(data.Command);
-                                        xml.sb.Length += 2;
+                                        pduFrames.Set(data.Data.Data);
+                                        if (data.MoreData == RequestTypes.None)
+                                        {
+                                            xml.AppendLine(PduToXml(pduFrames, true, true, msg));
+                                            pduFrames.Clear();
+                                        }
                                     }
                                     else
                                     {
-                                        if (CompletePdu)
+                                        xml.AppendLine("<NextFrame Value=\"" + GXCommon.ToHex(data.Data.Data, false, data.Data.Position, data.Data.Size - data.Data.Position) + "\" />");
+                                    }
+                                    if (data.MoreData != RequestTypes.DataBlock)
+                                    {
+                                        multipleFrames = false;
+                                    }
+                                }
+                                else
+                                {
+                                    if (!PduOnly)
+                                    {
+                                        xml.AppendLine("<PDU>");
+                                    }
+                                    if (pduFrames.Size != 0)
+                                    {
+                                        pduFrames.Set(data.Data.Data);
+                                        xml.AppendLine(PduToXml(pduFrames, true, true, msg));
+                                        pduFrames.Clear();
+                                    }
+                                    else
+                                    {
+                                        if (data.Command == Command.Snrm || data.Command == Command.Ua)
                                         {
-                                            pduFrames.Set(data.Data.Data);
-                                            if (data.MoreData == RequestTypes.None)
-                                            {
-                                                xml.AppendLine(PduToXml(pduFrames, true, true, msg));
-                                                pduFrames.Clear();
-                                            }
+                                            xml.AppendStartTag(data.Command);
+                                            PduToXml(xml, data.Data, true, true, true, msg);
+                                            xml.AppendEndTag(data.Command);
+                                            xml.sb.Length += 2;
                                         }
                                         else
                                         {
-                                            xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                                            if (CompletePdu)
+                                            {
+                                                pduFrames.Set(data.Data.Data);
+                                                if (data.MoreData == RequestTypes.None)
+                                                {
+                                                    xml.AppendLine(PduToXml(pduFrames, true, true, msg));
+                                                    pduFrames.Clear();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                xml.AppendLine(PduToXml(data.Data, OmitXmlDeclaration, OmitXmlNameSpace, msg));
+                                            }
                                         }
                                     }
-                                }
-                                // Remove \r\n.
-                                xml.sb.Length -= Environment.NewLine.Length;
-                                if (!PduOnly)
-                                {
-                                    xml.AppendLine("</PDU>");
+                                    // Remove \r\n.
+                                    xml.sb.Length -= Environment.NewLine.Length;
+                                    if (!PduOnly)
+                                    {
+                                        xml.AppendLine("</PDU>");
+                                    }
                                 }
                             }
                         }

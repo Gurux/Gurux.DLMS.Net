@@ -2905,7 +2905,7 @@ namespace Gurux.DLMS
                 if (frame == 0x97)
                 {
                     data.Error = (int)ErrorCode.UnacceptableFrame;
-                    if (reply.Position < packetStartID + frameLen  - 3)
+                    if (data.Xml == null && reply.Position < packetStartID + frameLen - 3)
                     {
                         //Control field copy
                         byte cfc = reply.GetUInt8();
@@ -2913,54 +2913,28 @@ namespace Gurux.DLMS
                         byte sequenceNumber = reply.GetUInt8();
                         //FRMR reject reason.
                         FrmrRejectReason rejectReason = (FrmrRejectReason)reply.GetUInt8();
-                        if (data.Xml != null)
-                        {
-                            data.Xml.AppendComment("Control field copy: " + cfc.ToString("X2"));
-                            data.Xml.AppendComment("Sequence number: " + sequenceNumber.ToString("X2"));
-                        }
                         if ((rejectReason & FrmrRejectReason.InvalidControlField) != 0)
                         {
-                            if (data.Xml == null)
-                            {
-                                throw new Exception("Invalid control field");
-                            }
-                            data.Xml.AppendComment("Invalid control field");
+                            throw new Exception("Invalid control field");
                         }
                         if ((rejectReason & FrmrRejectReason.InvalidFrameState) != 0)
                         {
-                            if (data.Xml == null)
-                            {
-                                throw new Exception("Invalid frame state");
-                            }
-                            data.Xml.AppendComment("Invalid frame state");
+                            throw new Exception("Invalid frame state");
                         }
                         if ((rejectReason & FrmrRejectReason.InformationTooLong) != 0)
                         {
-                            if (data.Xml == null)
-                            {
-                                throw new Exception("Information too long.");
-                            }
-                            data.Xml.AppendComment("Information too long.");
+                            throw new Exception("Information too long.");
                         }
                         if ((rejectReason & FrmrRejectReason.InvalidNr) != 0)
                         {
-                            if (data.Xml == null)
-                            {
-                                throw new Exception(string.Format("Invalid N(R). Expected: {0}, actual: {1}", 
-                                    sequenceNumber.ToString("X2"), cfc.ToString("X2")));
-                            }
-                            data.Xml.AppendComment(string.Format("Invalid N(R). Expected: {0}, actual: {1}",
-                                    sequenceNumber.ToString("X2"), cfc.ToString("X2")));
+                            throw new Exception(string.Format("Invalid N(R). Expected: {0}, actual: {1}",
+                                sequenceNumber.ToString("X2"), cfc.ToString("X2")));
                         }
                         int extra = (int)rejectReason;
                         extra &= ~0xF;
                         if (extra != 0)
                         {
-                            if (data.Xml == null)
-                            {
-                                throw new Exception("Vendor specific error: " + extra.ToString("X2"));
-                            }
-                            data.Xml.AppendComment("Vendor specific error: " + extra.ToString("X2"));
+                            throw new Exception("Vendor specific error: " + extra.ToString("X2"));
                         }
                     }
                 }
