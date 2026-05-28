@@ -34,6 +34,7 @@
 
 using Gurux.DLMS.ASN;
 using Gurux.DLMS.ASN.Enums;
+using Gurux.DLMS.Compression;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
@@ -378,6 +379,7 @@ namespace Gurux.DLMS
         ///</summary>
         internal GXDLMSSettings(bool server, InterfaceType interfaceType)
         {
+            CompressionOptions = new GXCompressionOptions();
             InterfaceType = interfaceType;
             UseCustomChallenge = false;
             StartingBlockIndex = BlockIndex = 1;
@@ -1258,6 +1260,16 @@ namespace Gurux.DLMS
         /// This event is invoked when custom PDU is handled.
         /// </summary>
         internal CustomPduEventHandler customPdu;
+
+        /// <summary>
+        /// This event is invoked when V.44 compression is used.
+        /// </summary>
+        internal CompressionEventHandler compression;
+
+        /// <summary>
+        /// Gets or sets the compression options used for data transmission.
+        /// </summary>
+        internal GXCompressionOptions CompressionOptions;
 
         //Encrypt or decrypt the data using external Hardware Security Module.
         internal byte[] Crypt(CertificateType certificateType,

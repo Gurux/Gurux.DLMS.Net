@@ -40,6 +40,8 @@ using Gurux.DLMS.Enums;
 using System.Threading;
 using Gurux.DLMS.Objects;
 using Gurux.MQTT;
+using Gurux.DLMS.Compression;
+using Gurux.DLMS.Compression.Enums;
 
 namespace Gurux.DLMS.Client.Example
 {
@@ -94,8 +96,8 @@ namespace Gurux.DLMS.Client.Example
                     throw new Exception("Unknown media type.");
                 }
                 ////////////////////////////////////////
-                reader = new Reader.GXDLMSReader(settings.client, 
-                    settings.media, settings.trace, 
+                reader = new Reader.GXDLMSReader(settings.client,
+                    settings.media, settings.trace,
                     settings.invocationCounter, settings.WaitTime);
                 reader.OnNotification += (data) =>
                 {
@@ -111,6 +113,26 @@ namespace Gurux.DLMS.Client.Example
                     }
                     */
                     return null;
+                };
+
+                //Enable Compression:
+                //settings.client.CompressionOptions.EnableCompression = true;
+                settings.client.OnCompression += (GXCompressionArgs e) =>
+                {
+                    if (e.Operation == CompressionOperation.Compress)
+                    {
+                        // Compress data using GXV44 compression. 
+                        //  This is just an example, you can use any compression method you like.
+                        // GXV44Encoder encoder = new GXV44Encoder();
+                        // e.OutputData = encoder.Compress(e.InputData);                        
+                    }
+                    else
+                    {
+                        // Decompress data using GXV44 compression. 
+                        //  This is just an example, you can use any compression method you like.
+                        // GXV44Decoder decoder = new GXV44Decoder();
+                        // e.OutputData = decoder.Decompress(e.InputData);                       
+                    }
                 };
 
                 try

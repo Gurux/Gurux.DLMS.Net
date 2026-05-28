@@ -32,6 +32,7 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
+using Gurux.DLMS.Compression;
 using Gurux.DLMS.Ecdsa;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Internal;
@@ -42,7 +43,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
-using System.Xml.Linq;
 
 namespace Gurux.DLMS
 {
@@ -320,6 +320,40 @@ namespace Gurux.DLMS
             remove
             {
                 Settings.customPdu -= value;
+            }
+        }
+
+        /// <summary>
+        /// Used to compress or decompress the data.
+        /// </summary>
+        public event CompressionEventHandler OnCompression
+        {
+            add
+            {
+                Settings.compression += value;
+            }
+            remove
+            {
+                Settings.compression -= value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the compression options used for data transmission.
+        /// </summary>
+        public GXCompressionOptions CompressionOptions
+        {
+            get
+            {
+                return Settings.CompressionOptions;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(CompressionOptions));
+                }
+                Settings.CompressionOptions = value;
             }
         }
 

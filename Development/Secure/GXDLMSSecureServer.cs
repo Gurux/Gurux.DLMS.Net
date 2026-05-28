@@ -38,6 +38,7 @@ using System.Security.Cryptography;
 #endif
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects;
+using Gurux.DLMS.Compression;
 
 namespace Gurux.DLMS.Secure
 {
@@ -325,6 +326,41 @@ namespace Gurux.DLMS.Secure
             Ciphering = new GXCiphering(bb.Array());
             Settings.Cipher = Ciphering;
         }
+
+        /// <summary>
+        /// Gets or sets the compression options used for data transmission.
+        /// </summary>
+        public GXCompressionOptions CompressionOptions
+        {
+            get
+            {
+                return Settings.CompressionOptions;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(CompressionOptions));
+                }
+                Settings.CompressionOptions = value;
+            }
+        }
+
+        /// <summary>
+        /// Used to compress or decompress the data.
+        /// </summary>
+        protected event CompressionEventHandler OnCompression
+        {
+            add
+            {
+                Settings.compression += value;
+            }
+            remove
+            {
+                Settings.compression -= value;
+            }
+        }
+
 
         /// <summary>
         /// Ciphering settings.

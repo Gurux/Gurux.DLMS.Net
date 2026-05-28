@@ -45,6 +45,7 @@ using Gurux.DLMS.Plc.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Ecdsa.Enums;
 using Gurux.DLMS.Ecdsa;
+using Gurux.DLMS.Compression;
 
 namespace Gurux.DLMS
 {
@@ -889,7 +890,18 @@ namespace Gurux.DLMS
 
         internal static byte[] Cipher0(GXDLMSLNParameters p, byte[] data)
         {
-            byte[] ret = GXCiphering.Encrypt(GetCipheringParameters(p), data);
+            var c = GetCipheringParameters(p);
+            if (p.settings.CompressionOptions.EnableCompression)
+            {
+                var tmp4 = Compress(p.settings, data);
+                if (tmp4 != null)
+                {
+                    //If data is compressed, set compression bit to security control.
+                    data = tmp4;
+                    c.Compression = true;
+                }
+            }
+            byte[] ret = GXCiphering.Encrypt(c, data);
             ++p.settings.Cipher.InvocationCounter;
             return ret;
         }
@@ -984,6 +996,16 @@ namespace Gurux.DLMS
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("Invalid security suite.");
+            }
+            if (p.settings.CompressionOptions.EnableCompression && p.settings.compression != null)
+            {
+                var tmp4 = Compress(p.settings, data);
+                if (tmp4 != null)
+                {
+                    //If data is compressed, set compression bit to security control.
+                    data = tmp4;
+                    sc |= 0x80;
+                }
             }
             GXByteBuffer tmp2 = new GXByteBuffer();
             byte[] z = null;
@@ -1222,7 +1244,7 @@ namespace Gurux.DLMS
             reply.Set(tmp);
             signedData.Set(tmp);
 #if !WINDOWS_UWP
-            if (sign)
+            if (sign && p.settings.Cipher.Signing != Signing.None)
             {
                 // Signature
                 GXEcdsa ecdsa = new GXEcdsa(key);
@@ -1506,7 +1528,7 @@ namespace Gurux.DLMS
                                 reply.Set(p.data);
                                 bool sign = ShoudSign(p);
                                 if ((p.settings.Connected & ConnectionState.Dlms) == 0 ||
-                                     !sign)
+                                     (!sign))
                                 {
                                     tmp = Cipher0(p, reply.Array());
                                 }
@@ -5482,6 +5504,7 @@ namespace Gurux.DLMS
                         false, CryptoKeyType.Ecdsa);
                     if (ret != null)
                     {
+                        //Note: HSM must handle the compression if it is used. Otherwise decryption will fail.
                         encrypted = data.Data.Array();
                         data.Data.Size = 0;
                         data.Data.Set(ret);
@@ -5516,6 +5539,12 @@ namespace Gurux.DLMS
                         }
                         byte[] tmp = GXCiphering.Decrypt(p, data.Data);
                         cipher.SecuritySuite = p.SecuritySuite;
+                        if (p.Compression)
+                        {
+                            tmp = Decompress(settings, tmp);
+                        }
+                        data.Data.Size = 0;
+                        data.Data.Set(tmp);
                         if (settings.CryptoNotifier != null && settings.CryptoNotifier.pdu != null && data.IsComplete && (data.MoreData & RequestTypes.Frame) == 0)
                         {
                             settings.CryptoNotifier.pdu(settings.CryptoNotifier, tmp);
@@ -5551,6 +5580,46 @@ namespace Gurux.DLMS
             }
         }
 
+        private static byte[] Decompress(GXDLMSSettings settings, byte[] tmp)
+        {
+            if (settings.compression != null)
+            {
+                GXCompressionArgs args = new GXCompressionArgs(Compression.Enums.CompressionOperation.Decompress, settings.CompressionOptions, tmp);
+                settings.compression(args);
+                if (args.Operation != Compression.Enums.CompressionOperation.Decompress)
+                {
+                    throw new Exception("Decompression was not successful.");
+                }
+                return args.OutputData;
+            }
+            throw new Exception("Data is compressed but compression handler is not defined.");
+        }
+
+        /// <summary>
+        /// Compress data if compression is used. Compression is used if ciphering is used and compression options are defined. 
+        /// Compression is done before ciphering.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="tmp"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private static byte[] Compress(GXDLMSSettings settings, byte[] tmp)
+        {
+            if (settings.compression != null)
+            {
+                GXCompressionArgs args = new GXCompressionArgs(Compression.Enums.CompressionOperation.Compress, settings.CompressionOptions, tmp);
+                settings.compression(args);
+                if (args.Operation != Compression.Enums.CompressionOperation.Compress)
+                {
+                    //Id data is not compressed.
+                    return null;
+                }
+                return args.OutputData;
+            }
+            throw new Exception("Data compression failed. Compression handler is not defined.");
+        }
+
+
         private static void HandleGloDedResponse(
             GXDLMSSettings settings,
             GXReplyData data,
@@ -5578,6 +5647,7 @@ namespace Gurux.DLMS
                         false, CryptoKeyType.Ecdsa);
                     if (ret != null)
                     {
+                        //Note: HSM must handle the compression if it is used. Otherwise decryption will fail.
                         data.Data.Set(ret);
                     }
                     else
@@ -5622,6 +5692,10 @@ namespace Gurux.DLMS
                         }
                         byte[] tmp = GXCiphering.Decrypt(p, bb);
                         data.SystemTitle = p.SystemTitle;
+                        if (p.Compression)
+                        {
+                            tmp = Decompress(settings, tmp);
+                        }
                         data.Data.Set(tmp);
                         //If target is sending data ciphered using different security policy.
                         if (!settings.Cipher.SecurityChangeCheck && (settings.Connected & ConnectionState.Dlms) != 0 &&
@@ -6165,6 +6239,10 @@ namespace Gurux.DLMS
                 try
                 {
                     byte[] tmp = GXCiphering.Decrypt(p, data.Data);
+                    if (p.Compression)
+                    {
+                        tmp = Decompress(settings, tmp);
+                    }
                     data.Data.Clear();
                     data.Data.Set(tmp);
                     data.CipheredCommand = Command.GeneralCiphering;

@@ -80,10 +80,10 @@ namespace Gurux.DLMS.Reader
         /// <param name="trace">Trace level.</param>
         /// <param name="invocationCounter">Logical name of invocation counter.</param>
         public GXDLMSReader(
-            GXDLMSSecureClient client, 
-            IGXMedia media, 
-            TraceLevel trace, 
-            string invocationCounter, 
+            GXDLMSSecureClient client,
+            IGXMedia media,
+            TraceLevel trace,
+            string invocationCounter,
             int waitTime)
         {
             WaitTime = waitTime;
@@ -839,6 +839,18 @@ namespace Gurux.DLMS.Reader
                 {
                     Console.WriteLine("Dedicated key: " + GXCommon.ToHex(Client.Ciphering.DedicatedKey, true));
                 }
+                if (Client.CompressionOptions.EnableCompression)
+                {
+                    if (Client.Ciphering.SecuritySuite == 0)
+                    {
+                        Console.WriteLine("Security suite 0 doesn't use compression.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Compression is enabled.");
+                    }
+                }
+
             }
             UpdateFrameCounter();
             InitializeOpticalHead();

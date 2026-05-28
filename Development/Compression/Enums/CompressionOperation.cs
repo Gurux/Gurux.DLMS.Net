@@ -32,47 +32,20 @@
 // Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
 //---------------------------------------------------------------------------
 
-using Gurux.DLMS.Objects;
-
-namespace Gurux.DLMS
+namespace Gurux.DLMS.Compression.Enums
 {
     /// <summary>
-    /// This event handler is called when PDU is decrypted.
+    /// Compression operation type.
     /// </summary>
-    /// <param name="sender">Sender.</param>
-    /// <param name="data">Decrypted PDU.</param>
-    public delegate void PduEventHandler(object sender, byte[] data);
-
-    /// <summary>
-    /// This event handler is called when meter uses custom object and it's needs to be created.
-    /// </summary>
-    /// <param name="type">Object type.</param>
-    /// <param name="version">Object Version.</param>
-    public delegate GXDLMSObject ObjectCreateEventHandler(int type, byte version);
-    /// <summary>
-    /// This event handler is called meter uses non DLMS standard PDU.
-    /// </summary>
-    /// <param name="e">PDU arguments.</param>
-    public delegate void CustomPduEventHandler(GXCustomPduArgs e);
-
-    public class GXCustomPduArgs
+    public enum CompressionOperation
     {
         /// <summary>
-        /// Received PDU data.
+        /// Compresses the specified data.
         /// </summary>
-        public byte[] Data
-        {
-            get;
-            internal set;
-        }
-
+        Compress,
         /// <summary>
-        /// Parsed value.
+        /// Decompresses the specified data.
         /// </summary>
-        public byte[] Value
-        {
-            get;
-            set;
-        }
+        Decompress
     }
 }

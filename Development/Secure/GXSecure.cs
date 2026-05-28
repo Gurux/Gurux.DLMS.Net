@@ -962,21 +962,25 @@ namespace Gurux.DLMS.Secure
                     }
                 }
                 return encryptedData;
-            }          
+            }
             byte[] decrypted;
             //Data might be without ciphering in GeneralSigning.
             if (p.Security != Security.None)
             {
                 GXGMac gmac = new GXGMac(p.AuthenticationKey,
-                    p.Broacast ? p.BlockCipherKey : p.BlockCipherKey, 
+                    p.Broacast ? p.BlockCipherKey : p.BlockCipherKey,
                     p.SystemTitle,
                     invocationCounter);
-                byte [] tmp2 = new byte[len - 5];
+                byte[] tmp2 = new byte[len - 5];
                 data.Get(tmp2);
                 byte tag2 = (byte)((byte)p.Security | (byte)p.SecuritySuite);
                 if (p.Broacast)
                 {
                     tag2 |= 0x40;
+                }
+                if (p.Compression)
+                {
+                    tag2 |= 0x80;
                 }
                 decrypted = gmac.Decrypt(tmp2, tag2, p.Xml);
                 System.Diagnostics.Debug.WriteLine("Decrypted: " + GXCommon.ToHex(decrypted, true));

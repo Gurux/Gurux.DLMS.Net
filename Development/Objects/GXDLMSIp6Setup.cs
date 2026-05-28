@@ -610,7 +610,7 @@ namespace Gurux.DLMS.Objects
                         {
                             data.Add(ToIP6Address(it));
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             try
                             {
