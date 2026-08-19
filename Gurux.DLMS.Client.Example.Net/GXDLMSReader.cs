@@ -771,6 +771,15 @@ namespace Gurux.DLMS.Reader
                 case '6':
                     BaudRate = 19200;
                     break;
+                case '7':
+                    BaudRate = 38400;
+                    break;
+                case '8':
+                    BaudRate = 57600;
+                    break;
+                case '9':
+                    BaudRate = 115200;
+                    break;
                 default:
                     throw new Exception("Unknown baud rate.");
             }
