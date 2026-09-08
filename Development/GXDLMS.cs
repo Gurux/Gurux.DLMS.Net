@@ -4500,7 +4500,6 @@ namespace Gurux.DLMS
                     values.AddRange((List<object>)reply.Value);
                 }
                 reply.Value = null;
-                first = true;
             }
             if (reply.Xml != null)
             {
@@ -4510,15 +4509,8 @@ namespace Gurux.DLMS
             for (pos = 0; pos != cnt; ++pos)
             {
                 // Get response type code.
-                if (first)
-                {
-                    type = (SingleReadResponse)reply.Data.GetUInt8();
-                    reply.CommandType = (byte)type;
-                }
-                else
-                {
-                    type = (SingleReadResponse)reply.CommandType;
-                }
+                type = (SingleReadResponse)reply.Data.GetUInt8();
+                reply.CommandType = (byte)type;
                 switch (type)
                 {
                     case SingleReadResponse.Data:
