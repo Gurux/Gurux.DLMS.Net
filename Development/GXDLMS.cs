@@ -4500,6 +4500,7 @@ namespace Gurux.DLMS
                     values.AddRange((List<object>)reply.Value);
                 }
                 reply.Value = null;
+                first = true;
             }
             if (reply.Xml != null)
             {
