@@ -744,7 +744,7 @@ namespace Gurux.DLMS
             }
             if (p.attributeDescriptor != null)
             {
-                len += p.attributeDescriptor.Size;
+                len += p.attributeDescriptor.Available;
             }
             if (ciphering)
             {
@@ -2177,27 +2177,56 @@ namespace Gurux.DLMS
                 throw new ArgumentException("Invalid CoAP option type.");
             }
             //Add opt delta to type.
-            if (type - last < 13)
+            UInt16 delta = (UInt16)(type - last);
+            if (value.Size > 1034)
             {
-                len |= (byte)((type - last) << 4);
-                bb.SetUInt8(len);
+                throw new ArgumentException("CoAP option value is too long.");
             }
-            else if (type - last < 269)
+            byte deltaNibble;
+            if (delta < 13)
             {
-                len |= (byte)(13 << 4);
-                bb.SetUInt8(len);
-                //Opt delta extended.
-                byte delta = (byte)(type - last + 1);
-                bb.SetUInt8(delta);
+                deltaNibble = (byte)delta;
+            }
+            else if (delta < 269)
+            {
+                deltaNibble = 13;
             }
             else
             {
-                len |= (byte)(14 << 4);
-                bb.SetUInt8(len);
-                //Opt delta extended.
-                UInt16 delta = type;
-                delta -= (UInt16)(269 + last);
-                bb.SetUInt16(delta);
+                deltaNibble = 14;
+            }
+
+            byte lengthNibble;
+            if (value.Size < 13)
+            {
+                lengthNibble = (byte)value.Size;
+            }
+            else if (value.Size < 269)
+            {
+                lengthNibble = 13;
+            }
+            else
+            {
+                lengthNibble = 14;
+            }
+
+            bb.SetUInt8((byte)((deltaNibble << 4) | lengthNibble));
+
+            if (deltaNibble == 13)
+            {
+                bb.SetUInt8((byte)(delta - 13));
+            }
+            else if (deltaNibble == 14)
+            {
+                bb.SetUInt16((UInt16)(delta - 269));
+            }
+            if (lengthNibble == 13)
+            {
+                bb.SetUInt8((byte)(value.Size - 13));
+            }
+            else if (lengthNibble == 14)
+            {
+                bb.SetUInt16((UInt16)(value.Size - 269));
             }
             bb.Set(value);
             return type;
@@ -3661,7 +3690,7 @@ namespace Gurux.DLMS
                             data.PacketLength = buff.Position + frameSize;
                             if (buff.Size < data.PacketLength)
                             {
-                                throw new OutOfMemoryException("CoAP message is not complete.");
+                                throw new GXDLMSInsufficientDataException(data.PacketLength, buff.Size);
                             }
                             data.IsComplete = true;
                         }
@@ -4802,7 +4831,7 @@ namespace Gurux.DLMS
                     // Check Block length.
                     if (blockLength > reply.Data.Available)
                     {
-                        throw new OutOfMemoryException();
+                        throw new GXDLMSInsufficientDataException(blockLength, reply.Data.Available);
                     }
                     //Keep command if this is last block for XML Client.
                     if ((reply.MoreData & RequestTypes.DataBlock) != 0)
@@ -5205,7 +5234,7 @@ namespace Gurux.DLMS
                     // Check Block length.
                     if (blockLength > data.Size - data.Position)
                     {
-                        throw new OutOfMemoryException();
+                        throw new GXDLMSInsufficientDataException(blockLength, data.Size - data.Position);
                     }
                     //Keep command if this is last block for XML Client.
                     if ((reply.MoreData & RequestTypes.DataBlock) != 0)
@@ -5580,6 +5609,13 @@ namespace Gurux.DLMS
             }
         }
 
+        /// <summary>
+        /// Decompress data if compression is used. Compression is used if ciphering is used and compression options are defined.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="tmp"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         private static byte[] Decompress(GXDLMSSettings settings, byte[] tmp)
         {
             if (settings.compression != null)
@@ -5648,6 +5684,7 @@ namespace Gurux.DLMS
                     if (ret != null)
                     {
                         //Note: HSM must handle the compression if it is used. Otherwise decryption will fail.
+                        data.Data.Clear();
                         data.Data.Set(ret);
                     }
                     else

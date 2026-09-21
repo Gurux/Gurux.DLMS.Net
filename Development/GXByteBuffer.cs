@@ -493,7 +493,7 @@ namespace Gurux.DLMS
         {
             if (index + 8 > Size)
             {
-                throw new System.OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(8, Size - index);
             }
             UInt64 value = (((UInt64)Data[index] & 0xFF) << 56) |
                           (((UInt64)Data[index + 1] & 0xFF) << 48) |
@@ -564,7 +564,7 @@ namespace Gurux.DLMS
         {
             if (index >= Size)
             {
-                throw new System.OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(1, Size - index);
             }
             return Data[index];
         }
@@ -577,7 +577,7 @@ namespace Gurux.DLMS
         {
             if (index + 2 > Size)
             {
-                throw new System.OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(2, Size - index);
             }
             return (UInt16)(((Data[index] & 0xFF) << 8) | (Data[index + 1] & 0xFF));
         }
@@ -610,7 +610,7 @@ namespace Gurux.DLMS
         {
             if (index + 2 > Size)
             {
-                throw new System.OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(2, Size - index);
             }
             return (Int16)(((Data[index] & 0xFF) << 8) | (Data[index + 1] & 0xFF));
         }
@@ -623,7 +623,7 @@ namespace Gurux.DLMS
         {
             if (index + 4 > Size)
             {
-                throw new System.OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(4, Size - index);
             }
             return (UInt32)((Data[index] & 0xFF) << 24 | (Data[index + 1] & 0xFF) << 16 |
                             (Data[index + 2] & 0xFF) << 8 | (Data[index + 3] & 0xFF));
@@ -638,7 +638,7 @@ namespace Gurux.DLMS
         {
             if (index + 3 > Size)
             {
-                throw new System.OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(3, Size - index);
             }
             return (int)((Data[index] & 0xFF) << 16 | (Data[index + 1] & 0xFF) << 8 |
                             (Data[index + 2] & 0xFF));
@@ -704,7 +704,7 @@ namespace Gurux.DLMS
         {
             if (Position + 8 > Size)
             {
-                throw new System.OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(8, Size - Position);
             }
             Int64 value = (((Int64)Data[Position] & 0xFF) << 56) |
                           (((Int64)Data[Position + 1] & 0xFF) << 48) |
@@ -802,7 +802,7 @@ namespace Gurux.DLMS
             }
             if (index + count > Size)
             {
-                throw new System.OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(count, Size - index);
             }
             return ASCIIEncoding.ASCII.GetString(Data, index, count);
         }
@@ -1009,7 +1009,7 @@ namespace Gurux.DLMS
         {
             if (Size - Position < target.Length)
             {
-                throw new OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(target.Length, Size - Position);
             }
             Buffer.BlockCopy(Data, Position, target, 0, target.Length);
             Position += target.Length;

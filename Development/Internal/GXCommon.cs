@@ -581,7 +581,6 @@ namespace Gurux.DLMS.Internal
                 case DataType.DeltaUInt32:
                     value = new GXDeltaUInt32(GetUInt32(data, info));
                     break;
-
                 default:
                     throw new Exception("Invalid data type.");
             }

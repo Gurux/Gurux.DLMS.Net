@@ -1341,26 +1341,19 @@ namespace Gurux.DLMS
         /// <seealso cref="MaxReceivePDUSize"/>
         public void ParseAAREResponse(GXByteBuffer reply)
         {
-            try
+            IsAuthenticationRequired = (SourceDiagnostic)GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
+            if (IsAuthenticationRequired)
             {
-                IsAuthenticationRequired = (SourceDiagnostic)GXAPDU.ParsePDU(Settings, Settings.Cipher, reply, null) == SourceDiagnostic.AuthenticationRequired;
-                if (IsAuthenticationRequired)
-                {
-                    System.Diagnostics.Debug.WriteLine("Authentication is required.");
-                }
-                else
-                {
-                    Settings.Connected |= ConnectionState.Dlms;
-                }
-                System.Diagnostics.Debug.WriteLine("- Server max PDU size is " + MaxReceivePDUSize);
-                if (DLMSVersion != 6)
-                {
-                    throw new GXDLMSException("Invalid DLMS version number.");
-                }
+                System.Diagnostics.Debug.WriteLine("Authentication is required.");
             }
-            catch (OutOfMemoryException)
+            else
             {
-                throw new Exception("Frame is not fully received.");
+                Settings.Connected |= ConnectionState.Dlms;
+            }
+            System.Diagnostics.Debug.WriteLine("- Server max PDU size is " + MaxReceivePDUSize);
+            if (DLMSVersion != 6)
+            {
+                throw new GXDLMSException("Invalid DLMS version number.");
             }
         }
 
@@ -1549,7 +1542,8 @@ namespace Gurux.DLMS
                 if (!equals)
                 {
                     Settings.Connected &= ~ConnectionState.Dlms;
-                    throw new GXDLMSException("Invalid password. Server to Client challenge do not match.");
+                    throw new GXDLMSException(AssociationResult.PermanentRejected,
+                        SourceDiagnostic.AuthenticationFailure);
                 }
             }
         }
@@ -1665,7 +1659,7 @@ namespace Gurux.DLMS
             }
             if (value.Available < GXCommon.GetObjectCount(value))
             {
-                throw new OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(GXCommon.GetObjectCount(value), value.Available);
             }
             //BerType
             if (value.GetUInt8() != 0x80)
@@ -2413,7 +2407,7 @@ namespace Gurux.DLMS
             Object ret = GXCommon.GetData(settings, value, info);
             if (!info.Complete)
             {
-                throw new OutOfMemoryException();
+                throw new GXDLMSInsufficientDataException(GXCommon.GetObjectCount(value), value.Available);
             }
             return ret;
         }

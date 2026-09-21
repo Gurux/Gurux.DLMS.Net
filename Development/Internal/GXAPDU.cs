@@ -245,9 +245,9 @@ namespace Gurux.DLMS.Internal
         /// <param name="cipher"></param>
         /// <param name="data">Generated user information.</param>
         static internal void GenerateUserInformation(
-            GXDLMSSettings settings, 
-            GXICipher cipher, 
-            GXByteBuffer encryptedData, 
+            GXDLMSSettings settings,
+            GXICipher cipher,
+            GXByteBuffer encryptedData,
             GXByteBuffer data)
         {
             data.SetUInt8((byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation);
@@ -432,10 +432,8 @@ namespace Gurux.DLMS.Internal
                         data.GetUInt8();
                         xml.AppendStartTag(TranslatorTags.InitiateError);
                         ServiceError type = (ServiceError)data.GetUInt8();
-                        String str =
-                                TranslatorStandardTags.ServiceErrorToString(type);
-                        String value = TranslatorStandardTags
-                                .GetServiceErrorValue(type, (byte)data.GetUInt8());
+                        string str = TranslatorStandardTags.ServiceErrorToString(type);
+                        string value = TranslatorStandardTags.GetServiceErrorValue(type, data.GetUInt8());
                         xml.AppendLine("x:" + str, null, value);
                         xml.AppendEndTag(TranslatorTags.InitiateError);
                     }
@@ -750,11 +748,11 @@ namespace Gurux.DLMS.Internal
         public static ExceptionServiceError ParseUserInformation(GXDLMSSettings settings, GXICipher cipher, GXByteBuffer data, GXDLMSTranslatorStructure xml)
         {
             byte len = data.GetUInt8();
-            if (data.Size - data.Position < len)
+            if (data.Available < len)
             {
                 if (xml == null)
                 {
-                    throw new Exception("Not enough data.");
+                    throw new GXDLMSInsufficientDataException(len, data.Available);
                 }
                 xml.AppendComment("Error: Invalid data size.");
             }
@@ -765,11 +763,11 @@ namespace Gurux.DLMS.Internal
                 throw new Exception("Invalid tag.");
             }
             len = data.GetUInt8();
-            if (data.Size - data.Position < len)
+            if (data.Available < len)
             {
                 if (xml == null)
                 {
-                    throw new Exception("Not enough data.");
+                    throw new GXDLMSInsufficientDataException(len, data.Available);
                 }
                 xml.AppendComment("Error: Invalid data size.");
             }
@@ -792,9 +790,9 @@ namespace Gurux.DLMS.Internal
         {
             //Get length.
             int len = buff.GetUInt8();
-            if (buff.Size - buff.Position < len)
+            if (buff.Available < len)
             {
-                throw new Exception("Encoding failed. Not enough data.");
+                throw new GXDLMSInsufficientDataException(len, buff.Available);
             }
             if (buff.GetUInt8() != 0x6)
             {
@@ -1031,12 +1029,11 @@ namespace Gurux.DLMS.Internal
                 }
             }
             int len = GXCommon.GetObjectCount(buff);
-            int size = buff.Size - buff.Position;
-            if (len > size)
+            if (len > buff.Available)
             {
                 if (xml == null)
                 {
-                    throw new Exception("Not enough data.");
+                    throw new GXDLMSInsufficientDataException(len, buff.Available);
                 }
                 xml.AppendComment("Error: Invalid data size.");
             }
@@ -1101,7 +1098,7 @@ namespace Gurux.DLMS.Internal
             byte tag;
             AssociationResult resultComponent = AssociationResult.Accepted;
             object ret = 0;
-            string msg;
+            string msg = null;
             ApplicationContextName name;
             while (buff.Position < buff.Size)
             {
@@ -1133,7 +1130,6 @@ namespace Gurux.DLMS.Internal
                                     msg = null;
                                     break;
                             }
-                            throw new GXDLMSException(AssociationResult.PermanentRejected, SourceDiagnostic.ApplicationContextNameNotSupported, msg);
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CalledApTitle://0xA2
@@ -1314,7 +1310,7 @@ namespace Gurux.DLMS.Internal
                             if (settings.SourceSystemTitle != null &&
                                 settings.SourceSystemTitle.Length != 8)
                             {
-                                xml.AppendComment("Invalid system title." );
+                                xml.AppendComment("Invalid system title.");
                                 xml.AppendLine(TranslatorGeneralTags.CallingAPTitle, "Value", GXCommon.ToHex(settings.SourceSystemTitle, false));
                                 if (settings.SourceSystemTitle.Length > 8)
                                 {
@@ -1522,7 +1518,7 @@ namespace Gurux.DLMS.Internal
                         }
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.CallingAuthenticationValue://0xAC
-                        updatePassword(settings, buff, xml);
+                        UpdatePassword(settings, buff, xml);
                         break;
                     case (byte)BerType.Context | (byte)BerType.Constructed | (byte)PduType.UserInformation:
                         //0xBE
@@ -1600,10 +1596,14 @@ namespace Gurux.DLMS.Internal
                     throw new GXDLMSException(resultComponent, (AcseServiceProvider)ret);
                 }
             }
+            if (!string.IsNullOrEmpty(msg))
+            {
+                throw new GXDLMSException(AssociationResult.PermanentRejected, SourceDiagnostic.ApplicationContextNameNotSupported, msg);
+            }
             return ret;
         }
 
-        private static void updatePassword(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
+        private static void UpdatePassword(GXDLMSSettings settings, GXByteBuffer buff, GXDLMSTranslatorStructure xml)
         {
             int len = buff.GetUInt8();
             // Get authentication information.
@@ -1642,8 +1642,7 @@ namespace Gurux.DLMS.Internal
                 }
                 else
                 {
-                    xml.AppendStartTag(
-                        TranslatorGeneralTags.CallingAuthentication);
+                    xml.AppendStartTag(TranslatorGeneralTags.CallingAuthentication);
                     xml.AppendStartTag(TranslatorGeneralTags.CharString);
                     if (settings.Authentication == Authentication.Low)
                     {
@@ -1651,8 +1650,7 @@ namespace Gurux.DLMS.Internal
                     }
                     else
                     {
-                        xml.Append(
-                            GXCommon.ToHex(settings.CtoSChallenge, false));
+                        xml.Append(GXCommon.ToHex(settings.CtoSChallenge, false));
                     }
                     xml.AppendEndTag(TranslatorGeneralTags.CharString);
                     xml.AppendEndTag(TranslatorGeneralTags.CallingAuthentication);

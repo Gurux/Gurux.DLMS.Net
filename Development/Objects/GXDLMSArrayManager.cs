@@ -275,19 +275,19 @@ namespace Gurux.DLMS.Objects
                 case 3:
                     {
                         GXStructure args = (GXStructure)e.Parameters;
-                        InsertEntry(settings, e, args, reply);
+                        InsertEntry(settings, e, args);
                     }
                     break;
                 case 4:
                     {
                         GXStructure args = (GXStructure)e.Parameters;
-                        UpdateEntry(settings, e, args, reply);
+                        UpdateEntry(settings, e, args);
                     }
                     break;
                 case 5:
                     {
                         GXStructure args = (GXStructure)e.Parameters;
-                        RemoveEntries(settings, e, args, reply);
+                        RemoveEntries(settings, e, args);
                     }
                     break;
                 default:
@@ -386,7 +386,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        private void InsertEntry(GXDLMSSettings settings, ValueEventArgs e, GXStructure args, GXByteBuffer reply)
+        private void InsertEntry(GXDLMSSettings settings, ValueEventArgs e, GXStructure args)
         {
             bool found = false;
             byte id = (byte)args[0];
@@ -424,7 +424,7 @@ namespace Gurux.DLMS.Objects
                 e.Error = ErrorCode.ReadWriteDenied;
             }
         }
-        private void UpdateEntry(GXDLMSSettings settings, ValueEventArgs e, GXStructure args, GXByteBuffer reply)
+        private void UpdateEntry(GXDLMSSettings settings, ValueEventArgs e, GXStructure args)
         {
             bool found = false;
             byte id = (byte)args[0];
@@ -459,7 +459,7 @@ namespace Gurux.DLMS.Objects
             }
         }
 
-        private void RemoveEntries(GXDLMSSettings settings, ValueEventArgs e, GXStructure args, GXByteBuffer reply)
+        private void RemoveEntries(GXDLMSSettings settings, ValueEventArgs e, GXStructure args)
         {
             bool found = false;
             byte id = (byte)args[0];

@@ -115,7 +115,7 @@ namespace Gurux.DLMS.Secure
                 return blockCipherKey;
             }
             set
-            {              
+            {
                 blockCipherKey = value;
             }
         }
@@ -127,7 +127,7 @@ namespace Gurux.DLMS.Secure
                 return authenticationKey;
             }
             set
-            {                
+            {
                 authenticationKey = value;
             }
         }
@@ -135,12 +135,11 @@ namespace Gurux.DLMS.Secure
         /// <summary>
         /// Is data send as a broadcast or unicast.
         /// </summary>
-        public bool Broacast
+        public bool Broadcast
         {
             get;
             set;
         }
-
 
         /// <summary>
         /// V.44 Compression is used.
@@ -340,7 +339,7 @@ namespace Gurux.DLMS.Secure
             SecuritySuite = securitySuite;
             if (settings != null)
             {
-                Broacast = settings.Broacast;
+                Broadcast = settings.Broacast;
             }
         }
 

@@ -856,17 +856,7 @@ namespace Gurux.DLMS
             get;
             set;
         }
-
-
-        /// <summary>
-        /// V.44 Compression is used.
-        /// </summary>
-        public bool Compression
-        {
-            get;
-            set;
-        }
-
+       
         /// <summary>
         /// Used interface.
         /// </summary>

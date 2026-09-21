@@ -379,11 +379,10 @@ namespace Gurux.DLMS.Secure
         static public byte[] EncryptAesGcm(AesGcmParameter param, byte[] plainText)
         {
             System.Diagnostics.Debug.WriteLine("Encrypt settings: " + param.ToString());
-            byte tag;
             param.CountTag = null;
             GXByteBuffer data = new GXByteBuffer();
-            tag = (byte)((byte)param.Security | (byte)param.SecuritySuite);
-            if (param.Broacast)
+            byte tag = (byte)((byte)param.Security | (byte)param.SecuritySuite);
+            if (param.Broadcast)
             {
                 tag |= 0x40;
             }
@@ -807,7 +806,7 @@ namespace Gurux.DLMS.Secure
                     throw new GXDLMSExceptionResponse(ExceptionStateError.ServiceNotAllowed,
                                 ExceptionServiceError.DecipheringError, 0);
                 }
-                p.Broacast = true;
+                p.Broadcast = true;
                 p.BlockCipherKey = p.Settings.Cipher.BroadcastBlockCipherKey;
             }
             if ((sc & 0x20) != 0)
@@ -968,13 +967,13 @@ namespace Gurux.DLMS.Secure
             if (p.Security != Security.None)
             {
                 GXGMac gmac = new GXGMac(p.AuthenticationKey,
-                    p.Broacast ? p.BlockCipherKey : p.BlockCipherKey,
+                    p.Broadcast ? p.BlockCipherKey : p.BlockCipherKey,
                     p.SystemTitle,
                     invocationCounter);
                 byte[] tmp2 = new byte[len - 5];
                 data.Get(tmp2);
                 byte tag2 = (byte)((byte)p.Security | (byte)p.SecuritySuite);
-                if (p.Broacast)
+                if (p.Broadcast)
                 {
                     tag2 |= 0x40;
                 }

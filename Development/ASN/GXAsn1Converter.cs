@@ -159,7 +159,7 @@ namespace Gurux.DLMS.ASN
             len1 = GXCommon.GetObjectCount(bb);
             if (len1 > bb.Available)
             {
-                throw new OutOfMemoryException("GXAsn1Converter.GetValue");
+                throw new GXDLMSInsufficientDataException(len1, bb.Available);
             }
             int connectPos = 0;
             if (s != null)
