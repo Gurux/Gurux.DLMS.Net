@@ -4522,6 +4522,7 @@ namespace Gurux.DLMS
                 if (!first)
                 {
                     reply.Data.Position = 0;
+                    first = true;
                 }
                 values = new List<object>();
                 if (reply.Value is List<object>)
