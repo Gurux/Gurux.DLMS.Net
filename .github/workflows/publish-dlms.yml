@@ -1,0 +1,165 @@
+name: Publish Gurux.DLMS NuGet package
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'Development/**'
+      - '!Development/UWP/**'
+      - 'Gurux.DLMS.png'
+      - 'Gurux.DLMS.ico'
+      - 'Directory.Build.props'
+      - 'Directory.Build.targets'
+      - 'Directory.Packages.props'
+      - 'NuGet.Config'
+      - 'nuget.config'
+      - 'global.json'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Optional four-part version override; blank = automatic'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gurux-dlms-nuget-releases
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'Gurux/Gurux.DLMS.Net' && github.ref == 'refs/heads/master'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      id-token: write
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      PROJECT_ID: Gurux.DLMS
+      PROJECT_PATH: Development/Gurux.DLMS.Net.csproj
+      BUILD_CONFIGURATION: Release
+      # Fallback for the first publication; otherwise use the latest NuGet series.
+      MAJOR_VERSION: '9'
+      MINOR_VERSION: '0'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Determine this package's version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+          NUGET_USER: ${{ vars.NUGET_USER }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_USER)) {
+            throw 'Set the NUGET_USER GitHub Actions variable first.'
+          }
+          $project = $env:PROJECT_PATH
+          if (-not (Test-Path $project)) { throw "Project missing: $project" }
+          [xml]$xml = Get-Content $project -Raw
+          $packageId = $xml.SelectSingleNode('/Project/PropertyGroup/PackageId')
+          if ($null -eq $packageId -or $packageId.InnerText -ne $env:PROJECT_ID) {
+            throw 'Unexpected PackageId.'
+          }
+
+          $version = ([string]$env:REQUESTED_VERSION).Trim()
+          if ([string]::IsNullOrEmpty($version)) {
+            $now = [DateTime]::UtcNow
+            $prefix = "$env:MAJOR_VERSION.$env:MINOR_VERSION.$($now.ToString('yyMM'))"
+            $revision = $now.Day * 100 + 1
+            $url = "https://api.nuget.org/v3-flatcontainer/$($env:PROJECT_ID.ToLowerInvariant())/index.json"
+            $versions = @()
+            try {
+              $response = Invoke-RestMethod $url -MaximumRetryCount 3 -RetryIntervalSec 5
+              $versions = @($response.versions)
+            } catch {
+              if ([int]$_.Exception.Response.StatusCode -ne 404) { throw }
+            }
+            $stable = @($versions | Where-Object { $_ -match '^\d+\.\d+\.\d+(\.\d+)?$' } |
+              ForEach-Object { [version]$_ } | Sort-Object -Descending)
+            if ($stable.Count -gt 0) {
+              $latest = $stable[0]
+              # Continue the latest stable package's major/minor series.
+              $prefix = "$($latest.Major).$($latest.Minor).$($now.ToString('yyMM'))"
+              $candidate = [version]"$prefix.$revision"
+              if ($latest.Major -gt $candidate.Major -or
+                  ($latest.Major -eq $candidate.Major -and $latest.Minor -gt $candidate.Minor) -or
+                  ($latest.Major -eq $candidate.Major -and $latest.Minor -eq $candidate.Minor -and $latest.Build -gt $candidate.Build)) {
+                throw "Latest version is $latest. Update MAJOR_VERSION/MINOR_VERSION or enter a manual version."
+              }
+              if ($latest.Major -eq $candidate.Major -and $latest.Minor -eq $candidate.Minor -and $latest.Build -eq $candidate.Build) {
+                $revision = [Math]::Max($revision, $latest.Revision + 1)
+              }
+            }
+            $version = "$prefix.$revision"
+          }
+          if ($version -notmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$') {
+            throw 'Use a four-part numeric version, for example 9.0.2611.201.'
+          }
+          foreach ($part in $version.Split('.')) {
+            $number = 0
+            if (-not [int]::TryParse($part, [ref]$number) -or $number -gt 65534) {
+              throw 'Version components must be between 0 and 65534.'
+            }
+          }
+          "BUILD_BUILDNUMBER=$version" >> $env:GITHUB_ENV
+          "PACKAGE_OUTPUT=$env:GITHUB_WORKSPACE/artifacts/packages" >> $env:GITHUB_ENV
+          Write-Host "$env:PROJECT_ID version $version"
+
+      - name: Restore, build and pack selected project
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $project = $env:PROJECT_PATH
+          # Existing PackageReference versions are intentionally left unchanged.
+          dotnet restore $project
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build $project --configuration "$env:BUILD_CONFIGURATION" `
+            --no-restore `
+            "-p:Version=$env:BUILD_BUILDNUMBER" `
+            "-p:PackageVersion=$env:BUILD_BUILDNUMBER" `
+            "-p:PackageOutputPath=$env:PACKAGE_OUTPUT" `
+            '-p:GeneratePackageOnBuild=true' `
+            '-p:SignAssembly=false' `
+            '-p:SignManifests=false' `
+            '-p:ContinuousIntegrationBuild=true'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $package = Join-Path $env:PACKAGE_OUTPUT "$env:PROJECT_ID.$env:BUILD_BUILDNUMBER.nupkg"
+          if (-not (Test-Path $package)) { throw "Package missing: $package" }
+          "PACKAGE_PATH=$package" >> $env:GITHUB_ENV
+
+      - name: NuGet login (Trusted Publishing)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Publish selected package
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          # The adjacent .snupkg is also pushed when present.
+          dotnet nuget push "$env:PACKAGE_PATH" `
+            --api-key "$env:NUGET_API_KEY" `
+            --source https://api.nuget.org/v3/index.json `
+            --skip-duplicate
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "Published $env:PROJECT_ID version $env:BUILD_BUILDNUMBER" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Create version tag
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = "$env:PROJECT_ID/v$env:BUILD_BUILDNUMBER"
+
+          git tag $tag $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          git push origin "refs/tags/$tag"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
