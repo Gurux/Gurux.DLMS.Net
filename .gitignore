@@ -202,3 +202,5 @@ Gurux.DLMS.Simulator.Net/Properties/launchSettings.json
 *.vsidx
 *.v1
 /Gurux.DLMS.UnitTests.Net/.vs
+Gurux.DLMS.Client.Example.Net/Properties/launchSettings.json
+/.vs

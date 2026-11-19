@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="KeyPathCallbackRequired" xml:space="preserve"><value>Set OnKeyPathRequested before requesting a key or certificate.</value></data>
+  <data name="KeyPathSelectionCanceled" xml:space="preserve"><value>Key or certificate selection was canceled.</value></data>
+  <data name="MissingSystemTitle" xml:space="preserve"><value>(none)</value></data>
+  <data name="SelectPrivateKey" xml:space="preserve"><value>Select a PKCS#8 private key file: suite={0}, certificate={1}, key={2}, system title={3}.</value></data>
+  <data name="SelectCertificate" xml:space="preserve"><value>Select an X.509 certificate file: suite={0}, certificate={1}, key={2}, system title={3}.</value></data>
+  <data name="PemFilePathPrompt" xml:space="preserve"><value>PEM file path: </value></data>
+  <data name="UnknownOption" xml:space="preserve"><value>Unknown option '{0}'. Use --help to list supported options.</value></data>
+  <data name="MissingOptionValue" xml:space="preserve"><value>Option {0} requires a value.</value></data>
+  <data name="InvalidOptionValue" xml:space="preserve"><value>Option {0}: invalid value '{1}'. Expected {2}.</value></data>
+  <data name="HiddenValue" xml:space="preserve"><value>(hidden)</value></data>
+  <data name="ExpectedNonempty" xml:space="preserve"><value>a nonempty value</value></data>
+  <data name="ExpectedIntegerRange" xml:space="preserve"><value>an integer from {0} to {1}</value></data>
+  <data name="ExpectedHex" xml:space="preserve"><value>a nonempty even-length hexadecimal byte sequence</value></data>
+  <data name="ExpectedBytes" xml:space="preserve"><value>{0} bytes</value></data>
+  <data name="ExpectedReferencing" xml:space="preserve"><value>sn or ln</value></data>
+  <data name="ExpectedLogicalName" xml:space="preserve"><value>six decimal components from 0 to 255, for example 0.0.43.1.0.255</value></data>
+  <data name="ExpectedObjectAttribute" xml:space="preserve"><value>logical-name:attribute-index, separated by semicolons</value></data>
+  <data name="ExpectedGateway" xml:space="preserve"><value>NetworkId:PhysicalDeviceAddress, for example 0:1 or 0:0x1234</value></data>
+  <data name="ExpectedSerial" xml:space="preserve"><value>port or port:baud:data-bits/parity/stop-bits, for example COM1:9600:8None1</value></data>
+  <data name="ExpectedSingleTransport" xml:space="preserve"><value>either network options or -S, used separately</value></data>
+  <data name="TransportRequired" xml:space="preserve"><value>Specify a network host and port (-h and -p) or a serial port (-S).</value></data>
+  <data name="ConflictingCertificateOperations" xml:space="preserve"><value>Use either -E to export certificates or -N to generate certificates in one invocation.</value></data>
+  <data name="Connected" xml:space="preserve"><value>Connected:</value></data>
+  <data name="AvailablePorts" xml:space="preserve"><value>Available serial ports: {0}</value></data>
+  <data name="OperationCanceled" xml:space="preserve"><value>Operation canceled.</value></data>
+  <data name="EndedPrompt" xml:space="preserve"><value>Ended. Press any key to continue.</value></data>
+  <data name="CacheLoadWarning" xml:space="preserve"><value>Could not load association cache '{0}': {1}. Reading the association from the meter.</value></data>
+  <data name="CacheSaveWarning" xml:space="preserve"><value>Could not save association data to '{0}': {1}.</value></data>
+  <data name="CleanupWarning" xml:space="preserve"><value>Could not close the connection cleanly: {0}.</value></data>
+  <data name="MissingReadObject" xml:space="preserve"><value>Object {0} was not found in the association view.</value></data>
+  <data name="ModeESerialRequired" xml:space="preserve"><value>Mode E requires a serial transport.</value></data>
+  <data name="WarningMessage" xml:space="preserve"><value>Warning: {0}</value></data>
+  <data name="AttributeReadWarning" xml:space="preserve"><value>Could not read {0}, attribute {1}: {2}.</value></data>
+  <data name="CommandLineHelp" xml:space="preserve"><value>Gurux DLMS sample reads data from a DLMS/COSEM device.
+Usage: Gurux.DLMS.Client.Example.Net -h HOST -p PORT [options]
+       Gurux.DLMS.Client.Example.Net -S PORT[:BAUD:FRAMING] [options]
+
+ --help, -?  Show this help.
+ -h HOST     Host name or IP address.
+ -p PORT     TCP/UDP port, 1–65535.
+ -u          Use UDP (CoAP selects UDP automatically).
+ -S PORT     Serial port, for example COM1 or COM1:9600:8None1.
+ -i TYPE     Interface type, for example HDLC, WRAPPER or HdlcWithModeE.
+ -r sn|ln    Referencing mode (default: ln).
+ -c ADDRESS  Client address (default: 16; HDLC 1–127, WRAPPER 1–65535).
+ -s ADDRESS  Server address (default: 1).
+ -l ADDRESS  Logical server address, 0–16383.
+ -n NUMBER   Derive server address from the meter serial number.
+ -a TYPE     Authentication: None, Low, High, HighMD5, HighSHA1,
+             HighGMAC, HighSHA256 or HighECDSA.
+ -P PASSWORD Authentication password; prefix hexadecimal bytes with 0x.
+ -C LEVEL    Security: None, Authentication, Encryption or AuthenticationEncryption.
+ -V SUITE    Security suite: Suite0, Suite1 or Suite2 (default: Suite0).
+ -K SIGNING  Signing scheme, for example None or GeneralSigning.
+ -T HEX      Client system title (8 bytes).
+ -M HEX      Meter system title (8 bytes).
+ -A HEX      Authentication key (16 bytes; Suite2: 32 bytes).
+ -B HEX      Block cipher key (16 bytes; Suite2: 32 bytes).
+ -b HEX      Broadcast block cipher key (16 bytes; Suite2: 32 bytes).
+ -D HEX      Dedicated key (16 bytes; Suite2: 32 bytes).
+ -F COUNTER  Initial invocation counter, 0–4294967295.
+ -v LN       Invocation-counter object, for example 0.0.43.1.0.255.
+ -I          Automatically increase the invoke ID.
+ -g OBJECTS  Read selected attributes, for example "0.0.1.0.0.255:2;1.0.1.8.0.255:2".
+ -o PATH     XML association cache and output file.
+ -d STANDARD DLMS standard, for example DLMS, India, Italy, SaudiArabia or IDIS.
+ -E LN       Export certificates from the security setup object.
+ -N LN       Generate and import certificates for the security setup object.
+ -G ID:ADDR  Gateway network ID and physical address, for example 0:1 or 0:0x1234.
+ -m ADDRESS  PLC MAC destination address, 0–65535.
+ -W SIZE     General Block Transfer window, 1–63.
+ -w SIZE     HDLC window, 1–7 (default: 1).
+ -f SIZE     HDLC frame size, 32–2030 (default: 128).
+ -x MS       Response/open timeout, positive milliseconds (default: 5000).
+ -z MS       Delay after opening the transport, nonnegative milliseconds (default: 1000).
+ -t LEVEL    Trace level: Off, Error, Warning, Info or Verbose (default: Info).
+ -O FLAGS    Proposed conformance, for example "Get,Set".
+ -L ID       Manufacturer ID, for example LGZ.
+ -R TYPE     Broadcast service: UnConfirmed or Confirmed.
+
+Examples:
+ -h localhost -p 4063 -i WRAPPER -c 1 -a Low -P Gurux
+ -S COM1:9600:8None1 -c 16 -s 1 -a Low -P password
+ -h localhost -p 4063 -i WRAPPER -z 0
+
+Press Ctrl+C to cancel and close the connection.</value></data>
+  <data name="TransportOpenTimeout" xml:space="preserve"><value>Opening the transport timed out.</value></data>
+</root>

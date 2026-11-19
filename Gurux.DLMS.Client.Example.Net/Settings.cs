@@ -1,593 +1,501 @@
-//
 // --------------------------------------------------------------------------
-//  Gurux Ltd
+// Gurux Ltd
 //
+// Copyright (c) Gurux Ltd.
 //
+// This file is part of Gurux Device Framework.
 //
-// Filename:        $HeadURL$
+// Commit: $Format:%H$
+// Date:   $Format:%cI$
 //
-// Version:         $Revision$,
-//                  $Date$
-//                  $Author$
+// This software is available under either of the following licenses:
 //
-// Copyright (c) Gurux Ltd
+// 1. GNU General Public License, version 2 only (GPL-2.0-only).
+//    See the LICENSE file included with this distribution.
 //
-//---------------------------------------------------------------------------
+// 2. A commercial license granted by Gurux Ltd under a separate written
+//    agreement. Use under this option requires a valid commercial license
+//    and is governed by the terms of that agreement.
 //
-//  DESCRIPTION
+// If you have not obtained a commercial license from Gurux Ltd,
+// use of this software is governed by GPL-2.0-only.
 //
-// This file is a part of Gurux Device Framework.
+// Commercial licensing: https://www.gurux.fi/
 //
-// Gurux Device Framework is Open Source software; you can redistribute it
-// and/or modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; version 2 of the License.
-// Gurux Device Framework is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-// See the GNU General Public License for more details.
-//
-// More information of Gurux products: http://www.gurux.org
-//
-// This code is licensed under the GNU General Public License v2.
-// Full text may be retrieved at http://www.gnu.org/licenses/gpl-2.0.txt
-//---------------------------------------------------------------------------
+// SPDX-License-Identifier: GPL-2.0-only OR LicenseRef-Gurux-Commercial
+// --------------------------------------------------------------------------
 
 using Gurux.Common;
 using Gurux.DLMS.Enums;
 using Gurux.DLMS.Objects.Enums;
 using Gurux.DLMS.Secure;
-using Gurux.MQTT;
 using Gurux.Net;
+using Gurux.Net.Enums;
 using Gurux.Serial;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Ports;
+using System.Linq;
 using System.Text;
 
-namespace Gurux.DLMS.Client.Example
+namespace Gurux.DLMS.Client.Example.Net
 {
+    /// <summary>Validated connection, security and readout options for the console client.</summary>
     public class Settings
     {
-        public IGXMedia media = null;
+        /// <summary>Transport selected by the network or serial options; null before selection.</summary>
+        public IGXAsyncMedia media;
+        /// <summary>Trace verbosity used by the reader; defaults to informational messages.</summary>
         public TraceLevel trace = TraceLevel.Info;
-        public GXDLMSSecureClient client = new GXDLMSSecureClient(true);
-        // Invocation counter (frame counter).
-        public string invocationCounter = null;
-        //Objects to read.
-        public List<KeyValuePair<string, int>> readObjects = new List<KeyValuePair<string, int>>();
-        //Cache file.
-        public string outputFile = null;
-        //Client and server certificates are exported from the meter.
-        public string ExportSecuritySetupLN = null;
-
-        //Generate new client and server certificates and import them to the server.
-        public string GenerateSecuritySetupLN = null;
-
+        /// <summary>DLMS client populated with the requested addressing and security options.</summary>
+        public GXDLMSSecureClient client = new(true);
+        /// <summary>Logical name used for public invocation-counter discovery, or null to disable discovery.</summary>
+        public string invocationCounter;
+        /// <summary>Logical names and attribute indices selected for explicit reads.</summary>
+        public List<KeyValuePair<string, int>> readObjects = [];
+        /// <summary>Association cache and XML output path, or null to disable file access.</summary>
+        public string outputFile;
+        /// <summary>Security setup logical name whose certificates are exported, or null when not requested.</summary>
+        public string ExportSecuritySetupLN;
+        /// <summary>Security setup logical name used for certificate generation, or null when not requested.</summary>
+        public string GenerateSecuritySetupLN;
+        /// <summary>Positive transport-open and response timeout in milliseconds; defaults to 5000.</summary>
         public int WaitTime = 5000;
+        /// <summary>Delay after opening the transport, in milliseconds. Zero disables the delay.</summary>
+        public int StartupDelay = 1000;
+        /// <summary>Whether an explicit help option was supplied, distinguishing help from missing connection arguments.</summary>
+        public bool HelpRequested;
+        /// <summary>Supported single-character command-line options that require a following value.</summary>
+        private const string ValueOptions = "hpcsritaPgSCnvoTABDdlFmEVGMKNWwfLbRxOz";
+        /// <summary>Parses and validates all command-line options before opening the transport.</summary>
+        /// <param name="args">Command-line tokens configuring the invocation.</param>
+        /// <param name="settings">Client transport, protocol and operation settings.</param>
+        /// <returns>Zero for validated settings, or one after displaying help because arguments are absent or help was requested.</returns>
+        /// <exception cref="ArgumentNullException">The arguments or target settings are null.</exception>
+        /// <exception cref="ArgumentException">An option is missing, malformed, out of range or inconsistent with the selected transport or security suite.</exception>
         public static int GetParameters(string[] args, Settings settings)
         {
-            GXSerial serial;
-            //Has the user provided custom serial port settings, or are the default values used to Mode E.
-            bool modeEDefaultValues = true;
-            string[] tmp;
-            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:L:q:b:R:ux:O:");
-            foreach (GXCmdParameter it in parameters)
+            ArgumentNullException.ThrowIfNull(args);
+            ArgumentNullException.ThrowIfNull(settings);
+            if (args.Length == 0 || Array.Exists(args, a => a == "--help" || a == "-?" || a == "/?"))
             {
-                switch (it.Tag)
-                {
-                    case 'r':
-                        if (string.Compare(it.Value, "sn", true) == 0)
-                        {
-                            settings.client.UseLogicalNameReferencing = false;
-                        }
-                        else if (string.Compare(it.Value, "ln", true) == 0)
-                        {
-                            settings.client.UseLogicalNameReferencing = true;
-                        }
-                        else
-                        {
-                            throw new ArgumentException("Invalid reference option.");
-                        }
-                        break;
-                    case 'h':
-                        {
-                            //Host address.
-                            if (settings.media == null)
-                            {
-                                settings.media = new GXNet();
-                            }
-                            if (settings.media is GXNet net)
-                            {
-                                net.HostName = it.Value;
-                                if (settings.client.InterfaceType == InterfaceType.CoAP)
-                                {
-                                    net.Protocol = NetworkType.Udp;
-                                }
-                            }
-                            else if (settings.media is GXMqtt mqtt)
-                            {
-                                mqtt.ServerAddress = it.Value;
-                            }
-                        }
-                        break;
-                    case 't':
-                        //Trace.
-                        try
-                        {
-                            settings.trace = (TraceLevel)Enum.Parse(typeof(TraceLevel), it.Value);
-                        }
-                        catch (Exception)
-                        {
-                            throw new ArgumentException("Invalid trace level option. (Error, Warning, Info, Verbose, Off)");
-                        }
-                        break;
-                    case 'p':
-                        {
-                            //Port.
-                            if (settings.media == null)
-                            {
-                                settings.media = new GXNet();
-                            }
-                            if (settings.media is GXNet net)
-                            {
-                                net.Port = int.Parse(it.Value);
-                            }
-                            else if (settings.media is GXMqtt mqtt)
-                            {
-                                mqtt.Port = int.Parse(it.Value);
-                            }
-                        }
-                        break;
-                    case 'u':
-                        {
-                            //UDP.
-                            if (settings.media == null)
-                            {
-                                settings.media = new GXNet();
-                            }
-                            if (settings.media is GXNet net)
-                            {
-                                net.Protocol = NetworkType.Udp;
-                            }
-                        }
-                        break;
-                    case 'P'://Password
-                        if (it.Value.StartsWith("0x"))
-                        {
-                            settings.client.Password = GXCommon.HexToBytes(it.Value.Substring(2));
-                        }
-                        else
-                        {
-                            settings.client.Password = ASCIIEncoding.ASCII.GetBytes(it.Value);
-                        }
-                        break;
-                    case 'i':
-                        try
-                        {
-                            settings.client.InterfaceType = (InterfaceType)Enum.Parse(typeof(InterfaceType), it.Value);
-                            settings.client.Plc.Reset();
-                            if (modeEDefaultValues && settings.client.InterfaceType == InterfaceType.HdlcWithModeE &&
-                                settings.media is GXSerial)
-                            {
-                                serial = settings.media as GXSerial;
-                                serial.BaudRate = 300;
-                                serial.DataBits = 7;
-                                serial.Parity = Parity.Even;
-                                serial.StopBits = StopBits.One;
-                            }
-                            if (settings.client.InterfaceType == InterfaceType.CoAP)
-                            {
-                                if (settings.media is GXNet net)
-                                {
-                                    net.Protocol = NetworkType.Udp;
-                                }
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            throw new ArgumentException("Invalid interface type option. (HDLC, WRAPPER, HdlcWithModeE, Plc, PlcHdlc)");
-                        }
-                        break;
-                    case 'I':
-                        //AutoIncreaseInvokeID.
-                        settings.client.AutoIncreaseInvokeID = true;
-                        break;
-                    case 'v':
-                        settings.invocationCounter = it.Value.Trim();
-                        Objects.GXDLMSObject.ValidateLogicalName(settings.invocationCounter);
-                        break;
-                    case 'g':
-                        //Get (read) selected objects.
-                        foreach (string o in it.Value.Split(new char[] { ';', ',' }))
-                        {
-                            tmp = o.Split(new char[] { ':' });
-                            if (tmp.Length != 2)
-                            {
-                                throw new ArgumentOutOfRangeException("Invalid Logical name or attribute index.");
-                            }
-                            settings.readObjects.Add(new KeyValuePair<string, int>(tmp[0].Trim(), int.Parse(tmp[1].Trim())));
-                        }
-                        break;
-                    case 'S'://Serial Port
-                        settings.media = new GXSerial();
-                        serial = settings.media as GXSerial;
-                        tmp = it.Value.Split(':');
-                        serial.PortName = tmp[0];
-                        if (tmp.Length > 1)
-                        {
-                            modeEDefaultValues = false;
-                            serial.BaudRate = int.Parse(tmp[1]);
-                            serial.DataBits = int.Parse(tmp[2].Substring(0, 1));
-                            serial.Parity = (Parity)Enum.Parse(typeof(Parity), tmp[2].Substring(1, tmp[2].Length - 2));
-                            serial.StopBits = (StopBits)int.Parse(tmp[2].Substring(tmp[2].Length - 1, 1));
-                        }
-                        else
-                        {
-                            if (settings.client.InterfaceType == InterfaceType.HdlcWithModeE)
-                            {
-                                serial.BaudRate = 300;
-                                serial.DataBits = 7;
-                                serial.Parity = Parity.Even;
-                                serial.StopBits = StopBits.One;
-                            }
-                            else
-                            {
-                                serial.BaudRate = 9600;
-                                serial.DataBits = 8;
-                                serial.Parity = Parity.None;
-                                serial.StopBits = StopBits.One;
-                            }
-                        }
-                        break;
-                    case 'q':
-                        {
-                            GXMqtt mqtt = new GXMqtt()
-                            {
-                                Topic = it.Value,
-                            };
-                            if (settings.media is GXNet net)
-                            {
-                                mqtt.ServerAddress = net.HostName;
-                                if (net.Port != 0)
-                                {
-                                    mqtt.Port = net.Port;
-                                }
-                            }
-                            settings.media = mqtt;
-                        }
-                        break;
-                    case 'a':
-                        try
-                        {
-                            if (string.Compare("None", it.Value, true) == 0)
-                            {
-                                settings.client.Authentication = Authentication.None;
-                            }
-                            else if (string.Compare("Low", it.Value, true) == 0)
-                            {
-                                settings.client.Authentication = Authentication.Low;
-                            }
-                            else if (string.Compare("High", it.Value, true) == 0)
-                            {
-                                settings.client.Authentication = Authentication.High;
-                            }
-                            else if (string.Compare("HighMd5", it.Value, true) == 0)
-                            {
-                                settings.client.Authentication = Authentication.HighMD5;
-                            }
-                            else if (string.Compare("HighSha1", it.Value, true) == 0)
-                            {
-                                settings.client.Authentication = Authentication.HighSHA1;
-                            }
-                            else if (string.Compare("HighSha256", it.Value, true) == 0)
-                            {
-                                settings.client.Authentication = Authentication.HighSHA256;
-                            }
-                            else if (string.Compare("HighGMac", it.Value, true) == 0)
-                            {
-                                settings.client.Authentication = Authentication.HighGMAC;
-                            }
-                            else if (string.Compare("HighECDSA", it.Value, true) == 0)
-                            {
-                                settings.client.Authentication = Authentication.HighECDSA;
-                            }
-                            else
-                            {
-                                throw new ArgumentException("Invalid Authentication option: '" + it.Value + "'. (None, Low, High, HighMd5, HighSha1, HighGMac, HighSha256)");
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            throw new ArgumentException("Invalid Authentication option: '" + it.Value + "'. (None, Low, High, HighMd5, HighSha1, HighGMac, HighSha256)");
-                        }
-                        break;
-                    case 'C':
-                        try
-                        {
-                            if (string.Compare("None", it.Value, true) == 0)
-                            {
-                                settings.client.Ciphering.Security = Security.None;
-                            }
-                            else if (string.Compare("Authentication", it.Value, true) == 0)
-                            {
-                                settings.client.Ciphering.Security = Security.Authentication;
-                            }
-                            else if (string.Compare("Encryption", it.Value, true) == 0)
-                            {
-                                settings.client.Ciphering.Security = Security.Encryption;
-                            }
-                            else if (string.Compare("AuthenticationEncryption", it.Value, true) == 0)
-                            {
-                                settings.client.Ciphering.Security = Security.AuthenticationEncryption;
-                            }
-                            else
-                            {
-                                throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption)");
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            throw new ArgumentException("Invalid Ciphering option '" + it.Value + "'. (None, Authentication, Encryption, AuthenticationEncryption)");
-                        }
-                        break;
-                    case 'V':
-                        try
-                        {
-                            settings.client.Ciphering.SecuritySuite = (SecuritySuite)Enum.Parse(typeof(SecuritySuite), it.Value);
-                        }
-                        catch (Exception)
-                        {
-                            throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (Suite0, Suite1, Suite2)");
-                        }
-                        break;
-                    case 'K':
-                        try
-                        {
-                            settings.client.Ciphering.Signing = (Signing)Enum.Parse(typeof(Signing), it.Value);
-                            settings.client.ProposedConformance |= Conformance.GeneralProtection;
-                        }
-                        catch (Exception)
-                        {
-                            throw new ArgumentException("Invalid security suite option '" + it.Value + "'. (None, OnePassDiffieHellman, StaticUnifiedModel, GeneralSigning)");
-                        }
-                        break;
-                    case 'T':
-                        settings.client.Ciphering.SystemTitle = GXCommon.HexToBytes(it.Value);
-                        break;
-                    case 'M':
-                        settings.client.ServerSystemTitle = GXCommon.HexToBytes(it.Value);
-                        break;
-                    case 'A':
-                        settings.client.Ciphering.AuthenticationKey = GXCommon.HexToBytes(it.Value);
-                        break;
-                    case 'B':
-                        settings.client.Ciphering.BlockCipherKey = GXCommon.HexToBytes(it.Value);
-                        break;
-                    case 'b':
-                        settings.client.Ciphering.BroadcastBlockCipherKey = GXCommon.HexToBytes(it.Value);
-                        break;
-                    case 'D':
-                        settings.client.Ciphering.DedicatedKey = GXCommon.HexToBytes(it.Value);
-                        break;
-                    case 'F':
-                        settings.client.Ciphering.InvocationCounter = UInt32.Parse(it.Value.Trim());
-                        break;
-                    case 'N':
-                        settings.GenerateSecuritySetupLN = it.Value.Trim();
-                        break;
-                    case 'E':
-                        settings.ExportSecuritySetupLN = it.Value.Trim();
-                        break;
-                    case 'o':
-                        settings.outputFile = it.Value;
-                        break;
-                    case 'd':
-                        try
-                        {
-                            settings.client.Standard = (Standard)Enum.Parse(typeof(Standard), it.Value);
-                            if (settings.client.Standard == Standard.Italy || settings.client.Standard == Standard.India || settings.client.Standard == Standard.SaudiArabia)
-                            {
-                                settings.client.UseUtc2NormalTime = true;
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            throw new ArgumentException("Invalid DLMS standard option '" + it.Value + "'. (DLMS, India, Italy, SaudiArabia, IDIS)");
-                        }
-                        break;
-                    case 'c':
-                        settings.client.ClientAddress = int.Parse(it.Value);
-                        break;
-                    case 's':
-                        if (settings.client.ServerAddress != 1)
-                        {
-                            settings.client.ServerAddress = GXDLMSClient.GetServerAddress(settings.client.ServerAddress, int.Parse(it.Value));
-                        }
-                        else
-                        {
-                            settings.client.ServerAddress = int.Parse(it.Value);
-                        }
-                        break;
-                    case 'l':
-                        settings.client.ServerAddress = GXDLMSClient.GetServerAddress(int.Parse(it.Value), settings.client.ServerAddress);
-                        break;
-                    case 'n':
-                        settings.client.ServerAddress = GXDLMSClient.GetServerAddressFromSerialNumber(int.Parse(it.Value), 1);
-                        break;
-                    case 'm':
-                        settings.client.Plc.MacDestinationAddress = UInt16.Parse(it.Value);
-                        break;
-                    case 'W':
-                        settings.client.GbtWindowSize = byte.Parse(it.Value);
-                        break;
-                    case 'w':
-                        settings.client.HdlcSettings.WindowSizeRX = settings.client.HdlcSettings.WindowSizeTX = byte.Parse(it.Value);
-                        break;
-                    case 'f':
-                        settings.client.HdlcSettings.MaxInfoRX = settings.client.HdlcSettings.MaxInfoTX = UInt16.Parse(it.Value);
-                        break;
-                    case 'L':
-                        settings.client.ManufacturerId = it.Value;
-                        break;
-                    case 'G':
-                        tmp = it.Value.Split(':');
-                        settings.client.Gateway = new GXDLMSGateway();
-                        settings.client.Gateway.NetworkId = byte.Parse(tmp[0]);
-                        if (tmp[1].StartsWith("0x"))
-                        {
-                            settings.client.Gateway.PhysicalDeviceAddress = GXDLMSTranslator.HexToBytes(tmp[1]);
-                        }
-                        else
-                        {
-                            settings.client.Gateway.PhysicalDeviceAddress = ASCIIEncoding.ASCII.GetBytes(tmp[1]);
-                        }
-                        break;
-                    case 'R':
-                        settings.client.Broacast = true;
-                        if (string.Compare(it.Value, "UnConfirmed", true) == 0)
-                        {
-                            settings.client.ServiceClass = ServiceClass.UnConfirmed;
-                        }
-                        else if (string.Compare(it.Value, "Confirmed", true) == 0)
-                        {
-                            settings.client.ServiceClass = ServiceClass.Confirmed;
-                        }
-                        else
-                        {
-                            throw new ArgumentException("Broadcast type must be UnConfirmed or Confirmed.");
-                        }
-                        break;
-                    case 'x':
-                        settings.WaitTime = Convert.ToInt32(it.Value);
-                        break;
-                    case 'O':
-                        if (Enum.TryParse(it.Value, ignoreCase: true, out Conformance c))
-                        {
-                            settings.client.ProposedConformance = c;
-                        }
-                        else
-                        {
-                            throw new ArgumentException("Invalid conformance value.");
-                        }
-                        break;
-                    case '?':
-                        switch (it.Tag)
-                        {
-                            case 'c':
-                                throw new ArgumentException("Missing mandatory client option.");
-                            case 's':
-                                throw new ArgumentException("Missing mandatory server option.");
-                            case 'h':
-                                throw new ArgumentException("Missing mandatory host name option.");
-                            case 'p':
-                                throw new ArgumentException("Missing mandatory port option.");
-                            case 'r':
-                                throw new ArgumentException("Missing mandatory reference option.");
-                            case 'a':
-                                throw new ArgumentException("Missing mandatory authentication option.");
-                            case 'S':
-                                throw new ArgumentException("Missing mandatory Serial port option.");
-                            case 't':
-                                throw new ArgumentException("Missing mandatory trace option.");
-                            case 'g':
-                                throw new ArgumentException("Missing mandatory OBIS code option.");
-                            case 'C':
-                                throw new ArgumentException("Missing mandatory Ciphering option.");
-                            case 'v':
-                                throw new ArgumentException("Missing mandatory invocation counter logical name option.");
-                            case 'T':
-                                throw new ArgumentException("Missing mandatory system title option.");
-                            case 'A':
-                                throw new ArgumentException("Missing mandatory authentication key option.");
-                            case 'B':
-                                throw new ArgumentException("Missing mandatory block cipher key option.");
-                            case 'D':
-                                throw new ArgumentException("Missing mandatory dedicated key option.");
-                            case 'F':
-                                throw new ArgumentException("Missing mandatory frame counter option.");
-                            case 'd':
-                                throw new ArgumentException("Missing mandatory DLMS standard option.");
-                            case 'K':
-                                throw new ArgumentException("Missing mandatory key agreement scheme option.");
-                            case 'l':
-                                throw new ArgumentException("Missing mandatory logical server address option.");
-                            case 'm':
-                                throw new ArgumentException("Missing mandatory MAC destination address option.");
-                            case 'i':
-                                throw new ArgumentException("Missing mandatory interface type option.");
-                            case 'R':
-                                throw new ArgumentException("Missing mandatory logical name of security setup object.");
-                            default:
-                                ShowHelp();
-                                return 1;
-                        }
-                    default:
-                        ShowHelp();
-                        return 1;
-                }
-            }
-            if (settings.media == null)
-            {
+                settings.HelpRequested = args.Length != 0;
                 ShowHelp();
                 return 1;
             }
+
+            bool serialFramingSpecified = false;
+            var suppliedKeys = new HashSet<char>();
+            int serverAddress = settings.client.ServerAddress;
+            int? logicalServerAddress = null;
+            for (int index = 0; index < args.Length; ++index)
+            {
+                string option = args[index];
+                if (option == null || option.Length != 2 || (option[0] != '-' && option[0] != '/') || (!ValueOptions.Contains(option[1]) && option[1] != 'I' && option[1] != 'u'))
+                {
+                    throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Properties.Resources.UnknownOption, option));
+                }
+
+                char tag = option[1];
+                string value = null;
+                if (tag != 'I' && tag != 'u')
+                {
+                    if (++index >= args.Length || args[index] == null || (args[index].Length == 2 && args[index][0] == '-' && char.IsLetter(args[index][1])))
+                    {
+                        throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Properties.Resources.MissingOptionValue, option));
+                    }
+
+                    value = args[index];
+                }
+
+                if ("ABbD".Contains(tag))
+                {
+                    suppliedKeys.Add(tag);
+                }
+
+                switch (tag)
+                {
+                    case 'h':
+                        Network(settings, tag).HostName = Required(tag, value);
+                        break;
+                    case 'p':
+                        Network(settings, tag).Port = (int)Number(tag, value, 1, 65535);
+                        break;
+                    case 'u':
+                        Network(settings, tag).Protocol = NetworkType.Udp;
+                        break;
+                    case 'r':
+                        if (!value.Equals("sn", StringComparison.OrdinalIgnoreCase) && !value.Equals("ln", StringComparison.OrdinalIgnoreCase))
+                        {
+                            throw Invalid(tag, value, Properties.Resources.ExpectedReferencing);
+                        }
+
+                        settings.client.UseLogicalNameReferencing = value.Equals("ln", StringComparison.OrdinalIgnoreCase);
+                        break;
+                    case 't':
+                        settings.trace = EnumValue<TraceLevel>(tag, value);
+                        break;
+                    case 'i':
+                        settings.client.InterfaceType = EnumValue<InterfaceType>(tag, value);
+                        settings.client.Plc.Reset();
+                        break;
+                    case 'I':
+                        settings.client.AutoIncreaseInvokeID = true;
+                        break;
+                    case 'P':
+                        settings.client.Password = value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? Hex(tag, value) : Encoding.ASCII.GetBytes(value);
+                        break;
+                    case 'a':
+                        settings.client.Authentication = EnumValue<Authentication>(tag, value);
+                        break;
+                    case 'C':
+                        settings.client.Ciphering.Security = EnumValue<Security>(tag, value);
+                        break;
+                    case 'V':
+                        settings.client.Ciphering.SecuritySuite = EnumValue<SecuritySuite>(tag, value);
+                        break;
+                    case 'K':
+                        settings.client.Ciphering.Signing = EnumValue<Signing>(tag, value);
+                        settings.client.ProposedConformance |= Conformance.GeneralProtection;
+                        break;
+                    case 'T':
+                        settings.client.Ciphering.SystemTitle = Hex(tag, value, 8);
+                        break;
+                    case 'M':
+                        settings.client.ServerSystemTitle = Hex(tag, value, 8);
+                        break;
+                    // Validate key lengths after all options, so -V can appear before or after a key.
+                    case 'A':
+                        settings.client.Ciphering.AuthenticationKey = Hex(tag, value, 16, 32);
+                        break;
+                    case 'B':
+                        settings.client.Ciphering.BlockCipherKey = Hex(tag, value, 16, 32);
+                        break;
+                    case 'b':
+                        settings.client.Ciphering.BroadcastBlockCipherKey = Hex(tag, value, 16, 32);
+                        break;
+                    case 'D':
+                        settings.client.Ciphering.DedicatedKey = Hex(tag, value, 16, 32);
+                        break;
+                    case 'F':
+                        settings.client.Ciphering.InvocationCounter = (uint)Number(tag, value, 0, uint.MaxValue);
+                        break;
+                    case 'v':
+                        settings.invocationCounter = LogicalName(tag, value);
+                        break;
+                    case 'N':
+                        settings.GenerateSecuritySetupLN = LogicalName(tag, value);
+                        break;
+                    case 'E':
+                        settings.ExportSecuritySetupLN = LogicalName(tag, value);
+                        break;
+                    case 'o':
+                        settings.outputFile = Required(tag, value);
+                        break;
+                    case 'd':
+                        settings.client.Standard = EnumValue<Standard>(tag, value);
+                        settings.client.UseUtc2NormalTime = settings.client.Standard == Standard.Italy || settings.client.Standard == Standard.India || settings.client.Standard == Standard.SaudiArabia;
+                        break;
+                    case 'c':
+                        settings.client.ClientAddress = (int)Number(tag, value, 1, 65535);
+                        break;
+                    case 's':
+                        int server = (int)Number(tag, value, 0, 0x0FFFFFFF);
+                        serverAddress = server;
+                        break;
+                    case 'l':
+                        logicalServerAddress = (int)Number(tag, value, 0, 0x3FFF);
+                        break;
+                    case 'n':
+                        serverAddress = GXDLMSClient.GetServerAddressFromSerialNumber((int)Number(tag, value, 0, int.MaxValue), 1);
+                        break;
+                    case 'm':
+                        settings.client.Plc.MacDestinationAddress = (ushort)Number(tag, value, 0, ushort.MaxValue);
+                        break;
+                    case 'W':
+                        settings.client.GbtWindowSize = (byte)Number(tag, value, 1, 63);
+                        break;
+                    case 'w':
+                        settings.client.HdlcSettings.WindowSizeRX = settings.client.HdlcSettings.WindowSizeTX = (byte)Number(tag, value, 1, 7);
+                        break;
+                    case 'f':
+                        settings.client.HdlcSettings.MaxInfoRX = settings.client.HdlcSettings.MaxInfoTX = (ushort)Number(tag, value, 32, 2030);
+                        break;
+                    case 'L':
+                        settings.client.ManufacturerId = Required(tag, value);
+                        break;
+                    case 'x':
+                        settings.WaitTime = (int)Number(tag, value, 1, int.MaxValue);
+                        break;
+                    case 'z':
+                        settings.StartupDelay = (int)Number(tag, value, 0, int.MaxValue);
+                        break;
+                    case 'R':
+                        settings.client.ServiceClass = EnumValue<ServiceClass>(tag, value);
+                        settings.client.Broacast = true;
+                        break;
+                    case 'O':
+                        if (!Enum.TryParse(value, true, out Conformance conformance) || ((uint)conformance & ~Enum.GetValues<Conformance>().Aggregate(0u, (all, item) => all | (uint)item)) != 0)
+                        {
+                            throw Invalid(tag, value, string.Join(", ", Enum.GetNames<Conformance>()));
+                        }
+
+                        settings.client.ProposedConformance = conformance;
+                        break;
+                    case 'g':
+                        foreach (string item in value.Split(';', ','))
+                        {
+                            string[] parts = item.Split(':');
+                            if (parts.Length != 2)
+                            {
+                                throw Invalid(tag, value, Properties.Resources.ExpectedObjectAttribute);
+                            }
+
+                            settings.readObjects.Add(new KeyValuePair<string, int>(LogicalName(tag, parts[0]), (int)Number(tag, parts[1], 1, 127)));
+                        }
+
+                        break;
+                    case 'G':
+                        string[] gateway = value.Split(':', 2);
+                        if (gateway.Length != 2 || string.IsNullOrWhiteSpace(gateway[1]))
+                        {
+                            throw Invalid(tag, value, Properties.Resources.ExpectedGateway);
+                        }
+
+                        settings.client.Gateway = new GXDLMSGateway
+                        {
+                            NetworkId = (byte)Number(tag, gateway[0], 0, 255),
+                            PhysicalDeviceAddress = gateway[1].StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? Hex(tag, gateway[1]) : Encoding.ASCII.GetBytes(gateway[1])
+                        };
+                        break;
+                    case 'S':
+                        if (settings.media is GXNet)
+                        {
+                            throw Invalid(tag, value, Properties.Resources.ExpectedSingleTransport);
+                        }
+
+                        string[] port = value.Split(':');
+                        if (port.Length != 1 && port.Length != 3)
+                        {
+                            throw Invalid(tag, value, Properties.Resources.ExpectedSerial);
+                        }
+
+                        var serial = new GXSerial
+                        {
+                            PortName = Required(tag, port[0]),
+                            BaudRate = 9600,
+                            DataBits = 8,
+                            Parity = Parity.None,
+                            StopBits = StopBits.One
+                        };
+                        settings.media = serial;
+                        if (port.Length == 3)
+                        {
+                            serialFramingSpecified = true;
+                            serial.BaudRate = (int)Number(tag, port[1], 1, int.MaxValue);
+                            string framing = port[2];
+                            if (framing.Length < 3)
+                            {
+                                throw Invalid(tag, value, Properties.Resources.ExpectedSerial);
+                            }
+
+                            serial.DataBits = (int)Number(tag, framing[..1], 5, 8);
+                            serial.Parity = EnumValue<Parity>(tag, framing[1..^1]);
+                            serial.StopBits = EnumValue<StopBits>(tag, framing[^1..]);
+                            if (serial.StopBits == StopBits.None)
+                            {
+                                throw Invalid(tag, value, Properties.Resources.ExpectedSerial);
+                            }
+                        }
+
+                        break;
+                }
+            }
+
+            if (settings.media == null)
+            {
+                throw new ArgumentException(Properties.Resources.TransportRequired);
+            }
+
+            if (settings.media is GXNet net)
+            {
+                Required('h', net.HostName);
+                Number('p', net.Port.ToString(CultureInfo.InvariantCulture), 1, 65535);
+                if (settings.client.InterfaceType == InterfaceType.CoAP)
+                {
+                    net.Protocol = NetworkType.Udp;
+                }
+            }
+
+            if (settings.media is GXSerial optical && !serialFramingSpecified && settings.client.InterfaceType == InterfaceType.HdlcWithModeE)
+            {
+                optical.BaudRate = 300;
+                optical.DataBits = 7;
+                optical.Parity = Parity.Even;
+                optical.StopBits = StopBits.One;
+            }
+
+            if (logicalServerAddress.HasValue)
+            {
+                Number('s', serverAddress.ToString(CultureInfo.InvariantCulture), 0, 0x3FFF);
+                settings.client.ServerAddress = GXDLMSClient.GetServerAddress(logicalServerAddress.Value, serverAddress);
+            }
+            else
+            {
+                settings.client.ServerAddress = serverAddress;
+            }
+
+            int maxClient = settings.client.InterfaceType == InterfaceType.WRAPPER ? 65535 : settings.client.InterfaceType == InterfaceType.CoAP ? 255 : 127;
+            Number('c', settings.client.ClientAddress.ToString(CultureInfo.InvariantCulture), 1, maxClient);
+            int maxServer = settings.client.InterfaceType == InterfaceType.WRAPPER ? 65535 : settings.client.InterfaceType == InterfaceType.CoAP ? 255 : 0x0FFFFFFF;
+            Number('s', settings.client.ServerAddress.ToString(CultureInfo.InvariantCulture), 0, maxServer);
+            bool needsSymmetricKeys = settings.client.Ciphering.Security != Security.None || settings.client.Authentication == Authentication.HighGMAC;
+            int keyLength = settings.client.Ciphering.SecuritySuite == SecuritySuite.Suite2 ? 32 : 16;
+            foreach (var key in new[]
+            {
+                ('A', settings.client.Ciphering.AuthenticationKey),
+                ('B', settings.client.Ciphering.BlockCipherKey),
+                ('b', settings.client.Ciphering.BroadcastBlockCipherKey),
+                ('D', settings.client.Ciphering.DedicatedKey)
+            }
+
+            )
+            {
+                if (key.Item2 != null && (suppliedKeys.Contains(key.Item1) || (needsSymmetricKeys && (key.Item1 == 'A' || key.Item1 == 'B'))) && key.Item2.Length != keyLength)
+                {
+                    throw Invalid(key.Item1, Properties.Resources.HiddenValue, string.Format(CultureInfo.CurrentCulture, Properties.Resources.ExpectedBytes, keyLength));
+                }
+            }
+
+            if (settings.GenerateSecuritySetupLN != null && settings.ExportSecuritySetupLN != null)
+            {
+                throw new ArgumentException(Properties.Resources.ConflictingCertificateOperations);
+            }
+
             return 0;
         }
 
-        static void ShowHelp()
+        /// <summary>Returns the selected network transport, creating it when no transport has been selected.</summary>
+        /// <param name="settings">Client transport, protocol and operation settings.</param>
+        /// <param name="tag">Short command-line option identifying the value being validated.</param>
+        /// <returns>The existing or newly allocated network transport.</returns>
+        /// <exception cref="ArgumentException">Serial options have already selected a serial transport.</exception>
+        private static GXNet Network(Settings settings, char tag)
         {
-            Console.WriteLine("GuruxDlmsSample reads data from the DLMS/COSEM device.");
-            Console.WriteLine("GuruxDlmsSample -h [Meter IP Address] -p [Meter Port No] -c 16 -s 1 -r SN");
-            Console.WriteLine(" -h \t host name or IP address.");
-            Console.WriteLine(" -p \t port number (Example: 1000).");
-            Console.WriteLine(" -u \t UDP is used as a transport protocol.");
-            Console.WriteLine(" -q \t MQTT topic.");
-            Console.WriteLine(" -S [COM1:9600:8None1]\t serial port.");
-            Console.WriteLine(" -a \t Authentication (None, Low, High).");
-            Console.WriteLine(" -P \t Password for authentication.");
-            Console.WriteLine(" -c \t Client address. (Default: 16)");
-            Console.WriteLine(" -s \t Server address. (Default: 1)");
-            Console.WriteLine(" -n \t Server address as serial number.");
-            Console.WriteLine(" -l \t Logical Server address.");
-            Console.WriteLine(" -r [sn, ln]\t Short name or Logical Name (default) referencing is used.");
-            Console.WriteLine(" -t [Error, Warning, Info, Verbose] Trace messages.");
-            Console.WriteLine(" -g \"0.0.1.0.0.255:1; 0.0.1.0.0.255:2\" Get selected object(s) with given attribute index.");
-            Console.WriteLine(" -C \t Security Level. (None, Authentication, Encrypted, AuthenticationEncryption)");
-            Console.WriteLine(" -V \t Security Suite version. (Default: Suite0). (Suite0, Suite1 or Suite2)");
-            Console.WriteLine(" -K \t Signing (None, EphemeralUnifiedModel, OnePassDiffieHellman or StaticUnifiedModel, GeneralSigning).");
-            Console.WriteLine(" -v \t Invocation counter data object Logical Name. Ex. 0.0.43.1.1.255");
-            Console.WriteLine(" -I \t Auto increase invoke ID");
-            Console.WriteLine(" -o \t Cache association view to make reading faster. Ex. -o C:\\device.xml");
-            Console.WriteLine(" -T \t System title that is used with chiphering. Ex -T 4775727578313233");
-            Console.WriteLine(" -M \t Meter system title that is used with chiphering. Ex -T 4775727578313233");
-            Console.WriteLine(" -A \t Authentication key that is used with chiphering. Ex -A D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF");
-            Console.WriteLine(" -B \t Block cipher key that is used with chiphering. Ex -B 000102030405060708090A0B0C0D0E0F");
-            Console.WriteLine(" -b \t Broadcast Block cipher key that is used with chiphering. Ex -b 000102030405060708090A0B0C0D0E0F");
-            Console.WriteLine(" -D \t Dedicated key that is used with chiphering. Ex -D 00112233445566778899AABBCCDDEEFF");
-            Console.WriteLine(" -F \t Initial Frame Counter (Invocation counter) value.");
-            Console.WriteLine(" -d \t Used DLMS standard. Ex -d India (DLMS, India, Italy, SaudiArabia, IDIS)");
-            Console.WriteLine(" -E \t Export client and server certificates from the meter. Ex. -E 0.0.43.0.0.255.");
-            Console.WriteLine(" -N \t Generate new client and server certificates and import them to the server. Ex. -N 0.0.43.0.0.255.");
-            Console.WriteLine(" -G \t Use Gateway with given NetworkId and PhysicalDeviceAddress. Ex -G 0:1.");
-            Console.WriteLine(" -i \t Used communication interface. Ex. -i WRAPPER.");
-            Console.WriteLine(" -m \t Used PLC MAC address. Ex. -m 1.");
-            Console.WriteLine(" -G \t Gateway settings NetworkId:PhysicalDeviceAddress. Ex -G 1:12345678");
-            Console.WriteLine(" -W \t General Block Transfer window size.");
-            Console.WriteLine(" -w \t HDLC Window size. Default is 1");
-            Console.WriteLine(" -f \t HDLC Frame size. Default is 128");
-            Console.WriteLine(" -x \t Wait time in milliseconds. The default is 5000 ms.");
-            Console.WriteLine(" -O \t Proposed conformance. -O \"Get,Set\"");
-            Console.WriteLine(" -L \t Manufacturer ID (Flag ID) is used to use manufacturer depending functionality. -L LGZ");
-            Console.WriteLine(" -R \t Data is send as a broadcast (UnConfirmed, Confirmed).");
-            Console.WriteLine("Example:");
-            Console.WriteLine("Read LG device using TCP/IP connection.");
-            Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -h [Meter IP Address] -p [Meter Port No]");
-            Console.WriteLine("Read LG device using serial port connection.");
-            Console.WriteLine("GuruxDlmsSample -r SN -c 16 -s 1 -sp COM1");
-            Console.WriteLine("Read Indian device using serial port connection.");
-            Console.WriteLine("GuruxDlmsSample -S COM1 -c 16 -s 1 -a Low -P [password]");
-            Console.WriteLine("Read MQTT device -h [Broker address] -q [Topic/meterId]");
+            if (settings.media is GXSerial)
+            {
+                throw Invalid(tag, string.Empty, Properties.Resources.ExpectedSingleTransport);
+            }
+
+            return (GXNet)(settings.media ??= new GXNet());
         }
+
+        /// <summary>Creates a localized validation error naming the option, its safe display value and the expected input.</summary>
+        /// <param name="tag">Short command-line option identifying the value being validated.</param>
+        /// <param name="value">Raw option value to validate; sensitive display values must be redacted before reporting.</param>
+        /// <param name="expected">Localized description of the accepted input.</param>
+        /// <returns>An argument exception containing the localized validation error.</returns>
+        private static ArgumentException Invalid(char tag, string value, string expected) => new(string.Format(CultureInfo.CurrentCulture, Properties.Resources.InvalidOptionValue, "-" + tag, value, expected));
+        /// <summary>Rejects blank option values and trims surrounding whitespace.</summary>
+        /// <param name="tag">Short command-line option identifying the value being validated.</param>
+        /// <param name="value">Raw option value to validate; sensitive display values must be redacted before reporting.</param>
+        /// <returns>The nonempty value with surrounding whitespace removed.</returns>
+        /// <exception cref="ArgumentException">The value does not meet the documented input requirements.</exception>
+        private static string Required(char tag, string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw Invalid(tag, value, Properties.Resources.ExpectedNonempty);
+            }
+
+            return value.Trim();
+        }
+
+        /// <summary>Parses an invariant decimal integer and checks an inclusive range.</summary>
+        /// <param name="tag">Short command-line option identifying the value being validated.</param>
+        /// <param name="value">Raw option value to validate; sensitive display values must be redacted before reporting.</param>
+        /// <param name="minimum">Smallest accepted integer, inclusive.</param>
+        /// <param name="maximum">Largest accepted integer, inclusive.</param>
+        /// <returns>The parsed integer within the inclusive limits.</returns>
+        /// <exception cref="ArgumentException">The value does not meet the documented input requirements.</exception>
+        private static long Number(char tag, string value, long minimum, long maximum)
+        {
+            if (!long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long number) || number < minimum || number > maximum)
+            {
+                throw Invalid(tag, value, string.Format(CultureInfo.CurrentCulture, Properties.Resources.ExpectedIntegerRange, minimum, maximum));
+            }
+
+            return number;
+        }
+
+        /// <summary>Parses an enum value without case sensitivity and rejects undefined numeric values.</summary>
+        /// <param name="tag">Short command-line option identifying the value being validated.</param>
+        /// <param name="value">Raw option value to validate; sensitive display values must be redacted before reporting.</param>
+        /// <typeparam name="T">Enum type whose defined values are accepted.</typeparam>
+        /// <returns>The defined enum value represented by the input.</returns>
+        /// <exception cref="ArgumentException">The value does not meet the documented input requirements.</exception>
+        private static T EnumValue<T>(char tag, string value)
+            where T : struct, Enum
+        {
+            if (!Enum.TryParse(value, true, out T result) || !Enum.IsDefined(result))
+            {
+                throw Invalid(tag, value, string.Join(", ", Enum.GetNames<T>()));
+            }
+
+            return result;
+        }
+
+        /// <summary>Validates a logical name containing exactly six decimal byte components.</summary>
+        /// <param name="tag">Short command-line option identifying the value being validated.</param>
+        /// <param name="value">Raw option value to validate; sensitive display values must be redacted before reporting.</param>
+        /// <returns>The validated logical name with surrounding whitespace removed.</returns>
+        /// <exception cref="ArgumentException">The value does not meet the documented input requirements.</exception>
+        private static string LogicalName(char tag, string value)
+        {
+            string[] parts = value.Trim().Split('.');
+            if (parts.Length != 6 || parts.Any(p => !byte.TryParse(p, NumberStyles.None, CultureInfo.InvariantCulture, out _)))
+            {
+                throw Invalid(tag, value, Properties.Resources.ExpectedLogicalName);
+            }
+
+            return value.Trim();
+        }
+
+        /// <summary>Decodes hexadecimal input and validates optional byte lengths without exposing key material in errors.</summary>
+        /// <param name="tag">Short command-line option identifying the value being validated.</param>
+        /// <param name="value">Raw option value to validate; sensitive display values must be redacted before reporting.</param>
+        /// <param name="lengths">Accepted byte counts; an empty list accepts any nonempty byte sequence.</param>
+        /// <returns>Decoded bytes satisfying the requested length constraints.</returns>
+        /// <exception cref="ArgumentException">The value does not meet the documented input requirements.</exception>
+        private static byte[] Hex(char tag, string value, params int[] lengths)
+        {
+            string hex = new([.. value.Where(c => !char.IsWhiteSpace(c))]);
+            if (hex.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                hex = hex[2..];
+            }
+
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromHexString(hex);
+            }
+            catch (FormatException)
+            {
+                throw Invalid(tag, Properties.Resources.HiddenValue, Properties.Resources.ExpectedHex);
+            }
+
+            if (bytes.Length == 0 || (lengths.Length != 0 && !lengths.Contains(bytes.Length)))
+            {
+                throw Invalid(tag, Properties.Resources.HiddenValue, lengths.Length == 0 ? Properties.Resources.ExpectedHex : string.Format(CultureInfo.CurrentCulture, Properties.Resources.ExpectedBytes, string.Join(" / ", lengths)));
+            }
+
+            return bytes;
+        }
+
+        /// <summary>Writes the localized command-line option list and connection examples to standard output.</summary>
+        private static void ShowHelp() => Console.WriteLine(Properties.Resources.CommandLineHelp);
     }
 }

@@ -1,271 +1,88 @@
-See An [Gurux](http://www.gurux.org/ "Gurux") for an overview.
+# Gurux DLMS Console Client
 
-Join the Gurux Community or follow [@Gurux](https://twitter.com/guruxorg "@Gurux") for project updates.
+A command-line application for reading DLMS/COSEM electricity, gas and water meters over a network or serial connection.
 
-Gurux.DLMS library is a high-performance .NET component that helps you to read you DLMS/COSEM compatible electricity, gas or water meters. We have try to make component so easy to use that you do not need understand protocol at all.
+## Requirements
 
-For more info check out [Gurux.DLMS](http://www.gurux.fi/index.php?q=Gurux.DLMS "Gurux.DLMS").
+- .NET 10 SDK.
+- The connection settings, addresses and credentials required by your meter.
 
-We are updating documentation on Gurux web page. 
+Different meters use different settings. Every value must match what the meter expects. Even one incorrect value can cause the connection to fail or the meter to send no response, resulting in a timeout error.
 
-Read should read [DLMS/COSEM FAQ](http://www.gurux.org/index.php?q=DLMSCOSEMFAQ) first to get started. Read Instructions for making your own [meter reading application](http://www.gurux.org/index.php?q=DLMSIntro) or build own 
-DLMS/COSEM [meter/simulator/proxy](http://www.gurux.org/index.php?q=OwnDLMSMeter).
+Run the following commands from this directory. Replace the example settings with those for your meter.
 
-If you have problems you can ask your questions in Gurux [Forum](http://www.gurux.org/forum).
+## Build and help
 
-You do not nesessary need to use Gurux.Serial or Gurux.Net. 
-You can use any connection library you want to.
-Gurux.DLMS classes only parse the data.
-
-Build
-=========================== 
-
-If you want to build source codes you need Nuget package manager for Visual Studio.
-You can get it here:
-https://visualstudiogallery.msdn.microsoft.com/27077b70-9dad-4c64-adcf-c7cf6bc9970c
-
-
-Simple example
-=========================== 
-Before use you must set following device parameters. 
-Parameters are manufacturer spesific.
-
-
-```c#
-
-GXDLMSClient client = new GXDLMSClient();
-
-// Is used Logican Name or Short Name referencing.
-client.UseLogicalNameReferencing = True;
-
-// Is used HDLC or COSEM transport layers for IPv4 networks
-client.InterfaceType = InterfaceType.General;
-
-// Read http://www.gurux.fi/index.php?q=dlmsAddress
-// to find out how Client and Server addresses are counted.
-// Some manufacturers might use own Server and Client addresses.
-
-client.ClientAddress = 0x21;
-client.ServerAddress = 0x3;
-
+```powershell
+dotnet build Gurux.DLMS.Client.Example.Net.csproj
+dotnet run --project Gurux.DLMS.Client.Example.Net.csproj -- --help
 ```
 
+The build restores the required NuGet packages automatically. Arguments after `--` are passed to the application.
 
-After you have set parameters you can try to connect to the meter.
-First you should send SNRM request and handle UA response.
-After that you will send AARQ request and handle AARE response.
+## Connect and read
 
+### Network (TCP, WRAPPER)
 
-```c#
-
-GXReplyData reply = new GXReplyData();
-byte[] data;
-data = client.SNRMRequest();
-if (data != null)
-{
-    ReadDLMSPacket(data, reply);
-    //Has server accepted client.
-    client.ParseUAResponse(reply.Data);
-}
-
-//Generate AARQ request.
-//Split requests to multiple packets if needed. 
-//If password is used all data might not fit to one packet.
-foreach (byte[] it in client.AARQRequest())          {
-{
-    reply.Clear();
-    ReadDLMSPacket(it, reply);
-}
-//Parse reply.
-client.ParseAAREResponse(reply.Data);
-
+```powershell
+dotnet run --project Gurux.DLMS.Client.Example.Net.csproj -- -h localhost -p 4063 -i WRAPPER -c 1 -s 1 -a Low -P Gurux
 ```
 
-If parameters are right connection is made.
-Next you can read Association view and show all objects that meter can offer.
+### Serial port (HDLC)
 
-```c#
-/// Read Association View from the meter.
-GXReplyData reply = new GXReplyData();
-ReadDataBlock(client.GetObjectsRequest(), reply);
-GXDLMSObjectCollection objects = client.ParseObjects(reply.Data, True);
-
-```
-Now you can read wanted objects. After read you must close the connection by sending
-disconnecting request.
-
-```c#
-GXReplyData reply = new GXReplyData();
-ReadDLMSPacket(client.DisconnectRequest(), reply);
-Media.Close();
-
+```powershell
+dotnet run --project Gurux.DLMS.Client.Example.Net.csproj -- -S COM1:9600:8None1 -i HDLC -c 16 -s 1 -a Low -P password
 ```
 
-```c#
+For an optical connection using IEC Mode E, use `-i HdlcWithModeE` and the serial settings required by your meter.
 
-/// <summary>
-/// Read DLMS Data from the device.
-/// </summary>
-/// <param name="data">Data to send.</param>
-/// <returns>Received data.</returns>
-public void ReadDLMSPacket(byte[] data, GXReplyData reply)
-{
-    if (data == null)
-    {
-        return;
-    }
-    object eop = (byte)0x7E;
-    //In network connection terminator is not used.
-    if (Client.InterfaceType == InterfaceType.WRAPPER && Media is GXNet)
-    {
-        eop = null;
-    }
-    int pos = 0;
-    bool succeeded = false;
-    ReceiveParameters<byte[]> p = new ReceiveParameters<byte[]>()
-    {
-        AllData = true,
-        Eop = eop,
-        Count = 5,
-        WaitTime = WaitTime,
-    };
-    lock (Media.Synchronous)
-    {
-        while (!succeeded && pos != 3)
-        {
-            WriteTrace("<- " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(data, true));
-            Media.Send(data, null);
-            succeeded = Media.Receive(p);
-            if (!succeeded)
-            {
-                //If Eop is not set read one byte at time.
-                if (p.Eop == null)
-                {
-                    p.Count = 1;
-                }
-                //Try to read again...
-                if (++pos != 3)
-                {
-                    System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
-                    continue;
-                }                        
-                throw new Exception("Failed to receive reply from the device in given time.");
-            }
-        }
-        //Loop until whole COSEM packet is received.                
-        while (!Client.GetData(p.Reply, reply))
-        {
-            //If Eop is not set read one byte at time.
-            if (p.Eop == null)
-            {
-                p.Count = 1;
-            }
-            if (!Media.Receive(p))
-            {
-                //Try to read again...
-                if (pos != 3)
-                {
-                    System.Diagnostics.Debug.WriteLine("Data send failed. Try to resend " + pos.ToString() + "/3");
-                    continue;
-                }
-                throw new Exception("Failed to receive reply from the device in given time.");
-            }
-        }
-    }
-    WriteTrace("-> " + DateTime.Now.ToLongTimeString() + "\t" + GXCommon.ToHex(p.Reply, true));
-    if (reply.Error != 0)
-    {
-        throw new GXDLMSException(reply.Error);
-    }
-}
+Not all meters support `HdlcWithModeE`. If your meter does not support it, use `-i HDLC` even when connecting with an optical probe.
 
+### Read specific attributes
+
+Use `-g` with an OBIS logical name and attribute index. Quote multiple entries and separate them with semicolons:
+
+```powershell
+dotnet run --project Gurux.DLMS.Client.Example.Net.csproj -- -h localhost -p 4063 -i WRAPPER -c 1 -a Low -P Gurux -g "0.0.1.0.0.255:2;1.0.1.8.0.255:2"
 ```
 
-Using authentication
+These example entries read the clock and an energy register if the meter exposes them. Without `-g`, the application attempts to read all available readable attributes.
 
-When authentication (Access security) is used server(meter) can allow different rights to  the client.
-Example without authentication (None) only read is allowed.
-Gurux DLMS component supports five different authentication level:
+## Common options
 
-+ None
-+ Low
-+ High
-+ HighMD5
-+ HighSHA1
+Options are case-sensitive; for example, `-p` is the network port and `-P` is the password.
 
-In default Authentication level None is used. If other level is used password must also give.
-Used password depends from the meter.
+| Option | Description |
+| --- | --- |
+| `-h HOST -p PORT` | Network host and port. TCP is used unless `-u` selects UDP. |
+| `-S PORT[:BAUD:FRAMING]` | Serial port, for example `COM1:9600:8None1`. |
+| `-i TYPE` | Interface, for example `HDLC`, `WRAPPER` or `HdlcWithModeE`. |
+| `-c ADDRESS -s ADDRESS` | Client and server addresses (defaults: 16 and 1). |
+| `-r ln` / `-r sn` | Logical name or short name referencing (default: `ln`). |
+| `-a TYPE` | Authentication, for example `None`, `Low` or `HighGMAC`. |
+| `-P PASSWORD` | Authentication password; use `0x` for hexadecimal bytes. |
+| `-g "LN:INDEX;LN:INDEX"` | Read only the selected attributes. |
+| `-o PATH` | Load/save the XML association cache and read results. Use a separate file for each meter and configuration. |
+| `-x MS` | Connection/response timeout in milliseconds (default: 5000). |
+| `-z MS` | Delay after opening the connection (default: 1000); `0` disables it. |
+| `-t Verbose` | Show detailed communication traces. |
 
-```csharp
-client.Authentication = Authentication.HighMD5;
-client.Password = ASCIIEncoding.ASCII.GetBytes("12345678");
-``` 
+Secured meters may also require `-C`, `-V`, `-T`, `-A`, `-B` and invocation-counter settings (`-F` or `-v`). Use `--help` for the full option list and configure these values according to your meter's requirements.
 
-When authentication is High or above High Level security (HLS) is used.
-After connection is made client must send challenge to the server and server must accept this challenge.
-This is done checking is Is Authentication Required after AARE message is parsed.
-If authentication is required client sends challenge to the server and if everything succeeded
-server returns own challenge that client checks.
+## Reading and troubleshooting
 
-```csharp
-//Parse reply.
-Client.ParseAAREResponse(reply.Data);
-//Get challenge Is HSL authentication is used.
-if (Client.IsAuthenticationRequired)
-{
-    reply.Clear();
-    ReadDLMSPacket(Client.GetApplicationAssociationRequest(), reply);
-    Client.ParseApplicationAssociationResponse(reply.Data);
-}
-``` 
+Always let the application finish reading all requested data and close the connection normally. Some meters do not recover properly if reading is interrupted, which can cause the next connection attempt to fail.
 
-Writing values
+If a connection fails, check the host/port or serial settings, interface type, client/server addresses and authentication settings. For timeouts, try a larger value such as `-x 10000`. Use `-t Verbose` for diagnostics.
 
-Writing values to the meter is very simple. There are two ways to do this. 
-First is using Write -method of GXDLMSClient.
+Exit codes:
 
-```csharp
-ReadDLMSPacket(Client.Write("0.0.1.0.0.255", DateTime.Now, 2, DataType.OctetString, ObjectType.Clock, 2), reply);
-``` 
+- `0`: completed successfully or displayed help.
+- `1`: configuration or operation failed.
+- `130`: operation canceled.
 
+Warnings are written to standard error. Cache failures and skipped individual attribute reads may produce warnings even when a broad read completes successfully.
 
-Note!
- Data type must be correct or meter returns usually error.
- If you are reading byte value you can't write UIn16.
+## Development and support
 
-It is easy to write simple data types like this. If you want to write complex data types like arrays there
-is also another way to do this. You can Update Object's propery and then write it.
-In this example we want to update listening window of GXDLMSAutoAnswer object.
-
-```csharp
-//Read Association view and find GXDLMSAutoAnswer object first.
-GXDLMSAutoAnswer item = Client.Object.FindByLN("0.0.2.2.0.255", ObjectType.AutoAnswer);
-//Window time is from 6am to 8am.
-item.ListeningWindow.Add(new KeyValuePair<GXDateTime, GXDateTime>(new GXDateTime(-1, -1, -1, 6, -1, -1, -1), new GXDateTime(-1, -1, -1, 8, -1, -1, -1)));
-ReadDLMSPacket(Client.Write(item, 3));
-``` 
-
-Transport security
-
-DLMS supports tree different transport security. When transport security is used each packet is secured using GMAC security. Security level are:
-* Authentication
-* Encryption
-* AuthenticationEncryption
-
-Using secured messages is easy. Before security can be used following properties must set:
-* Security
-* SystemTitle
-* AuthenticationKey
-* BlockCipherKey
-* FrameCounter
-
-If we want communicate with Gurux DLMS server you just need to set the following settings.
-
-
-```csharp
-GXDLMSSecureClient sc = new GXDLMSSecureClient();
-sc.Ciphering.Security = Security.ENCRYPTION;
-//Default security when using Gurux test server.
-sc.Ciphering.SystemTitle = ASCIIEncoding.ASCII.GetBytes("GRX12345");
-
-```
+For protocol documentation and support, see the [Gurux website](https://www.gurux.org/) and [Gurux forum](https://www.gurux.org/forum).
