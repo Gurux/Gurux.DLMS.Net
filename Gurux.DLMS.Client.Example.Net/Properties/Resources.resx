@@ -10,7 +10,6 @@
   <data name="SelectPrivateKey" xml:space="preserve"><value>Select a PKCS#8 private key file: suite={0}, certificate={1}, key={2}, system title={3}.</value></data>
   <data name="SelectCertificate" xml:space="preserve"><value>Select an X.509 certificate file: suite={0}, certificate={1}, key={2}, system title={3}.</value></data>
   <data name="PemFilePathPrompt" xml:space="preserve"><value>PEM file path: </value></data>
-  <data name="UnknownOption" xml:space="preserve"><value>Unknown option '{0}'. Use --help to list supported options.</value></data>
   <data name="MissingOptionValue" xml:space="preserve"><value>Option {0} requires a value.</value></data>
   <data name="InvalidOptionValue" xml:space="preserve"><value>Option {0}: invalid value '{1}'. Expected {2}.</value></data>
   <data name="HiddenValue" xml:space="preserve"><value>(hidden)</value></data>

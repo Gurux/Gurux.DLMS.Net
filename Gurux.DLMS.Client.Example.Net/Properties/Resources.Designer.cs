@@ -368,15 +368,6 @@ namespace Gurux.DLMS.Client.Example.Net.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown option &apos;{0}&apos;. Use --help to list supported options..
-        /// </summary>
-        internal static string UnknownOption {
-            get {
-                return ResourceManager.GetString("UnknownOption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Warning: {0}.
         /// </summary>
         internal static string WarningMessage {

@@ -45,6 +45,7 @@ namespace Gurux.DLMS.Client.Example.Net
     /// <summary>Validated connection, security and readout options for the console client.</summary>
     public class Settings
     {
+        private static readonly char[] ObjectSeparators = [';', ','];
         /// <summary>Transport selected by the network or serial options; null before selection.</summary>
         public IGXAsyncMedia media;
         /// <summary>Trace verbosity used by the reader; defaults to informational messages.</summary>
@@ -67,8 +68,6 @@ namespace Gurux.DLMS.Client.Example.Net
         public int StartupDelay = 1000;
         /// <summary>Whether an explicit help option was supplied, distinguishing help from missing connection arguments.</summary>
         public bool HelpRequested;
-        /// <summary>Supported single-character command-line options that require a following value.</summary>
-        private const string ValueOptions = "hpcsritaPgSCnvoTABDdlFmEVGMKNWwfLbRxOz";
         /// <summary>Parses and validates all command-line options before opening the transport.</summary>
         /// <param name="args">Command-line tokens configuring the invocation.</param>
         /// <param name="settings">Client transport, protocol and operation settings.</param>
@@ -86,35 +85,33 @@ namespace Gurux.DLMS.Client.Example.Net
                 return 1;
             }
 
-            bool serialFramingSpecified = false;
-            var suppliedKeys = new HashSet<char>();
-            int serverAddress = settings.client.ServerAddress;
-            int? logicalServerAddress = null;
+            const string options = "h:p:c:s:r:i:It:a:P:g:S:C:n:v:o:T:A:B:D:d:l:F:m:E:V:G:M:K:N:W:w:f:L:b:R:ux:O:z:";
+            // Check missing values before the shared parser can consume the next option as a value.
+            // TODO: This is a workaround for a bug in the shared parser. Remove this check when the bug is fixed.
             for (int index = 0; index < args.Length; ++index)
             {
                 string option = args[index];
-                if (option == null || option.Length != 2 || (option[0] != '-' && option[0] != '/') || (!ValueOptions.Contains(option[1]) && option[1] != 'I' && option[1] != 'u'))
-                {
-                    throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Properties.Resources.UnknownOption, option));
-                }
-
-                char tag = option[1];
-                string value = null;
-                if (tag != 'I' && tag != 'u')
+                if (option?.Length == 2 && (option[0] == '-' || option[0] == '/') && options.Contains(option[1] + ":"))
                 {
                     if (++index >= args.Length || args[index] == null || (args[index].Length == 2 && args[index][0] == '-' && char.IsLetter(args[index][1])))
                     {
                         throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Properties.Resources.MissingOptionValue, option));
                     }
-
-                    value = args[index];
                 }
+            }
+            List<GXCmdParameter> parameters = GXCommon.GetParameters(args, options);
 
-                if ("ABbD".Contains(tag))
+            bool serialFramingSpecified = false;
+            int serverAddress = settings.client.ServerAddress;
+            int? logicalServerAddress = null;
+            foreach (GXCmdParameter it in parameters)
+            {
+                char tag = it.Tag;
+                string value = it.Value;
+                if (it.Missing || (tag != 'I' && tag != 'u' && value == null))
                 {
-                    suppliedKeys.Add(tag);
+                    throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Properties.Resources.MissingOptionValue, "-" + tag));
                 }
-
                 switch (tag)
                 {
                     case 'h':
@@ -166,18 +163,11 @@ namespace Gurux.DLMS.Client.Example.Net
                     case 'M':
                         settings.client.ServerSystemTitle = Hex(tag, value, 8);
                         break;
-                    // Validate key lengths after all options, so -V can appear before or after a key.
                     case 'A':
-                        settings.client.Ciphering.AuthenticationKey = Hex(tag, value, 16, 32);
-                        break;
                     case 'B':
-                        settings.client.Ciphering.BlockCipherKey = Hex(tag, value, 16, 32);
-                        break;
                     case 'b':
-                        settings.client.Ciphering.BroadcastBlockCipherKey = Hex(tag, value, 16, 32);
-                        break;
                     case 'D':
-                        settings.client.Ciphering.DedicatedKey = Hex(tag, value, 16, 32);
+                        // Validated and assigned after the final security suite is known.
                         break;
                     case 'F':
                         settings.client.Ciphering.InvocationCounter = (uint)Number(tag, value, 0, uint.MaxValue);
@@ -245,7 +235,7 @@ namespace Gurux.DLMS.Client.Example.Net
                         settings.client.ProposedConformance = conformance;
                         break;
                     case 'g':
-                        foreach (string item in value.Split(';', ','))
+                        foreach (string item in value.Split(ObjectSeparators))
                         {
                             string[] parts = item.Split(':');
                             if (parts.Length != 2)
@@ -319,13 +309,13 @@ namespace Gurux.DLMS.Client.Example.Net
                 throw new ArgumentException(Properties.Resources.TransportRequired);
             }
 
-            if (settings.media is GXNet net)
+            if (settings.media is GXNet network)
             {
-                Required('h', net.HostName);
-                Number('p', net.Port.ToString(CultureInfo.InvariantCulture), 1, 65535);
+                Required('h', network.HostName);
+                Number('p', network.Port.ToString(CultureInfo.InvariantCulture), 1, 65535);
                 if (settings.client.InterfaceType == InterfaceType.CoAP)
                 {
-                    net.Protocol = NetworkType.Udp;
+                    network.Protocol = NetworkType.Udp;
                 }
             }
 
@@ -351,30 +341,42 @@ namespace Gurux.DLMS.Client.Example.Net
             Number('c', settings.client.ClientAddress.ToString(CultureInfo.InvariantCulture), 1, maxClient);
             int maxServer = settings.client.InterfaceType == InterfaceType.WRAPPER ? 65535 : settings.client.InterfaceType == InterfaceType.CoAP ? 255 : 0x0FFFFFFF;
             Number('s', settings.client.ServerAddress.ToString(CultureInfo.InvariantCulture), 0, maxServer);
-            bool needsSymmetricKeys = settings.client.Ciphering.Security != Security.None || settings.client.Authentication == Authentication.HighGMAC;
             int keyLength = settings.client.Ciphering.SecuritySuite == SecuritySuite.Suite2 ? 32 : 16;
-            foreach (var key in new[]
+            foreach (GXCmdParameter parameter in parameters)
             {
-                ('A', settings.client.Ciphering.AuthenticationKey),
-                ('B', settings.client.Ciphering.BlockCipherKey),
-                ('b', settings.client.Ciphering.BroadcastBlockCipherKey),
-                ('D', settings.client.Ciphering.DedicatedKey)
-            }
-
-            )
-            {
-                if (key.Item2 != null && (suppliedKeys.Contains(key.Item1) || (needsSymmetricKeys && (key.Item1 == 'A' || key.Item1 == 'B'))) && key.Item2.Length != keyLength)
+                if (parameter.Tag is not ('A' or 'B' or 'b' or 'D'))
                 {
-                    throw Invalid(key.Item1, Properties.Resources.HiddenValue, string.Format(CultureInfo.CurrentCulture, Properties.Resources.ExpectedBytes, keyLength));
+                    continue;
+                }
+                byte[] key = Hex(parameter.Tag, parameter.Value, keyLength);
+                switch (parameter.Tag)
+                {
+                    case 'A': settings.client.Ciphering.AuthenticationKey = key; break;
+                    case 'B': settings.client.Ciphering.BlockCipherKey = key; break;
+                    case 'b': settings.client.Ciphering.BroadcastBlockCipherKey = key; break;
+                    case 'D': settings.client.Ciphering.DedicatedKey = key; break;
                 }
             }
-
+            if (settings.client.Ciphering.Security != Security.None || settings.client.Authentication == Authentication.HighGMAC)
+            {
+                ValidateKey('A', settings.client.Ciphering.AuthenticationKey, keyLength);
+                ValidateKey('B', settings.client.Ciphering.BlockCipherKey, keyLength);
+            }
             if (settings.GenerateSecuritySetupLN != null && settings.ExportSecuritySetupLN != null)
             {
                 throw new ArgumentException(Properties.Resources.ConflictingCertificateOperations);
             }
 
             return 0;
+        }
+
+        /// <summary>Validates a required symmetric key without exposing its contents.</summary>
+        private static void ValidateKey(char tag, byte[] key, int length)
+        {
+            if (key == null || key.Length != length)
+            {
+                throw Invalid(tag, Properties.Resources.HiddenValue, string.Format(CultureInfo.CurrentCulture, Properties.Resources.ExpectedBytes, length));
+            }
         }
 
         /// <summary>Returns the selected network transport, creating it when no transport has been selected.</summary>
